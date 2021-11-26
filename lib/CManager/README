@@ -1,0 +1,19 @@
+                                   CManager
+=============================================================================
+
+Command Manager is a simple command interpreter designed to handle one liners.
+
+Examples:
+----------
+
+sprint
+sprintln
+set
+add
+sub
+div
+mul
+xor
+or
+and
+pow

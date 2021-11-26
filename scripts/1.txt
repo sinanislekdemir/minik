@@ -1,0 +1,32 @@
+print:
+sprintln test
+---
+test:
+# set global variable to 3
+set test 3
+# ok now let's print it
+call print
+# do a bit of math
+add test 2 test
+# now test shoul be 5, let's print again
+call print
+# now switch to infinite loop test
+call test_two
+---
+test_two:
+set counter 0
+sprintln counter
+add counter 1 counter
+cmp counter 100
+je exit
+goto 1
+---
+exit:
+sprintln "bye!"
+halt
+---
+main:
+# Hi this is the main entry point
+sprintln "Welcome!"
+call test
+---
