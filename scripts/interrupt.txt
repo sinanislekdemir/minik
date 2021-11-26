@@ -1,0 +1,8 @@
+main:
+SPRINTLN "Interrupt listening on PIN 3"
+INT 3 HIGH hello
+SLEEP 60000
+GOTO 2
+hello:
+SPRINTLN "Hello there!"
+CALL main

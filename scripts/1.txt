@@ -1,0 +1,36 @@
+main:
+# Hi this is the main entry point
+SET name "sinan islekdemir"
+SPRINTLN "Welcome!"
+SPRINTLN name
+CPY sub_name 2 3 name
+SPRINTLN sub_name
+CALL test
+---
+print:
+SPRINTLN test
+---
+test:
+# set global variable to 3
+SET test 3
+# ok now let's print it
+CALL print
+# do a bit of math
+ADD test 2 test
+# now test shoul be 5, let's print again
+CALL print
+# now switch to infinite loop test
+CALL test_two
+---
+test_two:
+SET counter 0
+ADD counter 1 counter
+SPRINTLN counter
+CMP counter 100
+JE exit
+GOTO 1
+---
+exit:
+SPRINTLN "bye!"
+HALT
+---
