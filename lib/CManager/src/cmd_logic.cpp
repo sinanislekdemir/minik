@@ -9,7 +9,9 @@ int _quick_jump(command *c, program *_p) {
     // TODO: Raise error no sub
     return -1;
   }
-  _p->append_to_history(sc, scc + 1);
+  // _p->append_to_history(sc, scc + 1);
+  // we dont append because this is an instruction jump
+  // not a method call
   _p->sub_cursor = sub;
   _p->subs[sub].cursor = 0;
   return 0;
