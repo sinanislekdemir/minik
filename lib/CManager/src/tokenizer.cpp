@@ -22,6 +22,7 @@ command parse(const char *cmd, uint pid) {
     args[i].pid = pid;
     args[i].deleted = false;
     args[i].name = (char *)malloc(strlen(temp) + 1);
+    args[i].next = NULL;
 
     memset(args[i].name, 0, strlen(temp) + 1);
     strcpy(args[i].name, temp);
@@ -61,16 +62,6 @@ void destroy_command(command c) {
 }
 
 int validate_command(command *c, const char *cmd, int expected_argc) {
-  if (c->args[0].type != TYPE_VARIABLE) {
-    err.code = ERR_INVALID_PARAMETER_TYPE;
-    err.pid = c->pid;
-    return -1;
-  }
-  if (strcmp(c->command, cmd) != 0) {
-    err.code = ERR_INVALID_COMMAND;
-    err.pid = c->pid;
-    return -1;
-  }
   if (c->argc < expected_argc) {
     err.code = ERR_NOT_ENOUGH_ARGUMENTS;
     err.pid = c->pid;

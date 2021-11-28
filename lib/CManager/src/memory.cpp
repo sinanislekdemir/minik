@@ -1,76 +1,76 @@
 /**
-   We are reserving some capacity for the variables
-   array. This way, we will do less memory swaps
-   and memory copies.
+   We are storing variables at global in a linked list.
+   With linked list, we are avoiding memory swaps while
+   extending arrays. Keep the memory requirements at minimum.
+   Also all memory is shared and accessible.
  */
 #include "memory.hpp"
 #include <Arduino.h>
 
-unsigned int variable_count = 0;
-unsigned int capacity = VARIABLE_CAPACITY_STEP;
-
-variable *variables = new variable[capacity];
+variable root_variable = {(char *)"", (char *)"", 0, 0, 0, false, NULL};
 
 variable *find_variable(const char *name, unsigned int pid) {
-  for (unsigned int i = 0; i < variable_count; i++) {
-    if (strcmp(variables[i].name, name) == 0 && pid == variables[i].pid) {
-      if (variables[i].type == TYPE_VARIABLE) {
-        return find_variable(variables[i].data, pid);
+  variable *node = &root_variable;
+  int c = 0;
+  while (true) {
+    if (node->name != NULL && strcmp(node->name, name) == 0 &&
+        pid == node->pid) {
+      if (node->type == TYPE_VARIABLE && node->data != NULL) {
+        return find_variable(node->data, pid);
       }
-      return &variables[i];
+      return node;
     }
+    node = node->next;
+    if (node == NULL) {
+      break;
+    }
+    c++;
   }
+
   return NULL;
 }
 
 void free_variable(const char *name, unsigned int pid) {
-  for (unsigned int i = 0; i < variable_count; i++) {
-    if (strcmp(variables[i].name, name) == 0 && pid == variables[i].pid) {
-      free(variables[i].data);
-      free(variables[i].name);
-      variables[i].datasize = 0;
-      variables[i].pid = 0;
-      variables[i].deleted = true;
+  /**
+     Free variables allocated data and name,
+     and mark the entry as deleted for future use.
+     But this doesn't actually remove the item totally from the linked list.
+     You need some sort of defrag.
+   */
+  variable *node = &root_variable;
+  while (true) {
+    if (node->name != NULL && strcmp(node->name, name) == 0 &&
+        pid == node->pid) {
+      free(node->data);
+      free(node->name);
+      node->datasize = 0;
+      node->pid = 0;
+      node->deleted = true;
+      break;
+    }
+    node = node->next;
+    if (node == NULL) {
+      break;
     }
   }
-}
-
-void expand_capacity() {
-  capacity += VARIABLE_CAPACITY_STEP;
-  variable *temp = new variable[capacity];
-  for (unsigned int i = 0; i < variable_count; i++) {
-    copy_variable(&temp[i], &variables[i]);
-    free(variables[i].data);
-    free(variables[i].name);
-  }
-  free(variables);
-  variables = temp;
 }
 
 void new_variable(variable *v) {
-  for (unsigned int i = 0; i < variable_count; i++) {
-    if (variables[i].deleted) {
-      copy_variable(&variables[i], v);
-      return;
+  /**
+     Add the variable to the linked list.
+   */
+  variable *node = &root_variable;
+  while (true) {
+    if (node->next == NULL) {
+      node->next = v;
+      break;
     }
-  }
-  copy_variable(&variables[variable_count], v);
-  variable_count++;
-  if (variable_count == capacity) {
-    expand_capacity();
+    node = node->next;
+    if (node == NULL) {
+      // TODO: Raise errro
+      break;
+    }
   }
 }
 
 void defrag_variables() {}
-
-void copy_variable(variable *dest, variable *src) {
-  dest->data = (char *)malloc(src->datasize);
-  memcpy(dest->data, src->data, src->datasize);
-  dest->datasize = src->datasize;
-  dest->name = (char *)malloc(strlen(src->name) + 1);
-  memset(dest->name, 0, strlen(src->name) + 1);
-  memcpy(dest->name, src->name, strlen(src->name));
-  dest->pid = src->pid;
-  dest->type = src->type;
-  dest->deleted = src->deleted;
-}

@@ -17,9 +17,14 @@ int command_serial_println(command *c, program *_p) {
 
   if (c->args[0].type == TYPE_VARIABLE) {
     variable *v = find_variable(c->args[0].data, c->pid);
+    if (v == NULL) {
+      return -1;
+    }
+
     if (v->type == TYPE_NUM) {
       Serial.println(ctod(v->data));
     }
+
     if (v->type == TYPE_STR) {
       Serial.println(v->data);
     }

@@ -3,8 +3,8 @@
 #include "error.hpp"
 #include "helpers.hpp"
 #include "memory.hpp"
-#include <math.h>
 #include "tokenizer.hpp"
+#include <math.h>
 
 extern error err;
 
@@ -29,7 +29,6 @@ int command_add(command *c, program *_p) {
   if (validate_command(c, (const char *)"add", 3) != 0) {
     return -1;
   }
-
   variable *v1 = get_var(c, 1);
   variable *v2 = get_var(c, 2);
 

@@ -18,13 +18,12 @@ struct variable {
   unsigned int pid;
   unsigned int type;
   bool deleted;
+  variable *next;
 };
 
 variable *find_variable(const char *name, unsigned int pid);
 void free_variable(const char *name, unsigned int pid);
-void expand_capacity();
 void new_variable(variable *v);
 void defrag_variables();
-void copy_variable(variable *dest, variable *src);
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef _const_h
 #define _const_h
 
-#define STATEMENT_COUNT 22
+#define STATEMENT_COUNT 23
 
 #define VARIABLE_CAPACITY_STEP 8
 

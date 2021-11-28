@@ -1,31 +1,35 @@
 print:
-sprintln test
+SPRINTLN test
 ---
 test:
 # set global variable to 3
-set test 3
+SET test 3
 # ok now let's print it
-call print
+CALL print
 # do a bit of math
-add test 2 test
+ADD test 2 test
 # now test shoul be 5, let's print again
-call print
+CALL print
 # now switch to infinite loop test
-call test_two
+CALL test_two
 ---
 test_two:
-set counter 0
-sprintln counter
-add counter 1 counter
-cmp counter 100
-je exit
-goto 1
+SET counter 0
+SPRINTLN counter
+ADD counter 1 counter
+CMP counter 100
+JE exit
+GOTO 1
 ---
 exit:
-sprintln "bye!"
+SPRINTLN "bye!"
 ---
 main:
 # Hi this is the main entry point
-sprintln "Welcome!"
-call test
+SET name "sinan islekdemir"
+SPRINTLN "Welcome!"
+SPRINTLN name
+CPY sub_name 2 3 name
+SPRINTLN sub_name
+CALL test
 ---

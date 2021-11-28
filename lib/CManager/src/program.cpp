@@ -12,12 +12,12 @@ program::program() {
   this->sub_cursor = 0;
   this->pid = 0;
   this->exit_code = 0;
-  this->err = nullptr;
+  this->err = NULL;
   for (uint i = 0; i < 16; i++)
     this->back_history[i] = -1;
   this->_sourcecode_cursor = 0;
-  this->subs = nullptr;
-  this->source = nullptr;
+  this->subs = NULL;
+  this->source = NULL;
 }
 
 program::~program() { this->destroy(); }
@@ -45,9 +45,7 @@ int program::previous_sub() {
   return res;
 }
 
-void program::set_cmp_flag(uint flag) {
-  this->_cmp_flag = flag;
-}
+void program::set_cmp_flag(uint flag) { this->_cmp_flag = flag; }
 
 int program::previous_instruction(int index) {
   for (uint i = HISTORY_LIMIT - 1; i >= 0; i--) {
