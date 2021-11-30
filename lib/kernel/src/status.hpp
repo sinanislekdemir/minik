@@ -27,4 +27,8 @@ void set_status(int status);
 void process_status();
 void change_status_pin(int pin);
 void breath();
+
+#ifdef BOARD_ATMEGA
+int free_ram();
+#endif
 #endif

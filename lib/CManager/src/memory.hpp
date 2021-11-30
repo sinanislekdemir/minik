@@ -25,5 +25,6 @@ variable *find_variable(const char *name, unsigned int pid);
 void free_variable(const char *name, unsigned int pid);
 void new_variable(variable *v);
 void defrag_variables();
+void mem_dump();
 
 #endif

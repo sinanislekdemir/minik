@@ -45,7 +45,7 @@ def reader():
 
 
 @click.command('upload')
-@click.option("--port", default="/dev/ttyUSB0", help="Device address")
+@click.option("--port", default="", help="Device address")
 @click.option("--filename", help="File to upload")
 def upload(port: str, filename: str):
     """Upload file to given port."""
@@ -53,8 +53,12 @@ def upload(port: str, filename: str):
     global active
     r = threading.Thread(target=reader)
     r.start()
+    if port == "":
+        port = serial_ports()[0]
     simba = serial.Serial(port=port)
-
+    print("Waiting for connection")
+    while not simba.isOpen():
+        pass
     print(f"Sending file {filename} on port {port}")
     with open(filename, "r") as f:
         bytesw = simba.write(bytes(f.read(), 'ascii'))

@@ -5,16 +5,16 @@
 
 extern error err;
 
-command parse(const char *cmd, uint pid) {
-  command result;
-  uint argument_count = argc(cmd, ' ');
-  uint command_size = extract_size(cmd, ' ', 0);
-  uint argument_size;
-  result.command = extract(cmd, ' ', 0, command_size + 1);
+command *parse(const char *cmd, unsigned int pid) {
+  command *result = (command *)malloc(sizeof(command));
+  unsigned int argument_count = argc(cmd, ' ');
+  unsigned int command_size = extract_size(cmd, ' ', 0);
+  unsigned int argument_size;
+  result->cmd = extract(cmd, ' ', 0, command_size + 1);
 
   variable *args = new variable[argument_count];
 
-  for (uint i = 0; i < argument_count - 1; i++) {
+  for (unsigned int i = 0; i < argument_count - 1; i++) {
     argument_size = extract_size(cmd, ' ', i + 1);
     char *temp = extract(cmd, ' ', i + 1, argument_size + 1);
 
@@ -45,20 +45,11 @@ command parse(const char *cmd, uint pid) {
     free(temp);
   }
 
-  result.argc = argument_count - 1;
-  result.args = args;
-  result.pid = pid;
+  result->argc = argument_count - 1;
+  result->args = args;
+  result->pid = pid;
+  result->next = NULL;
   return result;
-}
-
-void destroy_command(command c) {
-  free(c.command);
-  for (uint i = 0; i < c.argc; i++) {
-    if (c.args[i].data != NULL)
-      free(c.args[i].data);
-    if (c.args[i].data != NULL)
-      free(c.args[i].name);
-  }
 }
 
 int validate_command(command *c, const char *cmd, int expected_argc) {

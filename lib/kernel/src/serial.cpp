@@ -1,6 +1,7 @@
 #include "serial.hpp"
 
-bool ignore(char c) { return (c < 14); }
+bool breaker(char c) { return c == '\n'; }
+bool ignore(char c) { return (c < 32); }
 
 char *serial_getline(int buffer_size) {
   char *result = (char *)malloc(buffer_size);
@@ -14,12 +15,16 @@ char *serial_getline(int buffer_size) {
       continue;
     }
     c = Serial.read();
-    if (ignore(c)) {
+    if (breaker(c)) {
       break;
+    }
+    if (ignore(c)) {
+      continue;
     }
     Serial.print(c);
     result[cursor++] = c;
   }
+
   Serial.println("");
   return result;
 }
@@ -31,39 +36,33 @@ char *serial_get_multiline(int buffer_size) {
 
   char *result = NULL;
   int total_size = 0;
+  int result_size = 0;
   while (true) {
-    char *buffer = serial_getline(buffer_size + 1);
-    buffer[strlen(buffer)] = '\n';
-
-    int read_size = strlen(buffer);
-    total_size += read_size;
-
-    if (strcmp(buffer, ".\n") == 0) {
+    char *buffer = serial_getline(buffer_size);
+    if (strcmp(buffer, ".") == 0) {
       free(buffer);
       break;
     }
-
-    if (read_size < 2) {
+    if (strlen(buffer) < 2) {
       free(buffer);
       continue;
     }
+
+    int buffer_len = strlen(buffer) + 1;
+    total_size += buffer_len;
 
     if (result == NULL) {
-      result = (char *)malloc(read_size);
-      memset(result, '\0', read_size);
-      strcpy(result, buffer);
-      free(buffer);
-      continue;
+      result = (char *)malloc(0);
     }
-
     char *temp = (char *)malloc(total_size + 1);
-    memset(temp, '\0', total_size + 1);
-    strcpy(temp, result);
-    strcpy(temp + strlen(result), buffer);
-
+    memset(temp, 0, total_size + 1);
+    sprintf(temp, "%s\n%s", result, buffer);
+    char *a = result;
     result = temp;
+    free(a);
     free(buffer);
     breath();
   }
+  Serial.println(result);
   return result;
 }

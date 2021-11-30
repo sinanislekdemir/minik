@@ -1,3 +1,12 @@
+main:
+# Hi this is the main entry point
+SET name "sinan islekdemir"
+SPRINTLN "Welcome!"
+SPRINTLN name
+CPY sub_name 2 3 name
+SPRINTLN sub_name
+CALL test
+---
 print:
 SPRINTLN test
 ---
@@ -15,21 +24,13 @@ CALL test_two
 ---
 test_two:
 SET counter 0
-SPRINTLN counter
 ADD counter 1 counter
+SPRINTLN counter
 CMP counter 100
 JE exit
 GOTO 1
 ---
 exit:
 SPRINTLN "bye!"
----
-main:
-# Hi this is the main entry point
-SET name "sinan islekdemir"
-SPRINTLN "Welcome!"
-SPRINTLN name
-CPY sub_name 2 3 name
-SPRINTLN sub_name
-CALL test
+HALT
 ---

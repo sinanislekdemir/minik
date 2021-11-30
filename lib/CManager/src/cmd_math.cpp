@@ -12,12 +12,19 @@ int save_result(command *c, double result) {
   variable *res;
   res = find_variable(c->args[0].data, c->pid);
   if (res == NULL) {
-    err.code = ERR_VARIABLE_NOT_FOUND;
-    err.pid = c->pid;
-    return -1;
+    res = (variable *)malloc(sizeof(variable));
+    res->next = NULL;
+    res->data = NULL;
+    res->type = TYPE_STR;
+    res->pid = c->pid;
+    res->name = (char *)malloc(strlen(c->args[0].data) + 1);
+    memset(res->name, 0, strlen(c->args[0].data) + 1);
+    strcpy(res->name, c->args[0].data);
+    new_variable(res);
   }
-
-  free(res->data);
+  if (res->data != NULL) {
+    free(res->data);
+  }
   res->data = dtoc(result);
   res->datasize = sizeof(double);
   res->deleted = false;

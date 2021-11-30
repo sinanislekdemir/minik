@@ -11,7 +11,6 @@ variable root_variable = {(char *)"", (char *)"", 0, 0, 0, false, NULL};
 
 variable *find_variable(const char *name, unsigned int pid) {
   variable *node = &root_variable;
-  int c = 0;
   while (true) {
     if (node->name != NULL && strcmp(node->name, name) == 0 &&
         pid == node->pid) {
@@ -24,10 +23,24 @@ variable *find_variable(const char *name, unsigned int pid) {
     if (node == NULL) {
       break;
     }
-    c++;
   }
 
   return NULL;
+}
+
+void mem_dump() {
+  variable *node = &root_variable;
+  while (node != NULL) {
+    Serial.print("N: ");
+    Serial.print(node->name);
+    Serial.print(" T: ");
+    Serial.print(node->type);
+    Serial.print(" S: ");
+    Serial.print(node->datasize);
+    Serial.print("bytes PID: ");
+    Serial.println(node->pid);
+    node = node->next;
+  }
 }
 
 void free_variable(const char *name, unsigned int pid) {

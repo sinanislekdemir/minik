@@ -7,9 +7,9 @@ int command_log(command *c, program *_p) {
   char *typestr = (char *)malloc(12);
   memset(typestr, 0, 12);
   if (output == LOG_SERIAL) {
-    Serial.printf("Command: %s \n", c->command);
-    for (uint i = 0; i < c->argc; i++) {
-      Serial.printf("Arg %i:", i);
+    Serial.print("Command: ");
+    Serial.println(c->cmd);
+    for (unsigned int i = 0; i < c->argc; i++) {
       Serial.print("    ");
       Serial.print(c->args[i].data);
       switch (c->args[i].type) {

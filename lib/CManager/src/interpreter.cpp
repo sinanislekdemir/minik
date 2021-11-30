@@ -10,7 +10,7 @@ extern error err;
 
 int run(command *c, program *_p) {
   for (unsigned int i = 0; i < STATEMENT_COUNT; i++) {
-    if (strcmp(c->command, statements[i].command) == 0) {
+    if (strcmp(c->cmd, statements[i].command) == 0) {
       return statements[i].f(c, _p);
     }
   }

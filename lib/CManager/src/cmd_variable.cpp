@@ -16,39 +16,37 @@ int command_set(command *c, program *_p) {
   }
 
   if (c->args[0].type != TYPE_VARIABLE) {
-    err.code = ERR_INVALID_PARAMETER_TYPE;
-    err.pid = c->pid;
     return -1;
   }
 
   variable *v_check = find_variable(c->args[0].data, c->pid);
+  variable *set = get_var(c, 1);
 
   if (v_check == NULL) {
-    variable *v = new variable;
+    variable *v = (variable *)malloc(sizeof(variable));
     v->next = NULL;
+    v->pid = _p->pid;
 
-    int size = strlen(c->args[0].data) + 1;
-
-    v->name = (char *)malloc(size);
-    memset(v->name, 0, size);
+    int size = set->datasize;
+    v->name = (char *)malloc(strlen(c->args[0].data));
     strcpy(v->name, c->args[0].data);
 
-    v->datasize = c->args[1].datasize;
+    v->datasize = set->datasize;
     v->deleted = false;
-    v->data = (char *)malloc(c->args[1].datasize);
+    v->data = (char *)malloc(set->datasize);
 
-    memcpy(v->data, c->args[1].data, c->args[1].datasize);
+    memcpy(v->data, set->data, set->datasize);
 
     v->pid = c->pid;
-    v->type = c->args[1].type;
+    v->type = set->type;
     new_variable(v);
   } else {
     free(v_check->data);
-    v_check->datasize = c->args[1].datasize;
+    v_check->datasize = set->datasize;
     v_check->deleted = false;
-    v_check->type = c->args[1].type;
-    v_check->data = (char *)malloc(c->args[1].datasize);
-    memcpy(v_check->data, c->args[1].data, c->args[1].datasize);
+    v_check->type = set->type;
+    v_check->data = (char *)malloc(set->datasize);
+    memcpy(v_check->data, set->data, set->datasize);
   }
   return 0;
 }
@@ -71,9 +69,11 @@ int command_cpy(command *c, program *_p) {
 
   variable *dest = find_variable(c->args[0].data, c->pid);
   if (dest == NULL) {
-    dest = new variable;
+    dest = (variable *)malloc(sizeof(variable));
     dest->next = NULL;
+    dest->data = NULL;
     dest->type = TYPE_STR;
+    dest->pid = c->pid;
     dest->name = (char *)malloc(strlen(c->args[0].data) + 1);
     memset(dest->name, 0, strlen(c->args[0].data) + 1);
     strcpy(dest->name, c->args[0].data);
@@ -88,7 +88,6 @@ int command_cpy(command *c, program *_p) {
 
   int from_int = int(ctod(from->data));
   int size_int = int(ctod(size->data));
-
   if (dest->data != NULL) {
     free(dest->data);
   }

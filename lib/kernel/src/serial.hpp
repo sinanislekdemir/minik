@@ -5,6 +5,8 @@
 #define _serial_hpp
 
 #define MAX_LINE_LENGTH 128
+#define NL "\n"
+
 #include <Arduino.h>
 #include "status.hpp"
 

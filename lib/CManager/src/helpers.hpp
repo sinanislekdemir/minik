@@ -4,10 +4,11 @@
 #include <Arduino.h>
 
 // strtok should do fine but I need to keep "..." intact
-uint extract_size(const char *text, char delimiter, uint index);
-char *extract(const char *text, char delimiter, uint index, uint size);
-uint argc(const char *text, char delimiter);
-uint arg_type(const char *arg);
+unsigned int extract_size(const char *text, char delimiter, unsigned int index);
+char *extract(const char *text, char delimiter, unsigned int index,
+              unsigned int size);
+unsigned int argc(const char *text, char delimiter);
+unsigned int arg_type(const char *arg);
 char *dtoc(double d);
 double ctod(char *data);
 void ltrim(char *src);

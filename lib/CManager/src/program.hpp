@@ -6,62 +6,51 @@
 #include "error.hpp"
 #include <Arduino.h>
 
+struct command_history {
+  command *item;
+  command_history *next;
+};
+
 struct sub {
-  int instruction_count;
-  /**
-     Back history is used for this:
-
-     main:
-     set text "hi"
-     call print
-     set text "whats up"
-     call print
-     --
-     print:
-     sprintln text
-     --
-
-     when jumping from first call to print sub, jump instruction index is
-     recorded in the back history, so when print sub ends, execution returns
-     back to the last line in history. then the jump gets deleted in history.
-
-     this lets 16 recurses then it's poof.
-   */
-  int back_history[HISTORY_LIMIT];
-  command *instructions;
+  command_history back_history;
+  command *root_instruction;
   char *name;
-  uint cursor;
-  uint exit;
+  command *cursor;
+  unsigned int exit;
+  unsigned int index;
+  sub *next;
+};
+
+struct sub_history {
+  sub *item;
+  sub_history *next;
 };
 
 class program {
 public:
-  int back_history[HISTORY_LIMIT];
-  uint sub_cursor;
-  error *err;
-  sub *subs;
+  sub_history back_history;
+  sub *cursor;
+  sub *main;
   int _line_count;
-  int _sub_count;
-  int _sourcecode_cursor;
-  uint _cmp_flag;
-  int sub_count();
-  int sub_instruction_count(int index);
+  unsigned int _cmp_flag;
+
   int line_count();
-  int compile_sub(int index);
-  int previous_sub();
-  int previous_instruction(int index);
-  int find_sub(char *name);
-  int append_to_history(int index, int jump_line);
+  sub *compile_next_sub();
+  sub *previous_sub();
+  command *previous_instruction();
+  sub *find_sub(char *name);
+  void append_to_history(sub *cursor, command *instruction);
 
   char *source;
-  uint pid;
-  uint exit_code;
+  unsigned int _sourcecode_cursor;
+  unsigned int pid;
+  unsigned int exit_code;
   int compile();
-  program();
+  program(int pid);
   ~program();
   int step();
   void destroy();
-  void set_cmp_flag(uint flag);
+  void set_cmp_flag(unsigned int flag);
 };
 
 #endif

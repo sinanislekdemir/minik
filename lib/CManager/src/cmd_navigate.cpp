@@ -2,44 +2,41 @@
 #include "helpers.hpp"
 
 int command_call(command *c, program *_p) {
-  int sc = _p->sub_cursor;
-  int scc = _p->subs[sc].cursor;
-  int sub = _p->find_sub(_p->subs[sc].instructions[scc].args[0].name);
-  if (sub == -1) {
-    // TODO: Raise error, no sub
+  sub *s = _p->find_sub(c->args[0].name);
+  if (s == NULL) {
+    // TODO: raise error
     return -1;
   }
-  _p->append_to_history(sc, scc + 1);
-  _p->sub_cursor = sub;
-  _p->subs[sub].cursor = 0;
-  return 0;
+  _p->append_to_history(_p->cursor, c);
+  _p->cursor = s;
+  _p->cursor->cursor = _p->cursor->root_instruction;
+  return 1; // don't change cursor
 }
 
 int command_goto(command *c, program *_p) {
-  int sc = _p->sub_cursor;
-  int scc = _p->subs[sc].cursor;
-  if (_p->subs[sc].instructions[scc].argc < 1) {
+  if (c->argc < 1) {
     // TODO: raise no goto found
     return -1;
   }
+  variable *goto_location = get_var(c, 0);
+  if (goto_location->type != TYPE_NUM) {
+    // TODO: raise invalid instructon number;
+    return -1;
+  }
 
-  double goto_location = 0;
-  if (_p->subs[sc].instructions[scc].args[0].type == TYPE_VARIABLE) {
-    variable *v =
-        find_variable(_p->subs[sc].instructions[scc].args[0].data, _p->pid);
-    if (v->type == TYPE_NUM) {
-      goto_location = ctod(v->data);
-    } else {
-      // TODO: raise invalid goto type
-      return -1;
+  int line = int(ctod(goto_location->data));
+  int counter = 0;
+  command *node = _p->cursor->root_instruction;
+  while (node != NULL) {
+    if (counter == line) {
+      _p->cursor->cursor = node;
+      break;
     }
+    counter++;
+    node = node->next;
   }
-  if (_p->subs[sc].instructions[scc].args[0].type == TYPE_NUM) {
-    goto_location = ctod(_p->subs[sc].instructions[scc].args[0].data);
-  }
-  scc = int(goto_location);
-  _p->subs[sc].cursor = scc;
-  return 0;
+
+  return 1;
 }
 
 int command_halt(command *c, program *_p) { return -1; }

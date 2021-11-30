@@ -4,10 +4,12 @@
 #include "memory.hpp"
 
 struct command {
-  char *command;
+  char *cmd;
   variable *args;
   unsigned int argc;
   unsigned int pid;
+  unsigned int index;
+  command *next;
 };
 
 variable *get_var(command *c, int index);

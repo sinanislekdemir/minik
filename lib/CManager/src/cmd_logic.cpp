@@ -2,26 +2,20 @@
 #include "helpers.hpp"
 
 int _quick_jump(command *c, program *_p) {
-  int sc = _p->sub_cursor;
-  int scc = _p->subs[sc].cursor;
-  int sub = _p->find_sub(c->args[0].name);
-  if (sub == -1) {
+  sub *s = _p->find_sub(c->args[0].name);
+  if (s == NULL) {
     // TODO: Raise error no sub
     return -1;
   }
-  // _p->append_to_history(sc, scc + 1);
-  // we dont append because this is an instruction jump
-  // not a method call
-  _p->sub_cursor = sub;
-  _p->subs[sub].cursor = 0;
-  return 0;
+  _p->cursor = s;
+  _p->cursor->cursor = _p->cursor->root_instruction;
+  return 1;
 }
 
 int command_cmp(command *c, program *_p) {
   if (c->argc != 2) {
     return -1;
   }
-
   variable *v1 = get_var(c, 0);
   variable *v2 = get_var(c, 1);
   if (v1->type != v2->type) {

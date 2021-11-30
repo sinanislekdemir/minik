@@ -4,14 +4,15 @@
 
 extern const char *constants[];
 
-uint extract_size(const char *text, char delimiter, uint index) {
+unsigned int extract_size(const char *text, char delimiter,
+                          unsigned int index) {
   int index_counter = 0;
   bool quote_block = false;
-  uint result = 0;
+  unsigned int result = 0;
 
-  for (uint i = 0; i < strlen(text); i++) {
+  for (unsigned int i = 0; i < strlen(text); i++) {
     if (index_counter == index) {
-      for (uint j = i; j < strlen(text); j++) {
+      for (unsigned int j = i; j < strlen(text); j++) {
         if (text[j] == '"') {
           quote_block = !quote_block;
         }
@@ -38,19 +39,21 @@ uint extract_size(const char *text, char delimiter, uint index) {
 }
 
 // strtok should do fine but I need to keep "..." intact
-char *extract(const char *text, char delimiter, uint index, uint size) {
+char *extract(const char *text, char delimiter, unsigned int index,
+              unsigned int size) {
   // Extract the given parameter from a full string and return *back
 
   int cursor = 0;
   int index_counter = 0;
   bool quote_block = false;
+  char *back = NULL;
 
-  for (uint i = 0; i < strlen(text); i++) {
+  for (unsigned int i = 0; i < strlen(text); i++) {
     if (index_counter == index) {
-      char *back = (char *)malloc(size);
+      back = (char *)malloc(size);
       memset(back, 0, size);
 
-      for (uint j = i; j < strlen(text); j++) {
+      for (unsigned int j = i; j < strlen(text); j++) {
         if (text[j] == '"') {
           quote_block = !quote_block;
         }
@@ -73,14 +76,14 @@ char *extract(const char *text, char delimiter, uint index, uint size) {
       index_counter++;
     }
   }
-  return NULL;
+  return back;
 }
 
-uint argc(const char *text, char delimiter) {
+unsigned int argc(const char *text, char delimiter) {
   // return argument count given in a text
   bool string_literal = false;
-  uint count = 1;
-  for (uint i = 0; i < strlen(text); i++) {
+  unsigned int count = 1;
+  for (unsigned int i = 0; i < strlen(text); i++) {
     if (text[i] == '"') {
       string_literal = !string_literal;
     }
@@ -91,7 +94,7 @@ uint argc(const char *text, char delimiter) {
   return count;
 }
 
-uint arg_type(const char *arg) {
+unsigned int arg_type(const char *arg) {
   // return the argument's type
   if (strlen(arg) == 0) {
     return TYPE_NONE;
@@ -105,7 +108,7 @@ uint arg_type(const char *arg) {
   if (isdigit(arg[0])) {
     return TYPE_NUM;
   }
-  for (u_int i = 0; i < CONSTANT_COUNT; i++) {
+  for (unsigned int i = 0; i < CONSTANT_COUNT; i++) {
     if (strcmp(arg, constants[i]) == 0) {
       return TYPE_CONSTANT;
     }

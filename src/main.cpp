@@ -1,9 +1,9 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <WiFiMulti.h>
+//#include <WiFi.h>
+//#include <WiFiMulti.h>
 #include <kernel.hpp>
 
-WiFiMulti WiFiMulti;
+// WiFiMulti WiFiMulti;
 
 void setup() {
   kmain();

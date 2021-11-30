@@ -4,7 +4,7 @@
    Main Kernel Entrypoint
  */
 int kmain() {
-  program *prog = new program();
+  program *prog = new program(1);
   change_status_pin(STATUS_PIN);
   set_status(BOOT);
   breath();
@@ -17,21 +17,36 @@ int kmain() {
   set_status(SERIAL_PORT_OPENED);
   register_statements();
   breath();
+  Serial.print("Platform ");
+#ifdef BOARD_ESP32
+  Serial.println("ESP32");
+#endif
+#ifdef BOARD_ATMEGA
+  Serial.println("ATMEGA");
+#endif
   Serial.println("Simba Kernel KMain");
 
   Serial.println("Ready to receive source code");
   Serial.flush();
-
+#ifdef BOARD_ATMEGA
+  Serial.print("Free ram: ");
+  Serial.println(free_ram());
+#endif
   prog->source = serial_get_multiline(MAX_LINE_LENGTH);
   Serial.println("Program source initialized");
   prog->compile();
-  Serial.println("Program compiled");
-  Serial.printf("Program size %d  bytes\n", sizeof(*prog));
 
-  Serial.printf("# Subs %d\n", prog->sub_count());
   while (prog->step() == RUNNING) {
   }
-
+#ifdef BOARD_ATMEGA
+  Serial.print("Free ram: ");
+  Serial.println(free_ram());
+#endif
+  delete prog;
+#ifdef BOARD_ATMEGA
+  Serial.print("Free ram after cleanup: ");
+  Serial.println(free_ram());
+#endif
   stop();
   return 0;
 }
@@ -48,6 +63,5 @@ void stop() {
 
 char *kernel_stats(program *p) {
   char *result = (char *)malloc(1024);
-  sprintf(result, "Free heap: %d\n", ESP.getFreeHeap());
   return result;
 }
