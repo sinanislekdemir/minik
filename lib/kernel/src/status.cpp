@@ -39,10 +39,16 @@ void process_status() {
 }
 
 void breath() { process_status(); }
-#ifdef BOARD_ATMEGA
+
 int free_ram() {
+#ifdef BOARD_ATMEGA
   extern int __heap_start, *__brkval;
   int v;
   return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
-}
 #endif
+
+#ifdef BOARD_ESP32
+  return ESP.getFreeHeap();
+#endif
+  return 0;
+}

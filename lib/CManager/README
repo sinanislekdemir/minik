@@ -1,19 +1,17 @@
                                    CManager
 =============================================================================
 
-Command Manager is a simple command interpreter designed to handle one liners.
+  Command Manager is a simple command interpreter designed like a pseudo-asm
+syntax;
 
-Examples:
-----------
-
-sprint
-sprintln
-set
-add
-sub
-div
-mul
-xor
-or
-and
-pow
+Build flags:
+      -DENABLE_EXCEPTIONS : Compile the code with validations and exception
+                          handling. This is enabled by-default in minik
+                          build_flags. This comes with a execution
+                          overhead for checking many error cases. Without
+                          ENABLE_EXCEPTIONS, your scripts will not be checked
+                          and will always be trusted. If your codes have
+                          problems, this can lead to minik crash because
+                          kernel will not be protected from mistakes your
+                          code does on the cpu when kernel handles the
+                          execution to your code.

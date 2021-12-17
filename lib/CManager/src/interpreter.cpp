@@ -1,21 +1,24 @@
 #include "interpreter.hpp"
-#include "constants.hpp"
-#include "error.hpp"
-#include "helpers.hpp"
-#include "program.hpp"
 #include "statement.hpp"
 
-extern statement statements[STATEMENT_COUNT];
-extern error err;
+extern statement *root_statement;
 
 int run(command *c, program *_p) {
-  for (unsigned int i = 0; i < STATEMENT_COUNT; i++) {
-    if (strcmp(c->cmd, statements[i].command) == 0) {
-      return statements[i].f(c, _p);
+  statement *node = root_statement;
+  while (node != NULL) {
+    if (strcmp(c->cmd, node->command) == 0) {
+      return node->f(c, _p);
     }
+    node = node->next;
   }
 
-  err.code = ERR_COMMAND_NOT_UNDERSTOOD;
-  err.pid = c->pid;
+#ifdef ENABLE_EXCEPTIONS
+  char *msg = (char *)malloc(64);
+  memset(msg, 0, 64);
+  sprintf(msg, "Invalid command [%s]", c->cmd);
+  c->exception = raise(msg, c->pid, ERR_INVALID_COMMAND);
+  free(msg);
+#endif
+
   return -1;
 }

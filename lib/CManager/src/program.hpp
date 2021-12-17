@@ -3,7 +3,6 @@
 
 #include "command.hpp"
 #include "constants.hpp"
-#include "error.hpp"
 #include <Arduino.h>
 
 struct command_history {
@@ -27,14 +26,18 @@ struct sub_history {
 };
 
 class program {
+private:
+  bool _serial_input;
+  char *_serial_buffer;
+  unsigned int _line_count;
+
 public:
+  unsigned int _cmp_flag;
   sub_history back_history;
   sub *cursor;
   sub *main;
-  int _line_count;
-  unsigned int _cmp_flag;
 
-  int line_count();
+  unsigned int line_count();
   sub *compile_next_sub();
   sub *previous_sub();
   command *previous_instruction();

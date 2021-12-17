@@ -5,6 +5,5 @@
 #include <Arduino.h>
 
 command *parse(const char *cmd, unsigned int pid);
-int validate_command(command *c, const char *cmd, int expected_argc);
 
 #endif

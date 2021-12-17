@@ -11,9 +11,16 @@ int kmain() {
 
   Serial.begin(9600);
   set_status(READY);
+#ifdef BOARD_ESP32
+  while (!Serial.available()) {
+    breath();
+  }
+#endif
+#ifdef BOARD_ATMEGA
   while (!Serial) {
     breath();
   }
+#endif
   set_status(SERIAL_PORT_OPENED);
   register_statements();
   breath();
@@ -25,28 +32,35 @@ int kmain() {
   Serial.println("ATMEGA");
 #endif
   Serial.println("Simba Kernel KMain");
-
   Serial.println("Ready to receive source code");
   Serial.flush();
-#ifdef BOARD_ATMEGA
   Serial.print("Free ram: ");
   Serial.println(free_ram());
-#endif
+  Serial.println("ready to receive");
   prog->source = serial_get_multiline(MAX_LINE_LENGTH);
   Serial.println("Program source initialized");
+
+  unsigned long start, compile, end;
+  start = millis();
+
   prog->compile();
+  compile = millis();
+  Serial.print("Compile: ");
+  Serial.print(compile - start);
+  Serial.println(" mseconds");
 
   while (prog->step() == RUNNING) {
   }
-#ifdef BOARD_ATMEGA
+  end = millis();
+
+  Serial.print("Execution: ");
+  Serial.print(end - compile);
+  Serial.println(" mseconds");
   Serial.print("Free ram: ");
   Serial.println(free_ram());
-#endif
   delete prog;
-#ifdef BOARD_ATMEGA
   Serial.print("Free ram after cleanup: ");
   Serial.println(free_ram());
-#endif
   stop();
   return 0;
 }

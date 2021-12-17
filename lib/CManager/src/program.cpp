@@ -1,5 +1,4 @@
 #include "program.hpp"
-#include "error.hpp"
 #include "helpers.hpp"
 #include "interpreter.hpp"
 #include "tokenizer.hpp"
@@ -7,6 +6,9 @@
 extern error err;
 
 program::program(int pid) {
+  if (pid == 0) {
+    pid = 1;
+  }
   this->_line_count = -1;
   this->main = NULL;
   this->cursor = NULL;
@@ -36,19 +38,40 @@ void _free_instructions(command *head) {
   }
 }
 
+void _free_jump_history(command_history *head) {
+  command_history *tmp;
+  while (head != NULL) {
+    tmp = head;
+    head = head->next;
+    free(tmp);
+  }
+}
+
 void _free_subs(sub *head) {
   sub *tmp;
   while (head != NULL) {
     tmp = head;
     head = head->next;
     free(tmp->name);
+    _free_jump_history(&tmp->back_history);
     _free_instructions(tmp->root_instruction);
     free(tmp);
   }
 }
 
+void _free_sub_history(sub_history *head) {
+  sub_history *tmp;
+  while (head != NULL) {
+    tmp = head;
+    head = head->next;
+    free(tmp);
+  }
+}
+
 void program::destroy() {
+  _free_sub_history(&this->back_history);
   _free_subs(this->main);
+  free_program(this->pid);
   Serial.println("Program destroyed;");
 }
 
@@ -178,7 +201,7 @@ int program::step() {
   return RUNNING;
 }
 
-int program::line_count() {
+unsigned int program::line_count() {
   if (this->_line_count > -1) {
     return this->_line_count;
   }
@@ -197,6 +220,7 @@ sub *program::compile_next_sub() {
 
   for (unsigned int i = p; i < this->line_count(); i++) {
     char *buffer = extract(this->source, '\n', i, MAX_LINE_LENGTH);
+
     this->_sourcecode_cursor = i;
     if (strlen(buffer) < 3 || buffer[0] == '#') {
       free(buffer);

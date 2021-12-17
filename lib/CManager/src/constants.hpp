@@ -35,5 +35,7 @@
 #define ERR_INVALID_PARAMETER_TYPE 102
 #define ERR_COMMAND_NOT_UNDERSTOOD 200
 #define ERR_VARIABLE_NOT_FOUND 404
+#define ERR_ADDRESS_NOT_FOUND 405
 
+const char *type_tostr(int type);
 #endif

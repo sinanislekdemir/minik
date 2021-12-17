@@ -3,10 +3,16 @@
 
 int command_call(command *c, program *_p) {
   sub *s = _p->find_sub(c->args[0].name);
+#ifdef ENABLE_EXCEPTIONS
   if (s == NULL) {
-    // TODO: raise error
+    char *msg = (char *)malloc(64);
+    memset(msg, 0, 64);
+    sprintf(msg, "Call location [%s] not found", c->args[0].name);
+    c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
+    free(msg);
     return -1;
   }
+#endif
   _p->append_to_history(_p->cursor, c);
   _p->cursor = s;
   _p->cursor->cursor = _p->cursor->root_instruction;
@@ -14,15 +20,28 @@ int command_call(command *c, program *_p) {
 }
 
 int command_goto(command *c, program *_p) {
+#ifdef ENABLE_EXCEPTIONS
   if (c->argc < 1) {
-    // TODO: raise no goto found
+    char *msg = (char *)malloc(64);
+    memset(msg, 0, 64);
+    sprintf(msg, "GOTO target is not defined");
+    c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
+    free(msg);
     return -1;
   }
+#endif
   variable *goto_location = get_var(c, 0);
+#ifdef ENABLE_EXCEPTIONS
   if (goto_location->type != TYPE_NUM) {
-    // TODO: raise invalid instructon number;
+    char *msg = (char *)malloc(64);
+    memset(msg, 0, 64);
+    sprintf(msg, "GOTO target is not a valid NUMBER, got [%s]",
+            type_tostr(goto_location->type));
+    c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
+    free(msg);
     return -1;
   }
+#endif
 
   int line = int(ctod(goto_location->data));
   int counter = 0;

@@ -1,8 +1,6 @@
 #ifndef _helpers_h
 #define _helpers_h
 
-#include <Arduino.h>
-
 // strtok should do fine but I need to keep "..." intact
 unsigned int extract_size(const char *text, char delimiter, unsigned int index);
 char *extract(const char *text, char delimiter, unsigned int index,

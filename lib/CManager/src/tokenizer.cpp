@@ -1,9 +1,6 @@
 #include "tokenizer.hpp"
 #include "constants.hpp"
-#include "error.hpp"
 #include "helpers.hpp"
-
-extern error err;
 
 command *parse(const char *cmd, unsigned int pid) {
   command *result = (command *)malloc(sizeof(command));
@@ -49,14 +46,6 @@ command *parse(const char *cmd, unsigned int pid) {
   result->args = args;
   result->pid = pid;
   result->next = NULL;
+  result->exception = NULL;
   return result;
-}
-
-int validate_command(command *c, const char *cmd, int expected_argc) {
-  if (c->argc < expected_argc) {
-    err.code = ERR_NOT_ENOUGH_ARGUMENTS;
-    err.pid = c->pid;
-    return -1;
-  }
-  return 0;
 }

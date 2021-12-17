@@ -32,4 +32,4 @@ void setup() {
   // delay(500);
 }
 
-void loop() { delay(60 * 1000); }
+void loop() { delay(1000); }

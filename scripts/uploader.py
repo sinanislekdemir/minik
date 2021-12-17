@@ -10,6 +10,7 @@ import serial
 
 active = True
 simba = None
+ready = False
 
 
 def serial_ports() -> List[str]:
@@ -37,10 +38,14 @@ def serial_ports() -> List[str]:
 
 def reader():
     """Read data thread."""
+    global ready
     while active:
         if simba is not None:
             line = simba.readline()
-            print(line.decode('ascii', errors="ignore"), end='')
+            tmp = line.decode('ascii', errors="ignore")
+            if 'ready to receive' in tmp:
+                ready = True
+            print(tmp, end='')
             sys.stdout.flush()
 
 
@@ -51,13 +56,15 @@ def upload(port: str, filename: str):
     """Upload file to given port."""
     global simba
     global active
+    global ready
     r = threading.Thread(target=reader)
     r.start()
     if port == "":
         port = serial_ports()[0]
     simba = serial.Serial(port=port)
+    simba.write(bytes("#ignore\n", 'ascii'))
     print("Waiting for connection")
-    while not simba.isOpen():
+    while not ready:
         pass
     print(f"Sending file {filename} on port {port}")
     with open(filename, "r") as f:

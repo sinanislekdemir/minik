@@ -7,10 +7,10 @@
 #define MAX_LINE_LENGTH 128
 #define NL "\n"
 
-#include <Arduino.h>
 #include "status.hpp"
+#include <Arduino.h>
 
-char *serial_getline(int buffer_size);
-char *serial_get_multiline(int buffer_size);
+int serial_getline(unsigned int buffer_size, char *back);
+char *serial_get_multiline(unsigned int buffer_size);
 
 #endif

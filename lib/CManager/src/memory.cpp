@@ -5,6 +5,7 @@
    Also all memory is shared and accessible.
  */
 #include "memory.hpp"
+#include "constants.hpp"
 #include <Arduino.h>
 
 variable root_variable = {(char *)"", (char *)"", 0, 0, 0, false, NULL};
@@ -26,6 +27,27 @@ variable *find_variable(const char *name, unsigned int pid) {
   }
 
   return NULL;
+}
+
+void free_program(unsigned int pid) {
+  if (pid == 0) {
+    // 0 is reserved pid;
+    return;
+  }
+
+  variable *head = &root_variable;
+  variable *tmp;
+  while (head != NULL) {
+    tmp = head;
+    head = head->next;
+    if (tmp->pid == pid) {
+      if (tmp->name != NULL)
+        free(tmp->name);
+      if (tmp->data != NULL)
+        free(tmp->data);
+      free(tmp);
+    }
+  }
 }
 
 void mem_dump() {
