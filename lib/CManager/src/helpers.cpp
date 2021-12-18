@@ -6,7 +6,7 @@ extern const char *constants[];
 
 unsigned int extract_size(const char *text, char delimiter,
                           unsigned int index) {
-  int index_counter = 0;
+  unsigned int index_counter = 0;
   bool quote_block = false;
   unsigned int result = 0;
 
@@ -44,7 +44,7 @@ char *extract(const char *text, char delimiter, unsigned int index,
   // Extract the given parameter from a full string and return *back
 
   int cursor = 0;
-  int index_counter = 0;
+  unsigned int index_counter = 0;
   bool quote_block = false;
   char *back = NULL;
 

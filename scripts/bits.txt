@@ -1,0 +1,19 @@
+main:
+SPRINTLN "Bit operations test"
+SET byte 16
+SPRINT "byte = "
+SPRINTLN byte
+LROTATE byte 2
+SPRINT "l-rotate 2 = "
+SPRINTLN byte
+RROTATE byte 2
+SPRINT "r-rotate 2 = "
+SPRINTLN byte
+LSHIFT byte 3
+SPRINT "l-shift 3 = "
+SPRINTLN byte
+RSHIFT byte 3
+SPRINT "r-shift 3 = "
+SPRINTLN byte
+HALT
+---

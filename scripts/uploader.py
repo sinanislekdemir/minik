@@ -9,8 +9,9 @@ import click
 import serial
 
 active = True
-simba = None
+socket = None
 ready = False
+shutdown = False
 
 
 def serial_ports() -> List[str]:
@@ -38,14 +39,22 @@ def serial_ports() -> List[str]:
 
 def reader():
     """Read data thread."""
-    global ready
+    global ready, shutdown
     while active:
-        if simba is not None:
-            line = simba.readline()
-            tmp = line.decode('ascii', errors="ignore")
-            if 'ready to receive' in tmp:
+        if socket is not None:
+            buffer = ""
+            while socket.in_waiting:
+                data = socket.read(size=1)
+                data_s = data.decode('ascii', errors="ignore")
+                print(data_s, end="")
+                buffer += data_s
+
+            if 'ready to receive' in buffer:
                 ready = True
-            print(tmp, end='')
+            if '.shutdown.' in buffer:
+                shutdown = True
+                return True
+
             sys.stdout.flush()
 
 
@@ -54,26 +63,29 @@ def reader():
 @click.option("--filename", help="File to upload")
 def upload(port: str, filename: str):
     """Upload file to given port."""
-    global simba
+    global socket
     global active
     global ready
     r = threading.Thread(target=reader)
     r.start()
     if port == "":
         port = serial_ports()[0]
-    simba = serial.Serial(port=port)
-    simba.write(bytes("#ignore\n", 'ascii'))
+    socket = serial.Serial(port=port)
+    socket.write(bytes("#ignore\n", 'ascii'))
     print("Waiting for connection")
     while not ready:
         pass
     print(f"Sending file {filename} on port {port}")
     with open(filename, "r") as f:
-        bytesw = simba.write(bytes(f.read(), 'ascii'))
-    simba.write(bytes("\n.\n", 'ascii'))
-    simba.flush()
+        bytesw = socket.write(bytes(f.read(), 'ascii'))
+    socket.write(bytes("\n.\n", 'ascii'))
+    socket.flush()
     print(f"{bytesw} bytes written")
-    print("Closing in 3 seconds")
-    sleep(3)
+    while not shutdown:
+        data = input("")
+        socket.write(bytes(data+"\n", 'ascii'))
+        socket.flush()
+
     r.join()
     active = False
 

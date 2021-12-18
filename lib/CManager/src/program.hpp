@@ -28,7 +28,7 @@ struct sub_history {
 class program {
 private:
   bool _serial_input;
-  unsigned int _line_count;
+  int _line_count;
 
 public:
   unsigned int _cmp_flag;

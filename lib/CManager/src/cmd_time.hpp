@@ -4,5 +4,6 @@
 #include "program.hpp"
 
 int command_sleep(command *c, program *_p);
+int command_millis(command *c, program *_p);
 
 #endif

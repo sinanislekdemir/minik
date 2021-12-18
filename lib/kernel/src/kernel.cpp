@@ -31,7 +31,7 @@ int kmain() {
 #ifdef BOARD_ATMEGA
   Serial.println("ATMEGA");
 #endif
-  Serial.println("Simba Kernel KMain");
+  Serial.println("Minik Kernel KMain");
   Serial.println("Ready to receive source code");
   Serial.flush();
   Serial.print("Free ram: ");
@@ -66,9 +66,14 @@ int kmain() {
 }
 
 void stop() {
+#ifdef BOARD_ESP32
+  Serial.println(".shutdown.");
+#endif
+#ifdef BOARD_ATMEGA
   if (Serial) {
-    Serial.println("Simba shutdown");
+    Serial.println(".shutdown.");
   }
+#endif
   set_status(STOP);
   while (1) {
     breath();

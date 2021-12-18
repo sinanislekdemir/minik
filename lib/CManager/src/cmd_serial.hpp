@@ -5,6 +5,6 @@
 
 int command_serial_println(command *c, program *_p);
 int command_serial_print(command *c, program *_p);
-int command_serial_read(command *c, program *_p);
+int command_getln(command *c, program *_p);
 
 #endif

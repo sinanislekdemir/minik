@@ -15,5 +15,5 @@ struct command {
 };
 
 variable *get_var(command *c, int index);
-int validate_command(command *c, const char *cmd, int expected_argc);
+int validate_command(command *c, const char *cmd, unsigned int expected_argc);
 #endif

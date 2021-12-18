@@ -213,7 +213,7 @@ int program::step() {
 }
 
 unsigned int program::line_count() {
-  if (this->_line_count > -1) {
+  if (this->_line_count >= 0) {
     return this->_line_count;
   }
   this->_line_count = argc(this->source, '\n');

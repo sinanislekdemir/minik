@@ -1,0 +1,8 @@
+main:
+SPRINT "What is your name? "
+SREADLN name 32
+SPRINT "Welcome "
+SPRINTLN name
+HALT
+---
+

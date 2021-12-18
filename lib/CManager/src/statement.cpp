@@ -40,6 +40,7 @@ void register_statements() {
    */
   add_statement("SPRINT", command_serial_print);
   add_statement("SPRINTLN", command_serial_println);
+  add_statement("SREADLN", command_getln);
   add_statement("GOTO", command_goto);
   add_statement("CALL", command_call);
 
@@ -71,4 +72,5 @@ void register_statements() {
   add_statement("RSHIFT", command_rshift);
 
   add_statement("SLEEP", command_sleep);
+  add_statement("MILLIS", command_millis);
 }

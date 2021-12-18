@@ -162,7 +162,7 @@ int command_lrotate(command *c, program *_p) {
   int bits = int(ctod(v2->data));
   byte = (byte << bits) | (byte >> (BITS - bits));
 
-  v2->data = dtoc(double(byte));
+  v1->data = dtoc(double(byte));
   return 0;
 }
 
@@ -178,7 +178,7 @@ int command_rrotate(command *c, program *_p) {
   int bits = int(ctod(v2->data));
   byte = (byte >> bits) | (byte << (BITS - bits));
 
-  v2->data = dtoc(double(byte));
+  v1->data = dtoc(double(byte));
   return 0;
 }
 
@@ -194,7 +194,7 @@ int command_lshift(command *c, program *_p) {
   int bits = int(ctod(v2->data));
   byte = byte << bits;
 
-  v2->data = dtoc(double(byte));
+  v1->data = dtoc(double(byte));
   return 0;
 }
 
@@ -210,6 +210,6 @@ int command_rshift(command *c, program *_p) {
   int bits = int(ctod(v2->data));
   byte = byte >> bits;
 
-  v2->data = dtoc(double(byte));
+  v1->data = dtoc(double(byte));
   return 0;
 }
