@@ -4,6 +4,7 @@
 #include "cmd_math.hpp"
 #include "cmd_navigate.hpp"
 #include "cmd_serial.hpp"
+#include "cmd_time.hpp"
 #include "cmd_variable.hpp"
 #include "constants.hpp"
 #include "helpers.hpp"
@@ -68,4 +69,6 @@ void register_statements() {
   add_statement("RROTATE", command_rrotate);
   add_statement("LSHIFT", command_lshift);
   add_statement("RSHIFT", command_rshift);
+
+  add_statement("SLEEP", command_sleep);
 }

@@ -28,7 +28,6 @@ struct sub_history {
 class program {
 private:
   bool _serial_input;
-  char *_serial_buffer;
   unsigned int _line_count;
 
 public:
@@ -36,6 +35,10 @@ public:
   sub_history back_history;
   sub *cursor;
   sub *main;
+
+  bool _sleep;
+  unsigned long _sleep_start;
+  unsigned long _sleep_duration;
 
   unsigned int line_count();
   sub *compile_next_sub();

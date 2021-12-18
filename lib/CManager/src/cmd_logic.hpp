@@ -1,5 +1,5 @@
-#ifndef _logic_hpp
-#define _logic_hpp
+#ifndef _cmd_logic_hpp
+#define _cmd_logic_hpp
 
 #include "program.hpp"
 

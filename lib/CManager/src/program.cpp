@@ -19,6 +19,10 @@ program::program(int pid) {
   this->pid = pid;
   this->exit_code = 0;
   this->source = NULL;
+
+  this->_sleep = false;
+  this->_sleep_start = 0;
+  this->_sleep_duration = 0;
 }
 
 program::~program() { this->destroy(); }
@@ -41,9 +45,9 @@ void _free_instructions(command *head) {
 void _free_jump_history(command_history *head) {
   command_history *tmp;
   while (head != NULL) {
-    tmp = head;
-    head = head->next;
-    free(tmp);
+    tmp = head->next;
+    free(head);
+    head = tmp;
   }
 }
 
@@ -53,7 +57,7 @@ void _free_subs(sub *head) {
     tmp = head;
     head = head->next;
     free(tmp->name);
-    _free_jump_history(&tmp->back_history);
+    _free_jump_history(tmp->back_history.next);
     _free_instructions(tmp->root_instruction);
     free(tmp);
   }
@@ -62,17 +66,16 @@ void _free_subs(sub *head) {
 void _free_sub_history(sub_history *head) {
   sub_history *tmp;
   while (head != NULL) {
-    tmp = head;
-    head = head->next;
-    free(tmp);
+    tmp = head->next;
+    free(head);
+    head = tmp;
   }
 }
 
 void program::destroy() {
-  _free_sub_history(&this->back_history);
+  _free_sub_history(this->back_history.next);
   _free_subs(this->main);
   free_program(this->pid);
-  Serial.println("Program destroyed;");
 }
 
 sub *program::previous_sub() {
@@ -163,8 +166,18 @@ void program::append_to_history(sub *cursor, command *instruction) {
 }
 
 int program::step() {
+  if (this->_sleep) {
+    unsigned long now = millis();
+    if (now - this->_sleep_start >= this->_sleep_duration) {
+      this->_sleep = false;
+      this->_sleep_start = 0;
+      this->_sleep_duration = 0;
+    } else {
+      return RUNNING;
+    }
+  }
+
   if (this->cursor == NULL) {
-    Serial.println("Exit 1");
     return PROGRAM_END;
   }
 
@@ -176,7 +189,6 @@ int program::step() {
   int result = run(this->cursor->cursor, this);
   if (result == -1) {
     // TODO: raise
-    Serial.println("EXIT CMD");
     Serial.println(this->cursor->cursor->cmd);
     return PROGRAM_END;
   }
@@ -189,7 +201,6 @@ int program::step() {
     // end of the instructions, head back to caller;
     this->cursor = this->previous_sub();
     if (this->cursor == NULL) {
-      Serial.println("Exit 3");
       return PROGRAM_END;
     }
   }

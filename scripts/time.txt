@@ -1,0 +1,16 @@
+main:
+SET counter 0
+SET limit 10
+CALL loop
+---
+loop:
+ADD counter 1 counter
+SPRINTLN counter
+SLEEP 1000
+CMP counter limit
+JE exit
+GOTO 0
+---
+exit:
+HALT
+---
