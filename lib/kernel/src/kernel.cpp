@@ -1,29 +1,29 @@
 #include "kernel.hpp"
+#include "daemon.hpp"
+#include "source.hpp"
+#include "tasks.hpp"
+
+int serial_lock;
+int kernel_next_pid;
+
+extern daemon_task daemons;
+extern StatusEngine *status_engine;
+extern SourceEngine *source_engine;
 
 /**
    Main Kernel Entrypoint
  */
 int kmain() {
-  program *prog = new program(1);
-  change_status_pin(STATUS_PIN);
-  set_status(BOOT);
-  breath();
-
   Serial.begin(9600);
-  set_status(READY);
-#ifdef BOARD_ESP32
-  while (!Serial.available()) {
-    breath();
-  }
-#endif
-#ifdef BOARD_ATMEGA
-  while (!Serial) {
-    breath();
-  }
-#endif
-  set_status(SERIAL_PORT_OPENED);
+  register_kernel_tasks();
   register_statements();
-  breath();
+
+  status_engine->change_status_pin(STATUS_PIN);
+  status_engine->set_status(READY);
+
+  serial_lock = -1;
+  kernel_next_pid = 1;
+
   Serial.print("Platform ");
 #ifdef BOARD_ESP32
   Serial.println("ESP32");
@@ -37,30 +37,8 @@ int kmain() {
   Serial.print("Free ram: ");
   Serial.println(free_ram());
   Serial.println("ready to receive");
-  prog->source = serial_get_multiline(MAX_LINE_LENGTH);
-  Serial.println("Program source initialized");
-
-  unsigned long start, compile, end;
-  start = millis();
-
-  prog->compile();
-  compile = millis();
-  Serial.print("Compile: ");
-  Serial.print(compile - start);
-  Serial.println(" mseconds");
-
-  while (prog->step() == RUNNING) {
+  while (step_tasks()) {
   }
-  end = millis();
-
-  Serial.print("Execution: ");
-  Serial.print(end - compile);
-  Serial.println(" mseconds");
-  Serial.print("Free ram: ");
-  Serial.println(free_ram());
-  delete prog;
-  Serial.print("Free ram after cleanup: ");
-  Serial.println(free_ram());
   stop();
   return 0;
 }
@@ -74,13 +52,44 @@ void stop() {
     Serial.println(".shutdown.");
   }
 #endif
-  set_status(STOP);
+  status_engine->set_status(STOP);
   while (1) {
-    breath();
+    status_engine->process();
   }
 }
 
 char *kernel_stats(program *p) {
   char *result = (char *)malloc(1024);
   return result;
+}
+
+void _add_daemon(daemon *dae) {
+  if (daemons.task == NULL) {
+    daemons.end_time = 0;
+    daemons.exit_code = RUNNING;
+    daemons.next = NULL;
+    daemons.start_time = millis();
+    daemons.task = dae;
+    return;
+  }
+  daemon_task *d = (daemon_task *)malloc(sizeof(daemon_task));
+  d->task = dae;
+  d->next = NULL;
+  d->exit_code = RUNNING;
+  d->start_time = millis();
+  d->end_time = 0;
+  daemon_task *head = &daemons;
+
+  while (true) {
+    if (head->next == NULL) {
+      head->next = d;
+      break;
+    }
+    head = head->next;
+  }
+}
+
+void register_kernel_tasks() {
+  _add_daemon(status_engine);
+  _add_daemon(source_engine);
 }

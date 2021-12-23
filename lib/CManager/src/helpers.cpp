@@ -2,8 +2,6 @@
 
 #include "constants.hpp"
 
-extern const char *constants[];
-
 unsigned int extract_size(const char *text, char delimiter,
                           unsigned int index) {
   unsigned int index_counter = 0;
@@ -108,11 +106,7 @@ unsigned int arg_type(const char *arg) {
   if (isdigit(arg[0])) {
     return TYPE_NUM;
   }
-  for (unsigned int i = 0; i < CONSTANT_COUNT; i++) {
-    if (strcmp(arg, constants[i]) == 0) {
-      return TYPE_CONSTANT;
-    }
-  }
+
   // skip file check for now.
   // @TODO: Do File type check once we have the
   //        file system drivers in-place.

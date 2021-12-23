@@ -16,6 +16,7 @@ command *parse(const char *cmd, unsigned int pid) {
     char *temp = extract(cmd, ' ', i + 1, argument_size + 1);
 
     args[i].type = arg_type(temp);
+
     args[i].pid = pid;
     args[i].deleted = false;
     args[i].name = (char *)malloc(strlen(temp) + 1);

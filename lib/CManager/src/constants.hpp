@@ -1,9 +1,5 @@
-#ifndef _const_h
-#define _const_h
-
-#define STATEMENT_COUNT 23
-
-#define VARIABLE_CAPACITY_STEP 8
+#ifndef _constants_hpp
+#define _constants_hpp
 
 #define TYPE_NONE 0
 #define TYPE_STR 1
@@ -24,7 +20,6 @@
 #define CMP_JL 3
 
 #define MAX_LINE_LENGTH 128
-#define HISTORY_LIMIT 16
 #define PROGRAM_END 0
 #define RUNNING 1
 #define SUB_END "---"

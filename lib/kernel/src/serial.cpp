@@ -8,7 +8,6 @@ int serial_getline(unsigned int buffer_size, char *back) {
   unsigned int cursor = 0;
   while (strlen(back) < buffer_size) {
     if (!Serial.available()) {
-      breath();
       continue;
     }
     c = Serial.read();
@@ -66,7 +65,6 @@ char *serial_get_multiline(unsigned int buffer_size) {
     result = temp;
     free(swap);
     free(buffer);
-    breath();
   }
   return result;
 }

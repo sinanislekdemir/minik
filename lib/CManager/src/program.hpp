@@ -1,8 +1,8 @@
 #ifndef _program_hpp
 #define _program_hpp
 
-#include "command.hpp"
 #include "constants.hpp"
+#include "command.hpp"
 #include <Arduino.h>
 
 struct command_history {

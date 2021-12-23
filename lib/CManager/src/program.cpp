@@ -244,12 +244,15 @@ sub *program::compile_next_sub() {
       free(buffer);
       continue;
     }
+
     if (strcmp(buffer, SUB_END) == 0) {
       free(buffer);
       this->_sourcecode_cursor++;
       break;
     }
+
     command *c = parse((const char *)buffer, this->pid);
+
     if (prev == NULL) {
       prev = c;
       result->root_instruction = c;

@@ -1,7 +1,5 @@
 #include "constants.hpp"
 
-const char *constants[] = {"OUTPUT", "HIGH", "LOW", "STACK", "MILLIS"};
-
 const char *type_tostr(int type) {
   switch (type) {
   case TYPE_NONE:
