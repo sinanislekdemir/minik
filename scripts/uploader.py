@@ -70,17 +70,23 @@ def upload(port: str, filename: str):
     r.start()
     if port == "":
         port = serial_ports()[0]
+
     socket = serial.Serial(port=port)
     socket.write(bytes("#ignore\n", 'ascii'))
     print("Waiting for connection")
     while not ready:
         pass
-    print(f"Sending file {filename} on port {port}")
-    with open(filename, "r") as f:
-        bytesw = socket.write(bytes(f.read(), 'ascii'))
-    socket.write(bytes("\n.\n", 'ascii'))
-    socket.flush()
-    print(f"{bytesw} bytes written")
+
+    for fname in filename.split(','):
+        if fname == '':
+            continue
+        print(f"Sending file {fname} on port {port}")
+        with open(fname, "r") as f:
+            bytesw = socket.write(bytes(f.read(), 'ascii'))
+        socket.write(bytes("\n.\n", 'ascii'))
+        socket.flush()
+        print(f"{bytesw} bytes written")
+
     while not shutdown:
         data = input("")
         socket.write(bytes(data+"\n", 'ascii'))

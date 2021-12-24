@@ -33,6 +33,9 @@ void SourceEngine::append_to_source() {
     this->source_size = 1;
     this->source = (char *)malloc(1);
     memset(this->source, 0, 1);
+    Serial.print("Task created with PID: ");
+    Serial.println(kernel_next_pid - 1);
+    Serial.println(MSG_READY_TO_RECEIVE);
     return;
   }
   if (strlen(this->buffer) < 2) {
