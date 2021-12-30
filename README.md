@@ -1,4 +1,4 @@
-#Minik Os for mini(k) spaces
+# Minik Os for mini(k) spaces
 
 Minik OS is a binary format embedded operating system. Unlike RTOS(es),
 Minik OS is not a framework. It's a compiled operating system, ready
@@ -25,10 +25,8 @@ There are daemons for:
 - Serial communications
 - Interrupt handlers
 
-```
 sinan islekdemir
 sinan@islekdemir.com
-```
 
 ## Programming on Minik
 
@@ -149,7 +147,7 @@ Example:
 
     main:
     SPRINTLN "I print once"
-#This is a dummy comment
+    #This is a dummy comment
     SPRINTLN "I loop"
     GOTO 2
     ---
@@ -193,11 +191,6 @@ Some constants are inherited from the Arduino Framework as:
     RAD_TO_DEG
     EULER
     
-And there are some additional constants that lets your reach some internal functions as:
-
-    MILLIS -> Return millis()
-
-
 #### SET
 
 Defines a variable with a value. 
@@ -223,7 +216,7 @@ Example:
 
     SET my_string "hello world"
     CPY new_string 2 3 my_string
-#new_string = llo
+    #new_string = llo
 
 #### DEL
 
@@ -307,7 +300,7 @@ Shift - Simple bit shifts.
 
     SET byte 16
     LROTATE byte 2
-#byte is now 64
+    #byte is now 64
     
 #### RROTATE - Right Rotate bits
 
