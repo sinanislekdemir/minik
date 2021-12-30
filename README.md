@@ -445,6 +445,8 @@ that I have found:
 
 [https://roboticsbackend.com/arduino-input_pullup-pinmode/](https://roboticsbackend.com/arduino-input_pullup-pinmode/)
 
+**NOTE** Any existing SLEEP states will be terminated when interrupt is triggered.
+
 ```asm
 RISING = 1
 FALLING = 2

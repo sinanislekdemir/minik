@@ -6,7 +6,7 @@ unsigned int _occupied_pins[64] = {0};
 
 int command_int(command *c, program *_p) {
 	// INT <PIN> HIGH label
-	sub *interrupt_sub = _p->find_sub(c->args[0].name);
+	sub *interrupt_sub = _p->find_sub(c->args[2].name);
 #ifndef DISABLE_EXCEPTIONS
 	if (interrupt_sub == NULL) {
 		char *msg = (char *)malloc(64);

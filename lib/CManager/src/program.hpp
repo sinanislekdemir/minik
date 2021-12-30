@@ -28,6 +28,7 @@ struct sub_history {
 struct interrupt {
 	unsigned int pin;
 	int state;
+	bool triggered;
 	sub *routine;
 	interrupt *next;
 };

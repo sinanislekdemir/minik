@@ -30,11 +30,20 @@ program::program(int pid) {
 program::~program() { this->destroy(); }
 
 void program::register_interrupt(unsigned int pin, unsigned int state, sub *routine) {
+	interrupt *check = this->interrupts;
+	// Skip if pin is already registered
+	while (check != NULL) {
+		if (check->pin == pin) {
+			return;
+		}
+		check = check->next;
+	}
 	interrupt *in = (interrupt *)malloc(sizeof(interrupt));
 	in->pin = pin;
 	in->state = state;
 	in->routine = routine;
 	in->next = NULL;
+	in->triggered = false;
 	if (this->interrupts == NULL) {
 		this->interrupts = in;
 		return;
@@ -61,6 +70,15 @@ void _free_instructions(command *head) {
 		free(tmp->cmd);
 		free(tmp->args);
 		free(tmp);
+	}
+}
+
+void _free_interrupts(interrupt *head) {
+	interrupt *tmp;
+	while (head != NULL) {
+		tmp = head->next;
+		free(head);
+		head = tmp;
 	}
 }
 
@@ -96,6 +114,7 @@ void _free_sub_history(sub_history *head) {
 
 void program::destroy() {
 	_free_sub_history(this->back_history.next);
+	_free_interrupts(this->interrupts);
 	_free_subs(this->main);
 	free_program(this->pid);
 }
@@ -188,7 +207,13 @@ void program::append_to_history(sub *cursor, command *instruction) {
 }
 
 int program::step() {
-	this->check_interrupts();
+	int int_status = this->check_interrupts();
+	if (int_status == 1) {
+		this->_sleep = false;
+		this->_sleep_start = 0;
+		this->_sleep_duration = 0;
+		return RUNNING;
+	}
 
 	if (this->_sleep) {
 		unsigned long now = millis();
@@ -328,10 +353,14 @@ int program::check_interrupts() {
 	interrupt *head = this->interrupts;
 	while (head != NULL) {
 		int val = digitalRead(head->pin);
-		if (val == head->state) {
+		if (val == head->state && head->triggered == false) {
+			head->triggered = true;
 			this->cursor = head->routine;
 			this->cursor->cursor = this->cursor->root_instruction;
 			return 1;
+		}
+		if (head->triggered && val != head->state) {
+			head->triggered = false;
 		}
 		head = head->next;
 	}
