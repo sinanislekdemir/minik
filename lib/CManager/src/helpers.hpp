@@ -3,8 +3,7 @@
 
 // strtok should do fine but I need to keep "..." intact
 unsigned int extract_size(const char *text, char delimiter, unsigned int index);
-char *extract(const char *text, char delimiter, unsigned int index,
-              unsigned int size);
+char *extract(const char *text, char delimiter, unsigned int index, unsigned int size);
 unsigned int argc(const char *text, char delimiter);
 unsigned int arg_type(const char *arg);
 char *dtoc(double d);

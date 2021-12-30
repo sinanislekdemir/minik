@@ -1,7 +1,7 @@
 # targets
 
 .PHONY: default
-default: build ;
+default: help ;
 
 UNAME := $(shell uname -s)
 

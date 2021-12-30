@@ -1,8 +1,8 @@
 ﻿---
 BasedOnStyle: LLVM
 IndentWidth: 8
+ColumnLimit: 140
 UseTab: Always
 AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
-ColumnLimit: 140
 ...

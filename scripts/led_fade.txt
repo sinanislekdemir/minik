@@ -1,0 +1,23 @@
+main:
+SPRINTLN "Fading led on PIN 12"
+SET pin 12
+SET value 255
+PINMODE pin OUTPUT
+CALL loop_down
+---
+loop_down:
+AWRITE pin value
+SLEEP 10
+SUB value value 5
+CMP value 0
+JE loop_up
+GOTO 0
+---
+loop_up:
+AWRITE pin value
+SLEEP 10
+ADD value value 5
+CMP value 255
+JE loop_down
+GOTO 0
+---

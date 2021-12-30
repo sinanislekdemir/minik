@@ -7,20 +7,20 @@
 #include <Arduino.h>
 
 class SourceEngine : public daemon {
-private:
-  bool serial_open;
-  int boud_rate;
-  int source_size;
-  char *buffer;
-  char *source;
-  unsigned int buffer_cursor;
-  void append_to_source();
-  void create_task();
+      private:
+	bool serial_open;
+	int boud_rate;
+	int source_size;
+	char *buffer;
+	char *source;
+	unsigned int buffer_cursor;
+	void append_to_source();
+	void create_task();
 
-public:
-  SourceEngine();
-  ~SourceEngine();
-  int process();
+      public:
+	SourceEngine();
+	~SourceEngine();
+	int process();
 };
 
 #endif

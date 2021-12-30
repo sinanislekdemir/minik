@@ -5,13 +5,13 @@
 #include "memory.hpp"
 
 struct command {
-  char *cmd;
-  variable *args;
-  unsigned int argc;
-  unsigned int pid;
-  unsigned int index;
-  command *next;
-  error *exception;
+	char *cmd;
+	variable *args;
+	unsigned int argc;
+	unsigned int pid;
+	unsigned int index;
+	command *next;
+	error *exception;
 };
 
 variable *get_var(command *c, int index);

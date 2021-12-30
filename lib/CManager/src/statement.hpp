@@ -6,9 +6,9 @@
 typedef int (*statement_function)(command *c, program *_p);
 
 struct statement {
-  int (*f)(command *c, program *_p);
-  const char *command;
-  statement *next;
+	int (*f)(command *c, program *_p);
+	const char *command;
+	statement *next;
 };
 
 void register_statements();

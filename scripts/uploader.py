@@ -2,11 +2,11 @@
 import glob
 import sys
 import threading
-from time import sleep
 from typing import List
 
 import click
 import serial
+from getpass import getpass
 
 active = True
 socket = None
@@ -88,8 +88,12 @@ def upload(port: str, filename: str):
         print(f"{bytesw} bytes written")
 
     while not shutdown:
-        data = input("")
-        socket.write(bytes(data+"\n", 'ascii'))
+        c = click.getchar(echo=False)
+        if ord(c) == 13:
+            socket.write(bytes("\n", 'ascii'))
+            print("")
+        else:
+            socket.write(bytes(c, 'ascii'))
         socket.flush()
 
     r.join()

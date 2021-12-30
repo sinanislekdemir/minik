@@ -5,222 +5,203 @@
 extern error err;
 
 int save_result(command *c, double result) {
-  variable *res;
-  res = find_variable(c->args[0].data, c->pid);
-  if (res == NULL) {
-    res = (variable *)malloc(sizeof(variable));
-    res->next = NULL;
-    res->data = NULL;
-    res->type = TYPE_STR;
-    res->pid = c->pid;
-    res->name = (char *)malloc(strlen(c->args[0].data) + 1);
-    memset(res->name, 0, strlen(c->args[0].data) + 1);
-    strcpy(res->name, c->args[0].data);
-    new_variable(res);
-  }
-  if (res->data != NULL) {
-    free(res->data);
-  }
-  res->data = dtoc(result);
-  res->datasize = sizeof(double);
-  res->deleted = false;
-  res->type = TYPE_NUM;
-  return 0;
+	new_number(c->args[0].data, result, c->pid);
+	return 0;
 }
 
 int command_add(command *c, program *_p) {
-#ifdef ENABLE_EXCEPTIONS
-  if (validate_command(c, (const char *)"add", 3) != 0) {
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, (const char *)"add", 3) != 0) {
+		return -1;
+	}
 #endif
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double add = ctod(v1->data) + ctod(v2->data);
-  return save_result(c, add);
+	double add = ctod(v1->data) + ctod(v2->data);
+	return save_result(c, add);
 }
 
 int command_sub(command *c, program *_p) {
-  if (validate_command(c, (const char *)"sub", 3) != 0) {
-    return -1;
-  }
+	if (validate_command(c, (const char *)"sub", 3) != 0) {
+		return -1;
+	}
 
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double sub = ctod(v1->data) - ctod(v2->data);
-  return save_result(c, sub);
+	double sub = ctod(v1->data) - ctod(v2->data);
+	return save_result(c, sub);
 }
 
 int command_div(command *c, program *_p) {
-#ifdef ENABLE_EXCEPTIONS
-  if (validate_command(c, (const char *)"div", 3) != 0) {
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, (const char *)"div", 3) != 0) {
+		return -1;
+	}
 #endif
 
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double div = ctod(v1->data) / ctod(v2->data);
-  return save_result(c, div);
+	double div = ctod(v1->data) / ctod(v2->data);
+	return save_result(c, div);
 }
 
 int command_mul(command *c, program *_p) {
-#ifdef ENABLE_EXCEPTIONS
-  if (validate_command(c, (const char *)"mul", 3) != 0) {
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, (const char *)"mul", 3) != 0) {
+		return -1;
+	}
 #endif
 
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double mul = ctod(v1->data) * ctod(v2->data);
-  return save_result(c, mul);
+	double mul = ctod(v1->data) * ctod(v2->data);
+	return save_result(c, mul);
 }
 
 int command_xor(command *c, program *_p) {
-#ifdef ENABLE_EXCEPTIONS
-  if (validate_command(c, (const char *)"xor", 3) != 0) {
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, (const char *)"xor", 3) != 0) {
+		return -1;
+	}
 #endif
 
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double xord = int(ctod(v1->data)) % int(ctod(v2->data));
-  return save_result(c, xord);
+	double xord = int(ctod(v1->data)) % int(ctod(v2->data));
+	return save_result(c, xord);
 }
 
 int command_or(command *c, program *_p) {
-#ifdef ENABLE_EXCEPTIONS
-  if (validate_command(c, (const char *)"or", 3) != 0) {
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, (const char *)"or", 3) != 0) {
+		return -1;
+	}
 #endif
 
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double or_r = int(ctod(v1->data)) | int(ctod(v2->data));
-  return save_result(c, or_r);
+	double or_r = int(ctod(v1->data)) | int(ctod(v2->data));
+	return save_result(c, or_r);
 }
 
 int command_and(command *c, program *_p) {
-#ifdef ENABLE_EXCEPTIONS
-  if (validate_command(c, (const char *)"and", 3) != 0) {
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, (const char *)"and", 3) != 0) {
+		return -1;
+	}
 #endif
 
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double and_r = int(ctod(v1->data)) & int(ctod(v2->data));
-  return save_result(c, and_r);
+	double and_r = int(ctod(v1->data)) & int(ctod(v2->data));
+	return save_result(c, and_r);
 }
 
 int command_pow(command *c, program *_p) {
-#ifdef ENABLE_EXCEPTIONS
-  if (validate_command(c, (const char *)"pow", 3) != 0) {
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, (const char *)"pow", 3) != 0) {
+		return -1;
+	}
 #endif
 
-  variable *v1 = get_var(c, 1);
-  variable *v2 = get_var(c, 2);
+	variable *v1 = get_var(c, 1);
+	variable *v2 = get_var(c, 2);
 
-#ifdef ENABLE_EXCEPTIONS
-  if (v1 == NULL || v2 == NULL) {
-    char *msg = (char *)malloc(64);
-    memset(msg, 0, 64);
-    sprintf(msg, "Invalid Parameter(s)");
-    c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-    free(msg);
-    return -1;
-  }
+#ifndef DISABLE_EXCEPTIONS
+	if (v1 == NULL || v2 == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
 #endif
 
-  double pow_r = pow(ctod(v1->data), ctod(v2->data));
-  return save_result(c, pow_r);
+	double pow_r = pow(ctod(v1->data), ctod(v2->data));
+	return save_result(c, pow_r);
 }

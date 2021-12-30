@@ -1,3 +1,4 @@
+
 #ifndef _constants_hpp
 #define _constants_hpp
 
@@ -31,6 +32,10 @@
 #define ERR_COMMAND_NOT_UNDERSTOOD 200
 #define ERR_VARIABLE_NOT_FOUND 404
 #define ERR_ADDRESS_NOT_FOUND 405
+
+#define ERR_STR_SOURCE_NONE "Source can not be NONE"
+#define ERR_STR_VAR_NOT_FOUND "Variable not found [%s]"
+#define ERR_STR_NOT_ENOUGH_PARAMS "Not enough params CMD: [%s] expected [%d] received [%d]"
 
 const char *type_tostr(int type);
 #endif

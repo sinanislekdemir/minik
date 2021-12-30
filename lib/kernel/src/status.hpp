@@ -13,8 +13,7 @@
 
 #ifdef BOARD_ESP32
 #define STATUS_PIN 25 // 25 For Heltec Board
-#endif
-#ifdef BOARD_ATMEGA
+#else
 #define STATUS_PIN 13
 #endif
 
@@ -30,18 +29,18 @@
 #include <Arduino.h>
 
 class StatusEngine : public daemon {
-private:
-  int _status;
-  unsigned long _last_milliseconds;
-  unsigned long _diff_milliseconds;
-  int _status_pin;
-  int _pin_state;
+      private:
+	int _status;
+	unsigned long _last_milliseconds;
+	unsigned long _diff_milliseconds;
+	int _status_pin;
+	int _pin_state;
 
-public:
-  StatusEngine();
-  void change_status_pin(int pin);
-  void set_status(int status);
-  int process();
+      public:
+	StatusEngine();
+	void change_status_pin(int pin);
+	void set_status(int status);
+	int process();
 };
 
 int free_ram();

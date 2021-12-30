@@ -5,13 +5,21 @@
 syntax;
 
 Build flags:
-      -DENABLE_EXCEPTIONS : Compile the code with validations and exception
-                          handling. This is enabled by-default in minik
-                          build_flags. This comes with a execution
-                          overhead for checking many error cases. Without
-                          ENABLE_EXCEPTIONS, your scripts will not be checked
+      -DDISABLE_EXCEPTIONS : Compile the code without validations and exception
+                          handling. This is disabled by-default in minik
+                          build_flags. Exception handling comes with an execution
+                          overhead for checking many error cases. Also increases
+                          the standard binary size. With DISABLE_EXCEPTIONS,
+                          your scripts will not be checked
                           and will always be trusted. If your codes have
                           problems, this can lead to minik crash because
                           kernel will not be protected from mistakes your
                           code does on the cpu when kernel handles the
                           execution to your code.
+
+Interrupts:
+Interrupts in minik language are soft interrupts and it's not always guaranteed
+that the response will be atomic OR will be catched (if it's a short signal).
+As the processing might be on another task in the time of the interrupt pin
+event.
+On the other hand, all input pins are available for interrupts.

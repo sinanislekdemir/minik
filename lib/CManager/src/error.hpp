@@ -2,9 +2,9 @@
 #define _error_hpp
 
 struct error {
-  char *message;
-  unsigned int code;
-  unsigned int pid;
+	char *message;
+	unsigned int code;
+	unsigned int pid;
 };
 
 error *raise(char *msg, unsigned int pid, unsigned int code);
