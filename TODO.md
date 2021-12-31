@@ -1,6 +1,6 @@
 # TODO
 
-- [ ] Hardware Interrupts
+- [x] Hardware Interrupts
 - [ ] SPI Usage
 - [ ] LCD
 - [ ] Servo
