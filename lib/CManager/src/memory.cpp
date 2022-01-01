@@ -218,4 +218,32 @@ void new_number(char *name, double value, unsigned int pid) {
 	res->deleted = false;
 }
 
+void new_string(char *name, char *value, int size, unsigned int pid) {
+	variable *res = find_variable(name, pid);
+	if (res == NULL) {
+		res = (variable *)malloc(sizeof(variable));
+		res->next = NULL;
+		res->data = (char *)malloc(size);
+		memset(res->data, 0, size);
+		memcpy(res->data, (const char *)value, size);
+		res->type = TYPE_STR;
+		res->datasize = size;
+		res->pid = pid;
+		res->deleted = false;
+		res->name = (char *)malloc(strlen(name) + 1);
+		memset(res->name, 0, strlen(name) + 1);
+		strcpy(res->name, name);
+		new_variable(res);
+		return;
+	}
+	if (res->data != NULL) {
+		free(res->data);
+	}
+	res->data = (char *)malloc(size);
+	memset(res->data, 0, size);
+	memcpy(res->data, (const char *)value, size);
+	res->datasize = size;
+	res->deleted = false;
+}
+
 void defrag_variables() {}

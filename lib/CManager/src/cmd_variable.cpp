@@ -15,9 +15,7 @@ int command_set(command *c, program *_p) {
 	if (c->args[0].type != TYPE_VARIABLE) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg,
-			"Invalid variable type, expected VARIABLE got [%s]",
-			type_tostr(c->args[0].type));
+		sprintf(msg, "Invalid variable type, expected VARIABLE got [%s]", type_tostr(c->args[0].type));
 		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
 		free(msg);
 		return -1;
@@ -63,13 +61,10 @@ int command_cpy(command *c, program *_p) {
 		return -1;
 	}
 
-	if (c->args[0].type != TYPE_VARIABLE ||
-	    c->args[3].type != TYPE_VARIABLE) {
+	if (c->args[0].type != TYPE_VARIABLE || c->args[3].type != TYPE_VARIABLE) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg,
-			"COPY arguments 1 or 3 are not variable. 1=[%s] 3=[%s]",
-			type_tostr(c->args[0].type),
+		sprintf(msg, "COPY arguments 1 or 3 are not variable. 1=[%s] 3=[%s]", type_tostr(c->args[0].type),
 			type_tostr(c->args[1].type));
 		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		free(msg);
@@ -108,8 +103,7 @@ int command_cpy(command *c, program *_p) {
 	if (from->type != TYPE_NUM || size->type != TYPE_NUM) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "Copy range is not integer [%s]:[%s]",
-			type_tostr(from->type), type_tostr(size->type));
+		sprintf(msg, "Copy range is not integer [%s]:[%s]", type_tostr(from->type), type_tostr(size->type));
 		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		free(msg);
 		return -1;
@@ -138,7 +132,6 @@ int command_del(command *c, program *_p) {
 }
 
 int command_str(command *c, program *_p) {
-	variable *dest = find_variable(c->args[0].data, c->pid);
 	variable *src = get_var(c, 1);
 #ifndef DISABLE_EXCEPTIONS
 	if (src == NULL) {
@@ -151,27 +144,10 @@ int command_str(command *c, program *_p) {
 	}
 #endif
 	double d = ctod(src->data);
-	if (dest == NULL) {
-		dest = (variable *)malloc(sizeof(variable));
-		dest->next = NULL;
-		dest->data = (char *)malloc(40);
-		memset(dest->data, 0, 40);
-		dtostrf(d, 32, 4, dest->data);
-		dest->type = TYPE_STR;
-		dest->pid = c->pid;
-		dest->name = (char *)malloc(strlen(c->args[0].data) + 1);
-		memset(dest->name, 0, strlen(c->args[0].data) + 1);
-		strcpy(dest->name, c->args[0].data);
-		new_variable(dest);
-	} else {
-		if (dest->data != NULL) {
-			free(dest->data);
-		}
-		dest->data = (char *)malloc(40);
-		memset(dest->data, 0, 40);
-		dtostrf(d, 32, 4, dest->data);
-		dest->type = TYPE_STR;
-	}
+	char *data = (char *)malloc(32);
+	memset(data, 0, 32);
+	dtostrf(d, 32, 4, data);
+	new_string(c->args[0].data, data, 32, c->pid);
 	return 0;
 }
 
@@ -190,5 +166,90 @@ int command_num(command *c, program *_p) {
 	double val = atof(src->data);
 	new_number(c->args[0].data, val, c->pid);
 
+	return 0;
+}
+
+int command_alloc(command *c, program *_p) {
+#ifndef DISABLE_EXCEPTIONS
+	if (c->args[0].type != TYPE_VARIABLE) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, ERR_STR_INVALID_TYPE, "VARIABLE", type_tostr(c->args[0].type));
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
+#endif
+	variable *size_var = get_var(c, 1);
+#ifndef DISABLE_EXCEPTIONS
+	if (size_var->type != TYPE_NUM) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, ERR_STR_INVALID_TYPE, "NUMBER", type_tostr(c->args[0].type));
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
+#endif
+	int size = int(ctod(size_var->data));
+	char *data = (char *)malloc(size);
+	memset(data, 0, size);
+	new_string(c->args[0].data, data, size, c->pid);
+	free(data);
+	return 0;
+}
+
+int command_append(command *c, program *_p) {
+#ifndef DISABLE_EXCEPTIONS
+	if (c->args[0].type != TYPE_VARIABLE) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, ERR_STR_INVALID_TYPE, "VARIABLE", type_tostr(c->args[0].type));
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
+#endif
+	variable *var = find_variable(c->args[0].data, c->pid);
+	variable *val = get_var(c, 1);
+
+#ifndef DISABLE_EXCEPTIONS
+	if (var == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, ERR_STR_VAR_NOT_FOUND, c->args[0].data);
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
+#endif
+
+	int empty_location = -1;
+	for (unsigned int i = 0; i < var->datasize; i++) {
+		if (var->data[i] == 0) {
+			empty_location = i;
+			break;
+		}
+	}
+
+#ifndef DISABLE_EXCEPTIONS
+	if (empty_location == -1) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, ERR_STR_VARIABLE_FULL, c->args[0].data);
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
+#endif
+	unsigned int free_space = var->datasize - empty_location;
+	unsigned int copy_bytes = val->datasize;
+	if (copy_bytes > free_space) {
+		copy_bytes = free_space;
+	}
+	for (unsigned int i = 0; i < copy_bytes; i++) {
+		if (val->data[i] != 0)
+			var->data[empty_location++] = val->data[i];
+	}
 	return 0;
 }

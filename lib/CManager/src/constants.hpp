@@ -10,6 +10,7 @@
 #define TYPE_LABEL 5
 #define TYPE_REGISTER 6
 #define TYPE_FILE 7
+#define TYPE_BYTE 8
 
 #define CONSTANT_COUNT 5
 #define LOG_SERIAL 0
@@ -36,6 +37,8 @@
 #define ERR_STR_SOURCE_NONE "Source can not be NONE"
 #define ERR_STR_VAR_NOT_FOUND "Variable not found [%s]"
 #define ERR_STR_NOT_ENOUGH_PARAMS "Not enough params CMD: [%s] expected [%d] received [%d]"
+#define ERR_STR_INVALID_TYPE "Invalid variable type, expected [%s] got [%s]"
+#define ERR_STR_VARIABLE_FULL "Variable is full [%s]"
 
 const char *type_tostr(int type);
 #endif

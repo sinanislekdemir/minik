@@ -101,7 +101,17 @@ unsigned int arg_type(const char *arg) {
 	if (arg[strlen(arg) - 1] == ':') {
 		return TYPE_LABEL;
 	}
-	if (isdigit(arg[0])) {
+	if (strncmp(arg, "0x", 2) == 0) {
+		return TYPE_BYTE;
+	}
+	bool isnum = true;
+	for (unsigned int i = 0; i < strlen(arg); i++) {
+		if (!isdigit(arg[i]) && arg[i] != '.') {
+			isnum = false;
+			break;
+		}
+	}
+	if (isnum) {
 		return TYPE_NUM;
 	}
 
@@ -145,5 +155,5 @@ void ltrim(char *src) {
 
 bool is_data_type(int type) {
 	return (type == TYPE_NUM || type == TYPE_STR || type == TYPE_FILE || type == TYPE_REGISTER || type == TYPE_CONSTANT ||
-		type == TYPE_VARIABLE);
+		type == TYPE_BYTE || type == TYPE_VARIABLE);
 }

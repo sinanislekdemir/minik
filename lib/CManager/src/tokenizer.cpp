@@ -25,7 +25,11 @@ command *parse(const char *cmd, unsigned int pid) {
 		memset(args[i].name, 0, strlen(temp) + 1);
 		strcpy(args[i].name, temp);
 
-		if (args[i].type == TYPE_NUM) {
+		if (args[i].type == TYPE_BYTE) {
+			args[i].datasize = 1;
+                        args[i].data = (char *)malloc(1);
+			args[i].data[0] = (char)strtol(temp, NULL, 0);
+		} else if (args[i].type == TYPE_NUM) {
 			args[i].datasize = sizeof(double);
 			args[i].data = dtoc(atof(temp));
 		} else {

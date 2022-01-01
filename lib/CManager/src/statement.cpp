@@ -67,6 +67,8 @@ void register_statements() {
 	add_statement("POW", command_pow);
 
 	add_statement("HALT", command_halt);
+	add_statement("ALLOC", command_alloc);
+	add_statement("APPEND", command_append);
 	add_statement("SET", command_set);
 	add_statement("STR", command_str);
 	add_statement("NUM", command_num);

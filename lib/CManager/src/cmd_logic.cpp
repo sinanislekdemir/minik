@@ -49,6 +49,18 @@ int command_cmp(command *c, program *_p) {
 		return 0;
 	}
 
+	if (v1->type == TYPE_BYTE) {
+		char i1 = v1->data[0];
+		char i2 = v2->data[0];
+		if (i1 > i2) {
+			_p->set_cmp_flag(CMP_JG);
+			return 0;
+		}
+		if (i1 < i2) {
+			_p->set_cmp_flag(CMP_JL);
+			return 0;
+		}
+	}
 	if (v1->type == TYPE_NUM) {
 		double d1 = ctod(v1->data);
 		double d2 = ctod(v2->data);
@@ -126,18 +138,18 @@ int _command_validations(command *c, variable *v1, variable *v2) {
 		free(msg);
 		return -1;
 	}
-	if (v1->type != TYPE_NUM) {
+	if (v1->type != TYPE_NUM && v1->type != TYPE_BYTE) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "Variable 1 type should be NUMBER got [%s]", type_tostr(v1->type));
+		sprintf(msg, "Variable 1 type should be NUMBER or BYTE got [%s]", type_tostr(v1->type));
 		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		free(msg);
 		return -1;
 	}
-	if (v2->type != TYPE_NUM) {
+	if (v2->type != TYPE_NUM && v1->type != TYPE_BYTE) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "Variable 2 type should be NUMBER got [%s]", type_tostr(v2->type));
+		sprintf(msg, "Variable 2 type should be NUMBER or BYTE got [%s]", type_tostr(v2->type));
 		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		free(msg);
 		return -1;
@@ -154,11 +166,19 @@ int command_lrotate(command *c, program *_p) {
 	if (check == -1) {
 		return check;
 	}
-	int byte = int(ctod(v1->data));
+	char byte = 0;
+	if (v1->type == TYPE_NUM)
+		byte = char(ctod(v1->data));
+	if (v1->type == TYPE_BYTE)
+		byte = char(v1->data[0]);
+
 	int bits = int(ctod(v2->data));
 	byte = (byte << bits) | (byte >> (BITS - bits));
 
-	v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_NUM)
+		v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_BYTE)
+		v1->data[0] = byte;
 	return 0;
 }
 
@@ -170,11 +190,19 @@ int command_rrotate(command *c, program *_p) {
 	if (check == -1) {
 		return check;
 	}
-	int byte = int(ctod(v1->data));
+	char byte = 0;
+	if (v1->type == TYPE_NUM)
+		byte = char(ctod(v1->data));
+	if (v1->type == TYPE_BYTE)
+		byte = char(v1->data[0]);
+
 	int bits = int(ctod(v2->data));
 	byte = (byte >> bits) | (byte << (BITS - bits));
 
-	v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_NUM)
+		v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_BYTE)
+		v1->data[0] = byte;
 	return 0;
 }
 
@@ -186,11 +214,19 @@ int command_lshift(command *c, program *_p) {
 	if (check == -1) {
 		return check;
 	}
-	int byte = int(ctod(v1->data));
+	char byte = 0;
+	if (v1->type == TYPE_NUM)
+		byte = char(ctod(v1->data));
+	if (v1->type == TYPE_BYTE)
+		byte = char(v1->data[0]);
+
 	int bits = int(ctod(v2->data));
 	byte = byte << bits;
 
-	v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_NUM)
+		v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_BYTE)
+		v1->data[0] = byte;
 	return 0;
 }
 
@@ -202,10 +238,18 @@ int command_rshift(command *c, program *_p) {
 	if (check == -1) {
 		return check;
 	}
-	int byte = int(ctod(v1->data));
+	char byte = 0;
+	if (v1->type == TYPE_NUM)
+		byte = char(ctod(v1->data));
+	if (v1->type == TYPE_BYTE)
+		byte = char(v1->data[0]);
+
 	int bits = int(ctod(v2->data));
 	byte = byte >> bits;
 
-	v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_NUM)
+		v1->data = dtoc(double(byte));
+	if (v1->type == TYPE_BYTE)
+		v1->data[0] = byte;
 	return 0;
 }

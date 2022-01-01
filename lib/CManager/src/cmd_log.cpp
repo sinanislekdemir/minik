@@ -34,6 +34,8 @@ int command_log(command *c, program *_p) {
 			case TYPE_FILE:
 				sprintf(typestr, " (file)");
 				break;
+			case TYPE_BYTE:
+				sprintf(typestr, " (byte)");
 			}
 			Serial.println(typestr);
 		}

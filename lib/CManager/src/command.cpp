@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 variable *get_var(command *c, int index) {
-	if (c->args[index].type == TYPE_NUM || c->args[index].type == TYPE_STR) {
+	if (c->args[index].type == TYPE_NUM || c->args[index].type == TYPE_STR || c->args[index].type == TYPE_BYTE) {
 		return &c->args[index];
 	}
 

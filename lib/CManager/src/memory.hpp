@@ -33,6 +33,7 @@ void free_variable(const char *name, unsigned int pid);
 void free_program(unsigned int pid);
 void new_variable(variable *v);
 void new_number(char *name, double value, unsigned int pid);
+void new_string(char *name, char *value, int size, unsigned int pid);
 void defrag_variables();
 void mem_dump();
 

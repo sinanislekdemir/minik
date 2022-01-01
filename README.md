@@ -93,6 +93,10 @@ logical "jump" locations.
 - Main entrypoint for a program is always the `main:` sub module.
 - All variables are defined in the global context of a program.
 - Each sub ends with three dash `---` including the last sub.
+- There is a special sub called `on_exception` which gets called
+  automatically when an exception occurs. If `on_exception` is not
+  found in your application, then program will HALT.
+  Also, this won't work if you have compiled Minik with DISABLE_EXCEPTIONS
 
 Common syntax:
 
@@ -109,6 +113,54 @@ main:
 SPRINTLN "Hello world"
 ---
 ```
+
+### Types
+
+There are 3 main data types in Minik;
+
+- TYPE_STR
+- TYPE_NUM
+- TYPE_BYTE
+
+Also there are additional internal types for the compiler, which are
+TYPE_NONE, TYPE_CONSTANT, TYPE_LABEL, TYPE_REGISTER, TYPE_FILE
+
+Definig types:
+
+STR type is defined by double quotes.
+
+```asm
+SET name "Sinan"
+```
+
+NUM type is defined by digits + dot. Numbers must be in decimal format.
+
+```asm
+SET pin 13
+```
+
+BYTE type is defined by `0x` prefix and must be Hexedecimal between 0x00 to 0xFF
+
+```asm
+SET address 0x3C
+```
+
+Also, you can create a Byte Array as:
+
+```asm
+ALLOC byte_array 64
+APPEND byte_array 0x41
+APPEND byte_array 0x42
+APPEND byte_array 0x43
+```
+
+OR
+
+```asm
+ALLOC byte_array 64
+APPEND byte_array "ABC"
+```
+
 
 ### Constants
 
@@ -257,6 +309,37 @@ SET my_number 1
 SET my_string "sinan@islekdemir.com"
 ---
 ```
+
+#### ALLOC
+
+Allocate given amount of bytes for a variable. This is especially suitable
+for coding communications where you need byte arrays.
+
+Allocated area is filled with zero's in the beginning.
+
+Any `APPEND` commands can be used to push data to the end of variable.
+
+Syntax:
+
+```asm
+ALLOC <variable name> <byte size>
+```
+
+Example:
+
+```asm
+main:
+ALLOC var 64
+---
+```
+
+#### APPEND
+
+Append a single byte to a variable. Target variable must be String type, otherwise
+you will get an exception.
+
+Note: If there is not enough space in the allocated variable (see ALLOC), again
+you will get an exception.
 
 #### CPY
 
