@@ -1,7 +1,7 @@
 # TODO
 
 - [x] Hardware Interrupts
-- [ ] Byte array
+- [x] Byte array
 - [ ] Exception Sub
 - [ ] I2C
 - [ ] SPI Usage
