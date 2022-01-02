@@ -17,7 +17,7 @@ as a "Real Time" operating system because of it's internal task switches.
 On ESP32, a single mission critical task can be assigned to the second core.
 Or tasks can be shared between cores.
 
-As of all daemons run on CORE0 and tasks are assigned to Cores in turns.
+As of now all daemons run on CORE0 and tasks are assigned to Cores in turns.
 So each turn will get (almost) equal number of tasks (programs).
 
 Minik OS includes an interpreted programming language called CManager. Syntax
