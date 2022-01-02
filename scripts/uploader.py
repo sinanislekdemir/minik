@@ -20,6 +20,9 @@ def check_script(fname: str) -> bool:
     sub_open = False
     for line in data:
         if line[-1] == ":":
+            if sub_open:
+                print(f"{fname} sub remains open")
+                return False
             sub_open = True
         if line == "---" and sub_open:
             sub_open = False
