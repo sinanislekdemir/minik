@@ -2,7 +2,7 @@
 
 - [x] Hardware Interrupts
 - [x] Byte array
-- [ ] Exception Sub
+- [X] Exception Sub
 - [ ] I2C
 - [ ] SPI Usage
 - [ ] LCD
