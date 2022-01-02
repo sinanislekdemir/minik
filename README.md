@@ -386,6 +386,39 @@ AND <result> <number1> <number2>
 POW  <result> <number1> <number2>
 ```
 
+#### Trigonometric Functions
+
+Well, you know what they are if you need them;
+
+Syntax:
+
+```asm
+SIN <destination variable> <Radian value>
+```
+
+List of commands:
+
+```asm
+SIN
+COS
+TAN
+COT
+SINH
+COSH
+TANH
+COTH
+ASIN
+ACOS
+ATAN
+ACOT
+
+On ESP32 only
+ASINH
+ACOSH
+ATANH
+ACOTH
+```
+
 ### Logic Operators
 
 Logic operators enable you to navigate / jump to addresses in your code.

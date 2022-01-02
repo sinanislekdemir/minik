@@ -6,7 +6,7 @@ extern error err;
 
 int command_set(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"set", 2) != 0) {
+	if (validate_command(c, 2) != 0) {
 		return -1;
 	}
 #endif
@@ -57,7 +57,7 @@ int command_set(command *c, program *_p) {
 
 int command_cpy(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"cpy", 4) != 0) {
+	if (validate_command(c, 4) != 0) {
 		return -1;
 	}
 

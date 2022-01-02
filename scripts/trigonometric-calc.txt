@@ -1,0 +1,36 @@
+main:
+CALL sin
+---
+sin:
+SET angle 0
+SET step 5
+SET max TWO_PI
+
+# Convert 5 degrees to radians
+MUL step step DEG_TO_RAD
+
+SPRINT "Angle = "
+
+# Convert angle into Degrees
+MUL angle_in_degrees angle RAD_TO_DEG
+# Print angle
+SPRINT angle_in_degrees
+
+# Pring sin(angle)
+SPRINT " Sin = "
+SIN sinval angle
+SPRINTLN sinval
+
+# Increase angle by 5 degrees
+ADD angle angle step
+
+# Check if angle > 360 (TWO_PI)
+CMP angle max
+# CMP is True, jump to exit
+JG exit
+GOTO 4
+---
+exit:
+SPRINTLN "Bye!"
+HALT
+---

@@ -65,6 +65,24 @@ void register_statements() {
 	add_statement("OR", command_or);
 	add_statement("AND", command_and);
 	add_statement("POW", command_pow);
+	add_statement("SIN", command_trigonometry);
+	add_statement("COS", command_trigonometry);
+	add_statement("TAN", command_trigonometry);
+	add_statement("COT", command_trigonometry);
+	add_statement("SINH", command_trigonometry);
+	add_statement("COSH", command_trigonometry);
+	add_statement("TANH", command_trigonometry);
+	add_statement("COTH", command_trigonometry);
+	add_statement("ASIN", command_trigonometry);
+	add_statement("ACOS", command_trigonometry);
+	add_statement("ATAN", command_trigonometry);
+	add_statement("ACOT", command_trigonometry);
+#ifdef BOARD_ESP32
+	add_statement("ASINH", command_trigonometry);
+	add_statement("ACOSH", command_trigonometry);
+	add_statement("ATANH", command_trigonometry);
+	add_statement("ACOTH", command_trigonometry);
+#endif
 
 	add_statement("HALT", command_halt);
 	add_statement("ALLOC", command_alloc);

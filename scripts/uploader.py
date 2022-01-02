@@ -19,6 +19,8 @@ def check_script(fname: str) -> bool:
     main_check = "main:" in data
     sub_open = False
     for line in data:
+        if line == "":
+            continue
         if line[-1] == ":":
             if sub_open:
                 print(f"{fname} sub remains open")

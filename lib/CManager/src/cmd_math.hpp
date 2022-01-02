@@ -14,5 +14,5 @@ int command_xor(command *c, program *_p);
 int command_or(command *c, program *_p);
 int command_and(command *c, program *_p);
 int command_pow(command *c, program *_p);
-
+int command_trigonometry(command *c, program *_p);
 #endif

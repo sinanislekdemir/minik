@@ -13,8 +13,7 @@ variable *get_var(command *c, int index) {
 	return NULL;
 }
 
-int validate_command(command *c, const char *cmd, unsigned int expected_argc) {
-#ifndef DISABLE_EXCEPTIONS
+int validate_command(command *c, unsigned int expected_argc) {
 	if (c->argc < expected_argc) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
@@ -23,6 +22,6 @@ int validate_command(command *c, const char *cmd, unsigned int expected_argc) {
 		free(msg);
 		return -1;
 	}
-#endif
+
 	return 0;
 }

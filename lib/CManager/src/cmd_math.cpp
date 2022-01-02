@@ -11,7 +11,7 @@ int save_result(command *c, double result) {
 
 int command_add(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"add", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 #endif
@@ -34,7 +34,7 @@ int command_add(command *c, program *_p) {
 }
 
 int command_sub(command *c, program *_p) {
-	if (validate_command(c, (const char *)"sub", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 
@@ -58,7 +58,7 @@ int command_sub(command *c, program *_p) {
 
 int command_div(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"div", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 #endif
@@ -91,7 +91,7 @@ int command_div(command *c, program *_p) {
 
 int command_mul(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"mul", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 #endif
@@ -116,7 +116,7 @@ int command_mul(command *c, program *_p) {
 
 int command_xor(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"xor", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 #endif
@@ -141,7 +141,7 @@ int command_xor(command *c, program *_p) {
 
 int command_or(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"or", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 #endif
@@ -166,7 +166,7 @@ int command_or(command *c, program *_p) {
 
 int command_and(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"and", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 #endif
@@ -191,7 +191,7 @@ int command_and(command *c, program *_p) {
 
 int command_pow(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, (const char *)"pow", 3) != 0) {
+	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
 #endif
@@ -212,4 +212,80 @@ int command_pow(command *c, program *_p) {
 
 	double pow_r = pow(ctod(v1->data), ctod(v2->data));
 	return save_result(c, pow_r);
+}
+
+int command_trigonometry(command *c, program *_p) {
+#ifndef DISABLE_EXCEPTIONS
+	if (validate_command(c, 2) != 0) {
+		return -1;
+	}
+#endif
+
+	variable *val = get_var(c, 1);
+
+#ifndef DISABLE_EXCEPTIONS
+	if (val == NULL) {
+		char *msg = (char *)malloc(64);
+		memset(msg, 0, 64);
+		sprintf(msg, "Invalid Parameter(s)");
+		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
+		free(msg);
+		return -1;
+	}
+#endif
+
+	double res = 0;
+	double vald = ctod(val->data);
+	if (strcmp(c->cmd, "SIN") == 0) {
+		res = sin(vald);
+	}
+	if (strcmp(c->cmd, "COS") == 0) {
+		res = cos(vald);
+	}
+	if (strcmp(c->cmd, "TAN") == 0) {
+		res = tan(vald);
+	}
+	if (strcmp(c->cmd, "COT") == 0) {
+		res = 1.0 / tan(vald);
+	}
+	if (strcmp(c->cmd, "SINH") == 0) {
+		res = sinh(vald);
+	}
+	if (strcmp(c->cmd, "COSH") == 0) {
+		res = cosh(vald);
+	}
+	if (strcmp(c->cmd, "TANH") == 0) {
+		res = tanh(vald);
+	}
+	if (strcmp(c->cmd, "COTH") == 0) {
+		res = 1.0 / tanh(vald);
+	}
+	if (strcmp(c->cmd, "ASIN") == 0) {
+		res = asin(vald);
+	}
+	if (strcmp(c->cmd, "ACOS") == 0) {
+		res = acos(vald);
+	}
+	if (strcmp(c->cmd, "ATAN") == 0) {
+		res = atan(vald);
+	}
+	if (strcmp(c->cmd, "ACOT") == 0) {
+		res = 1.0 / atan(vald);
+	}
+#ifdef BOARD_ESP32
+	if (strcmp(c->cmd, "ASINH") == 0) {
+		res = asinh(vald);
+	}
+	if (strcmp(c->cmd, "ACOSH") == 0) {
+		res = acosh(vald);
+	}
+	if (strcmp(c->cmd, "ATANH") == 0) {
+		res = atanh(vald);
+	}
+	if (strcmp(c->cmd, "ACOTH") == 0) {
+		res = 1.0 / atanh(vald);
+	}
+#endif
+	new_number(c->args[0].data, res, c->pid);
+	return 0;
 }
