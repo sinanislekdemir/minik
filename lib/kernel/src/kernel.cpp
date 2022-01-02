@@ -10,6 +10,17 @@ extern daemon_task daemons;
 extern StatusEngine *status_engine;
 extern SourceEngine *source_engine;
 
+#ifdef BOARD_ESP32
+TaskHandle_t task_handles[CORES];
+
+void core_run(void *_core) {
+	unsigned int core = (unsigned int)(ulong)_core;
+	while (step_tasks(core)) {
+		yield();
+	}
+}
+#endif
+
 /**
    Main Kernel Entrypoint
  */
@@ -17,6 +28,7 @@ int kmain() {
 	Serial.begin(9600);
 	register_kernel_tasks();
 	register_statements();
+	init_cores();
 
 	status_engine->change_status_pin(STATUS_PIN);
 	status_engine->set_status(READY);
@@ -37,8 +49,19 @@ int kmain() {
 	Serial.print("Free ram: ");
 	Serial.println(free_ram());
 	Serial.println("ready to receive");
-	while (step_tasks()) {
+#ifdef BOARD_ESP32
+	for (unsigned int i = 0; i < CORES; i++) {
+		char *name = (char *)malloc(6);
+		memset(name, 0, 6);
+		sprintf(name, "core%d", i);
+		xTaskCreatePinnedToCore(core_run, name, STACK_SIZE, (void *)i, 1, &task_handles[i], i);
+		free(name);
 	}
+#endif
+#ifdef BOARD_ATMEGA
+	while (step_tasks(0)) {
+	}
+#endif
 	mem_dump();
 	stop();
 	return 0;

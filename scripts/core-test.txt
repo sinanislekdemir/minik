@@ -1,0 +1,8 @@
+main:
+CORE core_number
+SPRINT "Hi, I am running on core "
+SPRINTLN core_number
+SLEEP 1000
+GOTO 1
+HALT
+---

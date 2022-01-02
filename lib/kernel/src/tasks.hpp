@@ -6,6 +6,14 @@
 
 #include <Arduino.h>
 
+#ifdef BOARD_ESP32
+#define CORES 2
+#define STACK_SIZE 8192
+#else
+#define CORES 1
+#define STACK_SIZE 0
+#endif
+
 /**
    Priority of a task:
    loop:
@@ -31,6 +39,7 @@ struct task {
 };
 
 void add_task(program *_p, unsigned int priority);
-bool step_tasks();
+bool step_tasks(int core);
+void init_cores();
 
 #endif

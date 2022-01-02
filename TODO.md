@@ -2,7 +2,8 @@
 
 - [x] Hardware Interrupts
 - [x] Byte array
-- [X] Exception Sub
+- [x] Exception Sub
+- [x] ESP32 Dual core support
 - [ ] I2C
 - [ ] SPI Usage
 - [ ] LCD

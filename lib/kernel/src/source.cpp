@@ -39,6 +39,9 @@ void SourceEngine::append_to_source() {
 		serial_lock = NO_LOCK;
 		return;
 	}
+	if (strcmp(this->buffer, "#ignore") == 0) {
+		Serial.println(MSG_READY_TO_RECEIVE);
+	}
 	if (strlen(this->buffer) < 2) {
 		this->buffer_cursor = 0;
 		memset(this->buffer, 0, BUFFER_SIZE);

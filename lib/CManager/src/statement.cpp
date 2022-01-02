@@ -7,6 +7,7 @@
 #include "cmd_math.hpp"
 #include "cmd_navigate.hpp"
 #include "cmd_serial.hpp"
+#include "cmd_system.hpp"
 #include "cmd_time.hpp"
 #include "cmd_variable.hpp"
 #include "constants.hpp"
@@ -100,6 +101,7 @@ void register_statements() {
 	add_statement("SLEEP", command_sleep);
 	add_statement("MILLIS", command_millis);
 	add_statement("INT", command_int);
+	add_statement("CORE", command_core);
 
 	add_statement("AREAD", command_analogread);
 	add_statement("AWRITE", command_analogwrite);
