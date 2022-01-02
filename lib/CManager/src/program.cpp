@@ -239,6 +239,13 @@ int program::step() {
 	if (result == -1) {
 		// TODO: raise
 		if (this->cursor->cursor->exception != NULL) {
+			// Check if program has an exception handler
+			sub *handler = find_sub((char *)"on_exception");
+			if (handler != NULL) {
+				this->cursor = handler;
+				this->cursor->cursor = handler->root_instruction;
+				return RUNNING;
+			}
 			Serial.println("Exception occured");
 			Serial.println(this->cursor->cursor->exception->message);
 		}

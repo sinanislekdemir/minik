@@ -39,6 +39,7 @@
 #define ERR_STR_NOT_ENOUGH_PARAMS "Not enough params CMD: [%s] expected [%d] received [%d]"
 #define ERR_STR_INVALID_TYPE "Invalid variable type, expected [%s] got [%s]"
 #define ERR_STR_VARIABLE_FULL "Variable is full [%s]"
+#define ERR_STR_DIVISION_BY_ZERO "Division by zero"
 
 const char *type_tostr(int type);
 #endif

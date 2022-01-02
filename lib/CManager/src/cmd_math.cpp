@@ -76,8 +76,16 @@ int command_div(command *c, program *_p) {
 		return -1;
 	}
 #endif
+	double v1d = ctod(v1->data);
+	double v2d = ctod(v2->data);
+#ifndef DISABLE_EXCEPTIONS
+	if (v2d == 0) {
+		c->exception = raise((char *)ERR_STR_DIVISION_BY_ZERO, c->pid, ERR_INVALID_PARAMETER_TYPE);
+		return -1;
+	}
+#endif
 
-	double div = ctod(v1->data) / ctod(v2->data);
+	double div = v1d / v2d;
 	return save_result(c, div);
 }
 

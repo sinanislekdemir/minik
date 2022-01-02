@@ -1,0 +1,12 @@
+main:
+SPRINTLN "Testing division by zero"
+SET a 10
+SET b 0
+DIV c a b
+SPRINTLN "You never see this message"
+HALT
+---
+on_exception:
+SPRINTLN "Something went wrong"
+HALT
+---
