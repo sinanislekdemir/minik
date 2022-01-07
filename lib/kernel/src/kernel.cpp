@@ -1,5 +1,6 @@
 #include "kernel.hpp"
 #include "daemon.hpp"
+#include "drivers/wifi.hpp"
 #include "source.hpp"
 #include "tasks.hpp"
 
@@ -48,6 +49,9 @@ int kmain() {
 	Serial.flush();
 	Serial.print("Free ram: ");
 	Serial.println(free_ram());
+#ifdef BOARD_ESP32
+	print_vars();
+#endif
 	Serial.println("ready to receive");
 #ifdef BOARD_ESP32
 	for (unsigned int i = 0; i < CORES; i++) {

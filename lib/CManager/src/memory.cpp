@@ -9,19 +9,6 @@
 #include "helpers.hpp"
 #include <Arduino.h>
 
-/*
- *
- struct variable {
-  char *name;
-  char *data;
-  unsigned int datasize;
-  unsigned int pid;
-  unsigned int type;
-  bool deleted;
-  variable *next;
-};
-
- */
 
 variable root_variable = {(char *)"", (char *)"", 0, 0, 0, false, NULL};
 variable HIGHV = {(char *)"HIGH", dtoc(HIGH), sizeof(double), 0, TYPE_NUM, false, NULL};

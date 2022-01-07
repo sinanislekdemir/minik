@@ -643,3 +643,134 @@ Digital Read from given pin, another Arduino binding.
 ```asm
 DREAD destination pin
 ```
+
+## System Calls
+
+System calls are an important part of Minik Os, which enables you to reach embedded device
+drivers like Wifi or Bluetooth.
+
+System calls are relatively easy but tricky.
+
+In assembler language, you have registers for system calls like EAX, EBX, ECX... which
+you set. Then you call the system call interrupt (usually `int 80h`).
+
+In Minik Os, the logic is similar. But unlike assembler, we have global variables, which
+the system driver will reach from your programs memory scope.
+
+### WIFI Device (10)
+
+Main driver address for WiFi is 10. Numbers below 10 are reserved to Kernel Drivers.
+
+```asm
+# Set mode to WIFI STA
+# WIFI_CMD 1 = set mode
+SET WIFI_CMD 1
+SET WIFI_MODE 1
+SYS 10
+# Connect to a network
+# WIFI_CMD 2 = begin
+SET WIFI_CMD 2
+SET WIFI_SSID "MyHomeNetworkName"
+SET WIFI_PASSWORD "MyHomeNetworkPassword"
+SYS 10
+CALL check_connected
+---
+check_connected:
+# Check connected status
+# WIFI_CMD 3 == status
+# Sets variable WIFI_STATUS
+SET WIFI_CMD 3
+SYS 10
+CMP WIFI_STATUS 3
+JE connected
+GOTO 1
+---
+connected:
+SPRINTLN "Wifi Connected"
+HALT
+---
+```
+
+#### Map of defined variables
+
+You can not use ESP32 defined variables, as they are low level. But you can
+use their numeric values for WiFi mode etc. Here are some of the commonly used
+variables and their numeric values.
+
+| Value Name                | Numeric Value |
+| ------------------------- | -------------:|
+| WIFI_STA                  |             1 |
+| WIFI_AP                   |             2 |
+| WIFI_AP_STA               |             3 |
+| WIFI_OFF                  |             0 |
+| WIFI_IF_AP                |             1 |
+| WIFI_IF_STA               |             0 |
+| WIFI_ANT_MAX              |             2 |
+| WL_CONNECTED              |             3 |
+| WL_DISCONNECTED           |             6 |
+| WL_NO_SHIELD              |           255 |
+| WL_IDLE_STATUS            |             0 |
+| WL_NO_SSID_AVAIL          |             1 |
+| WL_CONNECT_FAILED         |             4 |
+| WL_SCAN_COMPLETED         |             2 |
+| WL_CONNECTION_LOST        |             5 |
+| WIFI_AUTH_OPEN            |             0 |
+| WIFI_AUTH_WEP             |             1 |
+| WIFI_AUTH_WPA_PSK         |             2 |
+| WIFI_AUTH_WPA2_PSK        |             3 |
+| WIFI_AUTH_WPA_WPA2_PSK    |             4 |
+| WIFI_AUTH_WPA2_ENTERPRISE |             5 |
+
+You can also use other variables not defined here as long as you know the numerical
+value.
+
+#### WIFI_CMD
+
+| Command Def    | Value |
+| -------------- | -----:|
+| mode           | 1     |
+| begin          | 2     |
+| status         | 3     |
+| softAp         | 4     |
+| scanNetworks   | 5     |
+| encryptionType | 6     |
+| SSID           | 7     |
+| RSSI           | 8     |
+| localIP        | 9     |
+| reconnect      | 10    |
+| setHostname    | 11    |
+
+
+Variable Sets:
+
+- WIFI_CMD 1: `in: WIFI_MODE`
+- WIFI_CMD 2: `in: WIFI_SSID WIFI_PASSWORD`
+- WIFI_CMD 3: `out: WIFI_STATUS`
+- WIFI_CMD 4: `in: WIFI_SSID WIFI_PASSWORD WIFI_CHANNEL WIFI_SSID_HIDDEN WIFI_MAX_CONNECTION`
+- WIFI_CMD 5: `out: WIFI_NUM_NETWORKS`
+- WIFI_CMD 6: `in: WIFI_INDEX out: WIFI_ENCRYPTION_TYPE`
+
+
+### WiFiServer (11)
+
+#### WSERVER_CMD
+
+| Command Def      | Value |
+| ---------------- | ----- |
+| available        | 1     |
+| client.available | 2     |
+| client.read      | 3     |
+| client.readline  | 4     |
+| client.print     | 5     |
+| client.println   | 6     |
+| client.stop      | 7     |
+
+**Wait for client connection:**
+
+```asm
+SET WSERVER_CMD 1
+SYS 11
+SPRINTLN WCLIENT_ID
+```
+
+**Readline from client**

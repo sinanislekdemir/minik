@@ -8,3 +8,7 @@ int command_core(command *c, program *_p) {
 	new_number(c->args[0].data, double(core), c->pid);
 	return 0;
 }
+
+int command_sys(command *c, program *_p){
+
+};
