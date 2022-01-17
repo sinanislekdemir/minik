@@ -5,11 +5,7 @@ int command_sleep(command *c, program *_p) {
 	variable *v = get_var(c, 0);
 #ifndef DISABLE_EXCEPTIONS
 	if (v == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_VAR_NOT_FOUND, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif

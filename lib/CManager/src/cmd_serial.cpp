@@ -53,11 +53,7 @@ int command_serial_println(command *c, program *_p) {
 		variable *v = find_variable(c->args[0].data, c->pid);
 #ifndef DISABLE_EXCEPTIONS
 		if (v == NULL) {
-			char *msg = (char *)malloc(64);
-			memset(msg, 0, 64);
-			sprintf(msg, ERR_STR_VAR_NOT_FOUND, c->args[0].data);
-			c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-			free(msg);
+			c->exception = raise(ERR_STR_VAR_NOT_FOUND, c->pid, ERR_VARIABLE_NOT_FOUND);
 			return -1;
 		}
 #endif
@@ -97,11 +93,7 @@ int command_serial_print(command *c, program *_p) {
 		variable *v = find_variable(c->args[0].data, c->pid);
 #ifndef DISABLE_EXCEPTIONS
 		if (v == NULL) {
-			char *msg = (char *)malloc(64);
-			memset(msg, 0, 64);
-			sprintf(msg, ERR_STR_VAR_NOT_FOUND, c->args[0].data);
-			c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-			free(msg);
+			c->exception = raise(ERR_STR_VAR_NOT_FOUND, c->pid, ERR_VARIABLE_NOT_FOUND);
 			return -1;
 		}
 #endif
@@ -126,19 +118,11 @@ int command_serial_print(command *c, program *_p) {
 int command_getln(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (c->args[0].type != TYPE_VARIABLE) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "First argument must be a variable [%s]", c->args[0].data);
-		c->exception = raise(msg, c->pid, ERR_INVALID_COMMAND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_COMMAND);
 		return -1;
 	}
 	if (c->argc < 2) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, ERR_STR_NOT_ENOUGH_PARAMS, c->cmd, 2, c->argc);
-		c->exception = raise(msg, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
-		free(msg);
+		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
 		return -1;
 	}
 #endif
@@ -147,11 +131,7 @@ int command_getln(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (buflen->type != TYPE_NUM) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Argument [%d] must be a number", 2);
-		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		return -1;
 	}
 #endif

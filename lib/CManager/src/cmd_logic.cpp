@@ -7,7 +7,7 @@ int _quick_jump(command *c, program *_p) {
 	if (s == NULL) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "Jump location [%s] not found", c->args[0].name);
+		strcat(msg, "Jump location not found");
 		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
 		free(msg);
 		return -1;
@@ -21,25 +21,21 @@ int _quick_jump(command *c, program *_p) {
 int command_cmp(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (c->argc != 2) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, ERR_STR_NOT_ENOUGH_PARAMS, c->cmd, 2, c->argc);
-		c->exception = raise(msg, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
-		free(msg);
+		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
 		return -1;
 	}
 #endif
 
 	variable *v1 = get_var(c, 0);
 	variable *v2 = get_var(c, 1);
+	if (v1 == NULL || v2 == NULL) {
+		_p->set_cmp_flag(CMP_N);
+		return 0;
+	}
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1->type != v2->type) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid type comparison [%s] vs [%s]", type_tostr(v1->type), type_tostr(v2->type));
-		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		return -1;
 	}
 #endif
@@ -122,36 +118,20 @@ int command_jle(command *c, program *_p) {
 int _command_validations(command *c, variable *v1, variable *v2) {
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, ERR_STR_VAR_NOT_FOUND, c->args[0].data);
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_VAR_NOT_FOUND, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 
 	if (v1->data == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Variable is NONE [%s]", c->args[0].data);
-		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		return -1;
 	}
 	if (v1->type != TYPE_NUM && v1->type != TYPE_BYTE) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Variable 1 type should be NUMBER or BYTE got [%s]", type_tostr(v1->type));
-		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		return -1;
 	}
 	if (v2->type != TYPE_NUM && v1->type != TYPE_BYTE) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Variable 2 type should be NUMBER or BYTE got [%s]", type_tostr(v2->type));
-		c->exception = raise(msg, c->pid, ERR_INVALID_PARAMETER_TYPE);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_PARAMETER_TYPE);
 		return -1;
 	}
 #endif

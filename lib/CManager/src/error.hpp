@@ -7,5 +7,5 @@ struct error {
 	unsigned int pid;
 };
 
-error *raise(char *msg, unsigned int pid, unsigned int code);
+error *raise(const char *msg, unsigned int pid, unsigned int code);
 #endif

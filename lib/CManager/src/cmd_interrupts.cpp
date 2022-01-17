@@ -11,7 +11,8 @@ int command_int(command *c, program *_p) {
 	if (interrupt_sub == NULL) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "Jump location [%s] not found", c->args[0].name);
+		strcat(msg, "Location not found: ");
+		strcat(msg, c->args[2].name);
 		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
 		free(msg);
 		return -1;

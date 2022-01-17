@@ -106,11 +106,15 @@ def upload(port: str, filename: str):
         if not check_script(fname):
             continue
         print(f"Sending file {fname} on port {port}")
+        data = ""
         with open(fname, "r") as f:
-            bytesw = socket.write(bytes(f.read(), "ascii"))
+            data = f.read()
+        for line in data.splitlines():
+            socket.write(bytes(line + "\n", "ascii"))
+            # socket.flush()
         socket.write(bytes("\n.\n", "ascii"))
         socket.flush()
-        print(f"{bytesw} bytes written")
+        print("Sent program")
 
     while not shutdown:
         c = click.getchar(echo=False)

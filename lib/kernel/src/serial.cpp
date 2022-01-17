@@ -56,9 +56,12 @@ char *serial_get_multiline(unsigned int buffer_size) {
 
 		if (result == NULL) {
 			result = (char *)malloc(1);
-			sprintf(temp, "%s\n", buffer);
+			strcat(temp, "\n");
 		} else {
-			sprintf(temp, "%s%s\n", result, buffer);
+			// sprintf uses too much ram!
+			strcat(temp, result);
+			strcat(temp, buffer);
+			strcat(temp, "\n");
 		}
 
 		char *swap = result;

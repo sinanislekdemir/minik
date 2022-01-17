@@ -9,20 +9,6 @@
 #include "helpers.hpp"
 #include <Arduino.h>
 
-/*
- *
- struct variable {
-  char *name;
-  char *data;
-  unsigned int datasize;
-  unsigned int pid;
-  unsigned int type;
-  bool deleted;
-  variable *next;
-};
-
- */
-
 variable root_variable = {(char *)"", (char *)"", 0, 0, 0, false, NULL};
 variable HIGHV = {(char *)"HIGH", dtoc(HIGH), sizeof(double), 0, TYPE_NUM, false, NULL};
 variable LOWV = {(char *)"LOW", dtoc(LOW), sizeof(double), 0, TYPE_NUM, false, NULL};
@@ -245,5 +231,7 @@ void new_string(char *name, char *value, int size, unsigned int pid) {
 	res->datasize = size;
 	res->deleted = false;
 }
+
+void error_msg(const char *msg, unsigned int pid) { new_string((char *)"ERR_EXCEPTION", (char *)msg, strlen(msg), pid); }
 
 void defrag_variables() {}

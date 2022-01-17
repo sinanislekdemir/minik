@@ -7,7 +7,8 @@ int command_call(command *c, program *_p) {
 	if (s == NULL) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "Call location [%s] not found", c->args[0].name);
+		strcat(msg, "Call location not found");
+		strcat(msg, c->args[0].name);
 		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
 		free(msg);
 		return -1;
@@ -24,7 +25,7 @@ int command_goto(command *c, program *_p) {
 	if (c->argc < 1) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "GOTO target is not defined");
+		strcat(msg, "GOTO target is not defined");
 		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
 		free(msg);
 		return -1;
@@ -35,7 +36,7 @@ int command_goto(command *c, program *_p) {
 	if (goto_location->type != TYPE_NUM) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "GOTO target is not a valid NUMBER, got [%s]", type_tostr(goto_location->type));
+		strcat(msg, "GOTO target is not a valid NUMBER");
 		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
 		free(msg);
 		return -1;

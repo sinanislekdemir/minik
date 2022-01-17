@@ -4,11 +4,7 @@
 int *pins_def(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (c->argc != 2) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, ERR_STR_NOT_ENOUGH_PARAMS, c->cmd, 2, c->argc);
-		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_ADDRESS_NOT_FOUND);
 		return NULL;
 	}
 #endif
