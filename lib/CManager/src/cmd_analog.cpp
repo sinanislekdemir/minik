@@ -27,11 +27,7 @@ int command_analogread(command *c, program *_p) {
 	// AREAD src pin
 #ifndef DISABLE_EXCEPTIONS
 	if (c->argc != 2) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, ERR_STR_NOT_ENOUGH_PARAMS, c->cmd, 2, c->argc);
-		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_ADDRESS_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -58,7 +54,7 @@ int command_analogwrite(command *c, program *_p) {
 	if (channel == -1) {
 		char *msg = (char *)malloc(64);
 		memset(msg, 0, 64);
-		sprintf(msg, "No empty channels");
+		strcat(msg, "No empty channels");
 		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
 		free(msg);
 		return -1;

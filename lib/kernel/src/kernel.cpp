@@ -1,6 +1,5 @@
 #include "kernel.hpp"
 #include "daemon.hpp"
-#include "drivers/wifi.hpp"
 #include "source.hpp"
 #include "tasks.hpp"
 
@@ -49,15 +48,16 @@ int kmain() {
 	Serial.flush();
 	Serial.print("Free ram: ");
 	Serial.println(free_ram());
-#ifdef BOARD_ESP32
-	print_vars();
-#endif
 	Serial.println("ready to receive");
 #ifdef BOARD_ESP32
+	char core_id[2];
 	for (unsigned int i = 0; i < CORES; i++) {
-		char *name = (char *)malloc(6);
-		memset(name, 0, 6);
-		sprintf(name, "core%d", i);
+		char *name = (char *)malloc(8);
+		memset(name, 0, 8);
+		memset(core_id, 0, 2);
+		itoa(i, core_id, 10);
+		strcat(name, "core_");
+		strcat(name, core_id);
 		xTaskCreatePinnedToCore(core_run, name, STACK_SIZE, (void *)i, 1, &task_handles[i], i);
 		free(name);
 	}
@@ -66,8 +66,10 @@ int kmain() {
 	while (step_tasks(0)) {
 	}
 #endif
+#ifndef BOARD_ESP32
 	mem_dump();
 	stop();
+#endif
 	return 0;
 }
 

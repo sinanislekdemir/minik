@@ -1,0 +1,48 @@
+main:
+# Set wifi mode to STA
+SET WIFI_CMD 1
+SET WIFI_MODE 1
+# System call
+SYS 10
+CALL scan_networks
+---
+scan_networks:
+SPRINTLN "Scanning networks"
+SET WIFI_CMD 5
+SYS 10
+CALL print_networks
+---
+print_networks:
+SET counter 0
+CMP counter WIFI_NUM_NETWORKS
+JE connection
+# GET SSID
+SET WIFI_CMD 7
+SET WIFI_INDEX counter
+SYS 10
+SPRINTLN WIFI_SSID
+ADD counter counter 1
+GOTO 1
+---
+connection:
+SET WIFI_CMD 2
+SET WIFI_SSID "YOUR_WIFI_NAME"
+SET WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+SYS 10
+SPRINTLN "Connecting to Wifi"
+SET WIFI_CMD 3
+SYS 10
+CMP WIFI_STATUS 3
+JE connected
+SLEEP 2000
+SPRINTLN "check"
+GOTO 5
+SPRINTLN "Bye"
+HALT
+---
+connected:
+SET WIFI_CMD 9
+SYS 10
+SPRINTLN WIFI_LOCALIP
+HALT
+---

@@ -1,4 +1,4 @@
-# Minik Os for mini(k) spaces
+#Minik Os for mini(k) spaces
 
 Minik OS is a binary format embedded operating system. Unlike RTOS(es),
 Minik OS is not a framework. It's a compiled operating system, ready
@@ -99,7 +99,6 @@ logical "jump" locations.
 - There is a special sub called `on_exception` which gets called
   automatically when an exception occurs. If `on_exception` is not
   found in your application, then program will HALT.
-  Also, this won't work if you have compiled Minik with DISABLE_EXCEPTIONS
 
 Common syntax:
 
@@ -195,6 +194,13 @@ DEG_TO_RAD
 RAD_TO_DEG
 EULER
 ```
+
+### Reserved Variables
+
+In case of an exception, `ERR_EXCEPTION` will be filled with the possible
+error message, which can be used to print the error message or understand
+the main problem.
+
 
 ### Serial Port
 
@@ -662,13 +668,13 @@ the system driver will reach from your programs memory scope.
 Main driver address for WiFi is 10. Numbers below 10 are reserved to Kernel Drivers.
 
 ```asm
-# Set mode to WIFI STA
-# WIFI_CMD 1 = set mode
+#Set mode to WIFI STA
+#WIFI_CMD 1 = set mode
 SET WIFI_CMD 1
 SET WIFI_MODE 1
 SYS 10
-# Connect to a network
-# WIFI_CMD 2 = begin
+#Connect to a network
+#WIFI_CMD 2 = begin
 SET WIFI_CMD 2
 SET WIFI_SSID "MyHomeNetworkName"
 SET WIFI_PASSWORD "MyHomeNetworkPassword"
@@ -676,9 +682,9 @@ SYS 10
 CALL check_connected
 ---
 check_connected:
-# Check connected status
-# WIFI_CMD 3 == status
-# Sets variable WIFI_STATUS
+#Check connected status
+#WIFI_CMD 3 == status
+#Sets variable WIFI_STATUS
 SET WIFI_CMD 3
 SYS 10
 CMP WIFI_STATUS 3
@@ -739,6 +745,7 @@ value.
 | localIP        | 9     |
 | reconnect      | 10    |
 | setHostname    | 11    |
+| softAPIP       | 12    |
 
 
 Variable Sets:
@@ -749,21 +756,44 @@ Variable Sets:
 - WIFI_CMD 4: `in: WIFI_SSID WIFI_PASSWORD WIFI_CHANNEL WIFI_SSID_HIDDEN WIFI_MAX_CONNECTION`
 - WIFI_CMD 5: `out: WIFI_NUM_NETWORKS`
 - WIFI_CMD 6: `in: WIFI_INDEX out: WIFI_ENCRYPTION_TYPE`
-
+- WIFI_CMD 7: `in: WIFI_INDEX out: WIFI_SSID`
+- WIFI_CMD 8: `in: WIFI_INDEX out: WIFI_RSSI`
+- WIFI_CMD 9: `out: WIFI_LOCALIP`
+- WIFI_CMD 10: `out: WIFI_RECONNECT`
+- WIFI_CMD 11: `out: WIFI_HOSTNAME`
+- WIFI_CMD 12: `out: WIFI_SOFTAPIP`
 
 ### WiFiServer (11)
 
-#### WSERVER_CMD
+#### WIFI_SERVER_CMD
 
 | Command Def      | Value |
 | ---------------- | ----- |
-| available        | 1     |
-| client.available | 2     |
-| client.read      | 3     |
-| client.readline  | 4     |
-| client.print     | 5     |
-| client.println   | 6     |
-| client.stop      | 7     |
+| create           | 1     |
+| available        | 2     |
+| connected        | 3     |
+| client.available | 4     |
+| client.read      | 5     |
+| client.readline  | 6     |
+| client.print     | 7     |
+| client.println   | 8     |
+| client.stop      | 9     |
+| destroy          | 10    |
+
+Variable Sets:
+
+- WIFI_CMD 1: `in: WIFI_SERVER_PORT out: WIFI_SERVER_ID`
+- WIFI_CMD 2: `in: WIFI_SERVER_ID out: WIFI_CLIENT` (0 or 1)
+- WIFI_CMD 3: `in: WIFI_SERVER_ID out: WIFI_CLIENT_CONNECTED` (0 or 1)
+- WIFI_CMD 4: `in: WIFI_SERVER_ID out: WIFI_CLIENT_AVAILABLE`
+- WIFI_CMD 5: `in: WIFI_SERVER_ID out: WIFI_CLIENT_READ` (1 byte, can be appended to a string)
+- WIFI_CMD 6: `in: WIFI_SERVER_ID out: WIFI_CLIENT_READLINE`
+- WIFI_CMD 7: `in: WIFI_SERVER_ID WIFI_CLIENT_PRINT`
+- WIFI_CMD 8: `in: WIFI_SERVER_ID WIFI_CLIENT_PRINTLN`
+- WIFI_CMD 9: `in: WIFI_SERVER_ID`
+- WIFI_CMD 10: `in: WIFI_SERVER_ID`
+
+**Create wifi network server**
 
 **Wait for client connection:**
 

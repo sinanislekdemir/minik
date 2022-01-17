@@ -20,11 +20,7 @@ int command_add(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -43,11 +39,7 @@ int command_sub(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -68,11 +60,7 @@ int command_div(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -101,11 +89,7 @@ int command_mul(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -126,11 +110,7 @@ int command_xor(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -151,11 +131,7 @@ int command_or(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -176,11 +152,7 @@ int command_and(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -201,11 +173,7 @@ int command_pow(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (v1 == NULL || v2 == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -225,11 +193,7 @@ int command_trigonometry(command *c, program *_p) {
 
 #ifndef DISABLE_EXCEPTIONS
 	if (val == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, "Invalid Parameter(s)");
-		c->exception = raise(msg, c->pid, ERR_VARIABLE_NOT_FOUND);
-		free(msg);
+		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
 		return -1;
 	}
 #endif

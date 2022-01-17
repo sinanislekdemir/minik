@@ -15,11 +15,7 @@ variable *get_var(command *c, int index) {
 
 int validate_command(command *c, unsigned int expected_argc) {
 	if (c->argc < expected_argc) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		sprintf(msg, ERR_STR_NOT_ENOUGH_PARAMS, c->cmd, c->argc, expected_argc);
-		c->exception = raise(msg, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
-		free(msg);
+		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
 		return -1;
 	}
 

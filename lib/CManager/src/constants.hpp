@@ -35,10 +35,10 @@
 #define ERR_ADDRESS_NOT_FOUND 405
 
 #define ERR_STR_SOURCE_NONE "Source can not be NONE"
-#define ERR_STR_VAR_NOT_FOUND "Variable not found [%s]"
-#define ERR_STR_NOT_ENOUGH_PARAMS "Not enough params CMD: [%s] expected [%d] received [%d]"
-#define ERR_STR_INVALID_TYPE "Invalid variable type, expected [%s] got [%s]"
-#define ERR_STR_VARIABLE_FULL "Variable is full [%s]"
+#define ERR_STR_VAR_NOT_FOUND "Variable not found"
+#define ERR_STR_NOT_ENOUGH_PARAMS "Not enough params"
+#define ERR_STR_INVALID_TYPE "Invalid variable type"
+#define ERR_STR_VARIABLE_FULL "Variable is full"
 #define ERR_STR_DIVISION_BY_ZERO "Division by zero"
 
 const char *type_tostr(int type);

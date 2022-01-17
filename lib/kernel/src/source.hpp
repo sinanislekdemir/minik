@@ -10,7 +10,6 @@ class SourceEngine : public daemon {
       private:
 	bool serial_open;
 	int boud_rate;
-	int source_size;
 	char *buffer;
 	char *source;
 	unsigned int buffer_cursor;

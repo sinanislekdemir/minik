@@ -14,28 +14,28 @@ int command_log(command *c, program *_p) {
 			Serial.print(c->args[i].data);
 			switch (c->args[i].type) {
 			case TYPE_STR:
-				sprintf(typestr, " (str)");
+				strcpy(typestr, " (str)");
 				break;
 			case TYPE_NUM:
-				sprintf(typestr, " (num)");
+				strcpy(typestr, " (num)");
 				break;
 			case TYPE_CONSTANT:
-				sprintf(typestr, " (const)");
+				strcpy(typestr, " (const)");
 				break;
 			case TYPE_VARIABLE:
-				sprintf(typestr, " (var)");
+				strcpy(typestr, " (var)");
 				break;
 			case TYPE_LABEL:
-				sprintf(typestr, " (lab)");
+				strcpy(typestr, " (lab)");
 				break;
 			case TYPE_REGISTER:
-				sprintf(typestr, " (reg)");
+				strcpy(typestr, " (reg)");
 				break;
 			case TYPE_FILE:
-				sprintf(typestr, " (file)");
+				strcpy(typestr, " (file)");
 				break;
 			case TYPE_BYTE:
-				sprintf(typestr, " (byte)");
+				strcpy(typestr, " (byte)");
 			}
 			Serial.println(typestr);
 		}

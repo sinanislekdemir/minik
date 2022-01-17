@@ -102,6 +102,7 @@ void register_statements() {
 	add_statement("MILLIS", command_millis);
 	add_statement("INT", command_int);
 	add_statement("CORE", command_core);
+	add_statement("SYS", command_sys);
 
 	add_statement("AREAD", command_analogread);
 	add_statement("AWRITE", command_analogwrite);

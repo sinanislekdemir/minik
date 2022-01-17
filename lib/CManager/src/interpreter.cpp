@@ -15,7 +15,9 @@ int run(command *c, program *_p) {
 #ifndef DISABLE_EXCEPTIONS
 	char *msg = (char *)malloc(64);
 	memset(msg, 0, 64);
-	sprintf(msg, "Invalid command [%s]", c->cmd);
+	strcat(msg, "Invalid command: ");
+	strcat(msg, c->cmd);
+
 	c->exception = raise(msg, c->pid, ERR_INVALID_COMMAND);
 	free(msg);
 #endif

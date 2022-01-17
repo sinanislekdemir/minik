@@ -1,4 +1,6 @@
 #include "cmd_system.hpp"
+#include "helpers.hpp"
+#include "wifi.hpp"
 
 int command_core(command *c, program *_p) {
 	int core = 0;
@@ -9,6 +11,16 @@ int command_core(command *c, program *_p) {
 	return 0;
 }
 
-int command_sys(command *c, program *_p){
-
+int command_sys(command *c, program *_p) {
+	variable *call = get_var(c, 0);
+	int call_num = int(ctod(call->data));
+#ifdef BOARD_ESP32
+	if (call_num == 10) {
+		return wifi(_p);
+	}
+	if (call_num == 11) {
+		return server(_p);
+	}
+#endif
+	return 0;
 };
