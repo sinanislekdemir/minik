@@ -91,7 +91,7 @@ def upload(port: str, filename: str):
     global ready
     r = threading.Thread(target=reader)
     r.start()
-    if port == "":
+    if not port:
         port = serial_ports()[0]
 
     socket = serial.Serial(port=port)
