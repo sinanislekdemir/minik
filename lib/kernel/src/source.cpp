@@ -13,7 +13,6 @@ SourceEngine::SourceEngine() {
 #ifdef BOARD_ESP32
 	EEPROM.begin(4096);
 #endif
-	delay(5000);
 	char eeprom_defined = EEPROM.read(0);
 	Serial.print("EEPROM Flag: ");
 	Serial.println(eeprom_defined);
@@ -73,16 +72,18 @@ void SourceEngine::append_to_source() {
 		return;
 	}
 	if (strcmp(this->buffer, "eeprom") == 0) {
-		Serial.println("Store source code in eeprom");
 #ifdef BOARD_ESP32
-		Serial.print("Eeprom size: ");
-		Serial.println(4096);
 		EEPROM.begin(4096);
 #endif
+		int scl = strlen(this->source);
+		if (scl >= 4096) {
+			Serial.println("Source code is too big to store in EEPROM");
+			return;
+		}
 		for (unsigned int i = 0; i < 4096; i++) {
 			EEPROM.write(i, 0);
 		}
-		int scl = strlen(this->source);
+
 		EEPROM.write(0, EEPROM_DEFINED);
 		char *size = (char *)malloc(4);
 		memcpy(size, &scl + 1, 4);
