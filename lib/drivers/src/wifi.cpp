@@ -1,7 +1,7 @@
 #include "wifi.hpp"
 #include "helpers.hpp"
 
-#ifdef BOARD_ESP32
+#ifdef WITH_WIFI
 #include <Arduino.h>
 #include <WiFi.h>
 
@@ -9,34 +9,30 @@ n_server *root_server = NULL;
 
 int wifi(program *_p) {
 	unsigned int pid = _p->pid;
-	variable *cmd = find_variable("WIFI_CMD", pid);
-	if (cmd == NULL) {
+	int cmd_var = find_number("WIFI_CMD", pid);
+	if (cmd_var == 0) {
 		error_msg("WIFI_CMD not defined", pid);
 		return -1;
 	}
-	if (cmd->type != TYPE_NUM) {
-		error_msg("WIFI_CMD not a number", pid);
-		return -1;
-	}
-	int cmd_var = int(ctod(cmd->data));
+
 	if (cmd_var == 1) {
-		variable *mode = find_variable("WIFI_MODE", pid);
-		if (mode == NULL) {
+		int mode = find_number("WIFI_MODE", pid);
+		if (mode == 0) {
 			error_msg("WIFI_MODE not defined", pid);
 			return -1;
 		}
-		wifi_mode_t m = static_cast<wifi_mode_t>(int(ctod(mode->data)));
+		wifi_mode_t m = static_cast<wifi_mode_t>(mode);
 		WiFi.mode(m);
 		return 0;
 	}
 	if (cmd_var == 2) {
-		variable *ssid = find_variable("WIFI_SSID", pid);
-		variable *passwd = find_variable("WIFI_PASSWORD", pid);
+		char *ssid = find_string("WIFI_SSID", pid);
+		char *passwd = find_string("WIFI_PASSWORD", pid);
 		if (ssid == NULL || passwd == NULL) {
 			error_msg("WIFI_SSID or WIFI_PASSWORD not defined", pid);
 			return -1;
 		}
-		WiFi.begin(ssid->data, passwd->data);
+		WiFi.begin(ssid, passwd);
 		return 0;
 	}
 	if (cmd_var == 3) {
@@ -45,28 +41,31 @@ int wifi(program *_p) {
 		return 0;
 	}
 	if (cmd_var == 4) {
-		variable *ssid = find_variable("WIFI_SSID", pid);
-		variable *passwd = find_variable("WIFI_PASSWORD", pid);
+		char *ssid = find_string("WIFI_SSID", pid);
+		char *passwd = find_string("WIFI_PASSWORD", pid);
 		int channel = 3;
-		variable *ch = find_variable("WIFI_CHANNEL", pid);
-		if (ch != NULL) {
-			channel = int(ctod(ch->data));
+		int ch = find_number("WIFI_CHANNEL", pid);
+		if (ch != 0) {
+			channel = ch;
 		}
 		int ssid_hidden = 0;
-		variable *shd = find_variable("WIFI_SSID_HIDDEN", pid);
-		if (shd != NULL) {
-			ssid_hidden = int(ctod(shd->data));
+		int shd = find_number("WIFI_SSID_HIDDEN", pid);
+
+		if (shd != 0) {
+			ssid_hidden = shd;
 		}
+
 		int max_conn = 4;
-		variable *mc = find_variable("WIFI_MAX_CONNECTION", pid);
-		if (mc != NULL) {
-			max_conn = int(ctod(mc->data));
+		int mc = find_number("WIFI_MAX_CONNECTION", pid);
+
+		if (mc != 0) {
+			max_conn = mc;
 		}
 		if (ssid == NULL || passwd == NULL) {
 			error_msg("WIFI_SSID or WIFI_PASSWORD not defined", pid);
 			return -1;
 		}
-		WiFi.softAP(ssid->data, passwd->data, channel, ssid_hidden, max_conn);
+		WiFi.softAP(ssid, passwd, channel, ssid_hidden, max_conn);
 		return 0;
 	}
 	if (cmd_var == 5) {
@@ -75,23 +74,15 @@ int wifi(program *_p) {
 		return 0;
 	}
 	if (cmd_var == 6) {
-		variable *windex = find_variable("WIFI_INDEX", pid);
-		if (windex == NULL) {
-			error_msg("WIFI_INDEX not defined", pid);
-			return -1;
-		}
-		uint8_t i = uint8_t(ctod(windex->data));
+		int windex = find_number("WIFI_INDEX", pid);
+		uint8_t i = uint8_t(windex);
 		int n = WiFi.encryptionType(i);
 		new_number((char *)"WIFI_ENCRYPTION_TYPE", double(n), pid);
 		return 0;
 	}
 	if (cmd_var == 7) {
-		variable *windex = find_variable("WIFI_INDEX", pid);
-		if (windex == NULL) {
-			error_msg("WIFI_INDEX not defined", pid);
-			return -1;
-		}
-		uint8_t i = uint8_t(ctod(windex->data));
+		int windex = find_number("WIFI_INDEX", pid);
+		uint8_t i = uint8_t(windex);
 		String s = WiFi.SSID(i);
 		int l = s.length() + 1;
 		char *sid = (char *)malloc(l);
@@ -102,12 +93,8 @@ int wifi(program *_p) {
 		return 0;
 	}
 	if (cmd_var == 8) {
-		variable *windex = find_variable("WIFI_INDEX", pid);
-		if (windex == NULL) {
-			error_msg("WIFI_INDEX not defined", pid);
-			return -1;
-		}
-		uint8_t i = uint8_t(ctod(windex->data));
+		int windex = find_number("WIFI_INDEX", pid);
+		uint8_t i = uint8_t(windex);
 		int strength = WiFi.RSSI(i);
 		new_number((char *)"WIFI_RSSI", double(strength), pid);
 		return 0;
@@ -132,12 +119,12 @@ int wifi(program *_p) {
 		return 0;
 	}
 	if (cmd_var == 11) {
-		variable *hostname = find_variable("WIFI_HOSTNAME", pid);
+		char *hostname = find_string("WIFI_HOSTNAME", pid);
 		if (hostname == NULL) {
 			error_msg("WIFI_HOSTNAME not defined", pid);
 			return -1;
 		}
-		WiFi.setHostname(hostname->data);
+		WiFi.setHostname(hostname);
 		return 0;
 	}
 	if (cmd_var == 12) {
@@ -164,14 +151,9 @@ void print_vars() {
 
 n_server *_get_server(unsigned int pid) {
 	n_server *head = root_server;
-	variable *server_id = find_variable("WIFI_SERVER_ID", pid);
-	if (server_id == NULL) {
-		error_msg("WIFI_SERVER_ID not defined", pid);
-		return NULL;
-	}
-	unsigned int server_id_int = (unsigned int)(ctod(server_id->data));
+	int server_id = find_number("WIFI_SERVER_ID", pid);
 	while (head != NULL) {
-		if (head->id == server_id_int && head->pid == pid) {
+		if (head->id == server_id && head->pid == pid) {
 			return head;
 		}
 		head = head->next;
@@ -194,23 +176,19 @@ unsigned int _get_next_id(unsigned int pid) {
 
 int server(program *_p) {
 	unsigned int pid = _p->pid;
-	variable *cmd = find_variable("WIFI_SERVER_CMD", pid);
-	if (cmd == NULL) {
+	int cmd_var = find_number("WIFI_SERVER_CMD", pid);
+	if (cmd_var == 0) {
 		error_msg("WIFI_SERVER_CMD not defined", pid);
 		return -1;
 	}
-	if (cmd->type != TYPE_NUM) {
-		error_msg("WIFI_SERVER_CMD not a number", pid);
-		return -1;
-	}
-	int cmd_var = int(ctod(cmd->data));
+
 	if (cmd_var == 1) {
-		variable *port = find_variable("WIFI_SERVER_PORT", pid);
-		if (port == NULL) {
+		int port = find_number("WIFI_SERVER_PORT", pid);
+		if (port == 0) {
 			error_msg("WIFI_SERVER_PORT not defined", pid);
 			return -1;
 		}
-		uint16_t iport = uint16_t(ctod(port->data));
+		uint16_t iport = uint16_t(port);
 		n_server *s = new n_server;
 		s->server = new WiFiServer(iport);
 		s->server->begin();
@@ -311,12 +289,12 @@ int server(program *_p) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		variable *pr = find_variable("WIFI_CLIENT_PRINT", pid);
-		if (pr == NULL) {
+		char *data = find_string("WIFI_CLIENT_PRINT", pid);
+		if (data == NULL) {
 			error_msg("WIFI_CLIENT_PRINT not defined", pid);
 			return -1;
 		}
-		s->client.print(pr->data);
+		s->client.print(data);
 		return 0;
 	}
 	if (cmd_var == 8) {
@@ -328,12 +306,12 @@ int server(program *_p) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		variable *pr = find_variable("WIFI_CLIENT_PRINTLN", pid);
-		if (pr == NULL) {
+		char *data = find_string("WIFI_CLIENT_PRINTLN", pid);
+		if (data == NULL) {
 			error_msg("WIFI_CLIENT_PRINT not defined", pid);
 			return -1;
 		}
-		s->client.println(pr->data);
+		s->client.println(data);
 		return 0;
 	}
 	if (cmd_var == 9) {

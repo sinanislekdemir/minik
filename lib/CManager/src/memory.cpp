@@ -179,6 +179,33 @@ void new_variable(variable *v) {
 	}
 }
 
+int find_number(const char *name, unsigned int pid) { return int(find_double(name, pid)); }
+
+double find_double(const char *name, unsigned int pid) {
+	variable *res = find_variable(name, pid);
+	if (res == NULL) {
+		return 0;
+	}
+	if (res->type == TYPE_VARIABLE) {
+		return find_number(res->data, pid);
+	}
+	if (res->data == NULL) {
+		return 0;
+	}
+	return ctod(res->data);
+}
+
+char *find_string(const char *name, unsigned int pid) {
+	variable *res = find_variable(name, pid);
+	if (res == NULL) {
+		return NULL;
+	}
+	if (res->type == TYPE_VARIABLE) {
+		return find_string(res->data, pid);
+	}
+	return res->data;
+}
+
 void new_number(char *name, double value, unsigned int pid) {
 	variable *res = find_variable(name, pid);
 	if (res == NULL) {

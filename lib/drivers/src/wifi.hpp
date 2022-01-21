@@ -1,9 +1,9 @@
 #ifndef _drivers_wifi_hpp
 #define _drivers_wifi_hpp
 #define MAX_SERVERS 4
-#define BOARD_ESP323
+#define WITH_WIFI2
 
-#ifdef BOARD_ESP32
+#ifdef WITH_WIFI
 
 #include "program.hpp"
 #include <WiFi.h>
