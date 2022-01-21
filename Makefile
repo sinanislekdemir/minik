@@ -5,10 +5,10 @@ default: help ;
 
 UNAME := $(shell uname -s)
 
-mega: build
+mega:
 	@pio run -t upload -e atmega
 
-esp32: build
+esp32:
 	@pio run -t upload -e main
 
 console:

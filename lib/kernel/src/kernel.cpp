@@ -8,7 +8,6 @@ int kernel_next_pid;
 
 extern daemon_task daemons;
 extern StatusEngine *status_engine;
-extern SourceEngine *source_engine;
 
 #ifdef BOARD_ESP32
 TaskHandle_t task_handles[CORES];
@@ -21,12 +20,41 @@ void core_run(void *_core) {
 }
 #endif
 
+void _add_daemon(daemon *dae) {
+	if (daemons.task == NULL) {
+		daemons.end_time = 0;
+		daemons.exit_code = RUNNING;
+		daemons.next = NULL;
+		daemons.start_time = millis();
+		daemons.task = dae;
+		return;
+	}
+	daemon_task *d = (daemon_task *)malloc(sizeof(daemon_task));
+	d->task = dae;
+	d->next = NULL;
+	d->exit_code = RUNNING;
+	d->start_time = millis();
+	d->end_time = 0;
+	daemon_task *head = &daemons;
+
+	while (true) {
+		if (head->next == NULL) {
+			head->next = d;
+			break;
+		}
+		head = head->next;
+	}
+}
+
+void register_kernel_tasks() { _add_daemon(status_engine); }
+
 /**
    Main Kernel Entrypoint
  */
 int kmain() {
 	Serial.begin(9600);
 	register_kernel_tasks();
+
 	register_statements();
 	init_cores();
 
@@ -49,6 +77,8 @@ int kmain() {
 	Serial.print("Free ram: ");
 	Serial.println(free_ram());
 	Serial.println("ready to receive");
+	SourceEngine *source_engine = new SourceEngine();
+	_add_daemon(source_engine);
 #ifdef BOARD_ESP32
 	char core_id[2];
 	for (unsigned int i = 0; i < CORES; i++) {
@@ -91,35 +121,4 @@ void stop() {
 char *kernel_stats(program *p) {
 	char *result = (char *)malloc(1024);
 	return result;
-}
-
-void _add_daemon(daemon *dae) {
-	if (daemons.task == NULL) {
-		daemons.end_time = 0;
-		daemons.exit_code = RUNNING;
-		daemons.next = NULL;
-		daemons.start_time = millis();
-		daemons.task = dae;
-		return;
-	}
-	daemon_task *d = (daemon_task *)malloc(sizeof(daemon_task));
-	d->task = dae;
-	d->next = NULL;
-	d->exit_code = RUNNING;
-	d->start_time = millis();
-	d->end_time = 0;
-	daemon_task *head = &daemons;
-
-	while (true) {
-		if (head->next == NULL) {
-			head->next = d;
-			break;
-		}
-		head = head->next;
-	}
-}
-
-void register_kernel_tasks() {
-	_add_daemon(status_engine);
-	_add_daemon(source_engine);
 }

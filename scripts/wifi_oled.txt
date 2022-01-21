@@ -104,3 +104,4 @@ SET SSD1306_CMD 11
 SYS 12
 CALL echo_get
 ---
+eeprom

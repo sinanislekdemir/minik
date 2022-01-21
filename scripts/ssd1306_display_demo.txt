@@ -81,3 +81,4 @@ GOTO 1
 demo_end:
 HALT
 ---
+eeprom

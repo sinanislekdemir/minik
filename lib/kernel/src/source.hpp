@@ -1,6 +1,8 @@
 #ifndef _kernel_source_hpp
 #define _kernel_source_hpp
 #define BUFFER_SIZE 128
+#define EEPROM_DEFINED 9
+#define EEPROM_CLEAR 10
 
 #include "daemon.hpp"
 #include "kernel_const.hpp"

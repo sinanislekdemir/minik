@@ -56,3 +56,4 @@ SET WIFI_SERVER_CMD 8
 SYS 11
 CALL echo_get
 ---
+eeprom
