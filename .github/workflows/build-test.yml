@@ -10,6 +10,7 @@ jobs:
     - name: Set up platformio cli
       run: |
         python3 -c "$(curl -fsSL https://raw.githubusercontent.com/platformio/platformio/master/scripts/get-platformio.py)"
+        echo "$HOME/.platformio/penv/bin" >> $GITHUB_PATH
     - name: Run build
       run: |
         make build
