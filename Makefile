@@ -6,19 +6,19 @@ default: help ;
 UNAME := $(shell uname -s)
 
 mega:
-	@pio run -t upload -e atmega
+	@platformio run -t upload -e atmega
 
 esp32:
-	@pio run -t upload -e main
+	@platformio run -t upload -e main
 
 console:
-	@pio device monitor
+	@platformio device monitor
 
 build:
-	@pio run
+	@platformio run
 
 clean:
-	@pio run --target clean
+	@platformio run --target clean
 
 help:
 	@echo "Make Minik"
