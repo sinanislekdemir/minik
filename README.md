@@ -1,4 +1,4 @@
-#Minik Os for mini(k) spaces
+# Minik Os for mini(k) spaces
 
 ![example workflow](https://github.com/sinanislekdemir/minik/actions/workflows/build-test.yml/badge.svg)
 
