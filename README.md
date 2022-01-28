@@ -1,5 +1,7 @@
 #Minik Os for mini(k) spaces
 
+![example workflow](https://github.com/sinanislekdemir/minik/actions/workflows/build-test.yml/badge.svg)
+
 https://minik.16x4.com
 
 Minik OS is a binary format embedded operating system. Unlike RTOS(es),
