@@ -75,6 +75,20 @@ void SourceEngine::append_to_source() {
 		serial_lock = NO_LOCK;
 		return;
 	}
+	if (strcmp(this->buffer, "cleeprom") == 0) {
+#ifdef BOARD_ESP32
+		EEPROM.begin(EEPROM.length());
+#endif
+		for (unsigned int i = 0; i < EEPROM.length(); i++) {
+			EEPROM.write(i, 0);
+		}
+
+		Serial.println("EEPROM clean");
+#ifdef BOARD_ESP32
+		EEPROM.end();
+#endif
+		return;
+	}
 	if (strcmp(this->buffer, "eeprom") == 0) {
 #ifdef BOARD_ESP32
 		EEPROM.begin(EEPROM.length());
