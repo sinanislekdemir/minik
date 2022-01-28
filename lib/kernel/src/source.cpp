@@ -18,21 +18,25 @@ SourceEngine::SourceEngine() {
 	Serial.println(eeprom_defined);
 	if (eeprom_defined == EEPROM_DEFINED) {
 		Serial.println("Source code found in EEPROM");
-		char *size = (char *)malloc(4);
-		size[0] = EEPROM.read(1);
-		size[1] = EEPROM.read(2);
-		size[2] = EEPROM.read(3);
-		size[3] = EEPROM.read(4);
-		int code_size_d = 0;
-		memcpy(&code_size_d, size, 4);
-		free(size);
+		unsigned int code_size_d = 0;
+		for (unsigned int i = 0; i < EEPROM.length(); i++) {
+			if (EEPROM.read(i) == 0) {
+				code_size_d = i;
+				break;
+			}
+		}
+
+		Serial.print("  source code size: ");
+		Serial.print(code_size_d);
+		Serial.println(" bytes");
 
 		this->source = (char *)malloc(code_size_d + 1);
 		memset(this->source, 0, code_size_d + 1);
 
 		for (unsigned int i = 0; i < code_size_d; i++) {
-			this->source[i] = EEPROM.read(i + 5);
+			this->source[i] = EEPROM.read(i + 1);
 		}
+
 		Serial.println(this->source);
 		this->create_task();
 	}
@@ -73,26 +77,20 @@ void SourceEngine::append_to_source() {
 	}
 	if (strcmp(this->buffer, "eeprom") == 0) {
 #ifdef BOARD_ESP32
-		EEPROM.begin(4096);
+		EEPROM.begin(EEPROM.length());
 #endif
-		int scl = strlen(this->source);
-		if (scl >= 4096) {
+		unsigned int scl = strlen(this->source);
+		if (scl >= EEPROM.length()) {
 			Serial.println("Source code is too big to store in EEPROM");
 			return;
 		}
-		for (unsigned int i = 0; i < 4096; i++) {
+		for (unsigned int i = 0; i < EEPROM.length(); i++) {
 			EEPROM.write(i, 0);
 		}
 
 		EEPROM.write(0, EEPROM_DEFINED);
-		char *size = (char *)malloc(4);
-		memcpy(size, &scl + 1, 4);
-		EEPROM.write(1, size[0]);
-		EEPROM.write(2, size[1]);
-		EEPROM.write(3, size[2]);
-		EEPROM.write(4, size[3]);
 		for (unsigned int i = 0; i < scl; i++) {
-			EEPROM.write(i + 5, this->source[i]);
+			EEPROM.write(i + 1, this->source[i]);
 		}
 		Serial.print("Wrote ");
 		Serial.print(scl);
@@ -102,7 +100,7 @@ void SourceEngine::append_to_source() {
 #endif
 		return;
 	}
-	if (strcmp(this->buffer, "#ignore") == 0) {
+	if (strcmp(this->buffer, "#source-code") == 0) {
 		this->buffer_cursor = 0;
 		memset(this->buffer, 0, BUFFER_SIZE);
 		Serial.println(MSG_READY_TO_RECEIVE);

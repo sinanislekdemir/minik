@@ -74,9 +74,7 @@ int kmain() {
 	Serial.println("Minik Kernel KMain");
 	Serial.println("Ready to receive source code");
 	Serial.flush();
-	Serial.print("Free ram: ");
-	Serial.println(free_ram());
-	Serial.println("ready to receive");
+	print_status();
 	SourceEngine *source_engine = new SourceEngine();
 	_add_daemon(source_engine);
 #ifdef BOARD_ESP32

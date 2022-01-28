@@ -2,6 +2,7 @@
 import glob
 import sys
 import threading
+from time import sleep
 from getpass import getpass
 from typing import List
 
@@ -63,20 +64,25 @@ def serial_ports() -> List[str]:
 def reader():
     """Read data thread."""
     global ready, shutdown
+    buffer = ""
     while active:
         if socket is not None:
-            buffer = ""
             while socket.in_waiting:
                 data = socket.read(size=1)
                 data_s = data.decode("ascii", errors="ignore")
                 print(data_s, end="")
                 buffer += data_s
 
-            if "ready to receive" in buffer:
-                ready = True
-            if ".shutdown." in buffer:
-                shutdown = True
-                return True
+            if buffer.endswith("\n"):
+                buffer = buffer.replace("\r", "")
+
+                if "ready to receive" in buffer:
+                    ready = True
+
+                if ".shutdown." in buffer:
+                    shutdown = True
+                    return True
+                buffer = ""
 
             sys.stdout.flush()
 
@@ -95,10 +101,12 @@ def upload(port: str, filename: str):
         port = serial_ports()[0]
 
     socket = serial.Serial(port=port)
-    socket.write(bytes("#ignore\n", "ascii"))
     print("Waiting for connection")
     while not ready:
-        pass
+        print("Sending source code request")
+        socket.write(bytes("#source-code\n", "ascii"))
+        print(f"Ready = {ready}")
+        sleep(1)
 
     for fname in filename.split(","):
         if fname == "":

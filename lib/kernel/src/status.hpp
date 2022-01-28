@@ -44,4 +44,5 @@ class StatusEngine : public daemon {
 };
 
 int free_ram();
+int print_status();
 #endif

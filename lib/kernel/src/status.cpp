@@ -1,4 +1,5 @@
 #include "status.hpp"
+#include <EEPROM.h>
 
 StatusEngine *status_engine = new StatusEngine();
 
@@ -10,6 +11,24 @@ void StatusEngine::change_status_pin(int pin) {
 	this->_status_pin = pin;
 	pinMode(_status_pin, OUTPUT);
 	digitalWrite(_status_pin, _pin_state);
+}
+
+int print_status() {
+	Serial.println("Chip stats");
+	Serial.print("  free ram: ");
+	Serial.println(free_ram());
+	Serial.print("  eeprom size: ");
+	Serial.println(EEPROM.length());
+	int free_eeprom = 0;
+	for (unsigned int i = 0; i < EEPROM.length(); i++) {
+		if (EEPROM.read(i) == 0) {
+			free_eeprom++;
+		}
+	}
+	Serial.print("  free eeprom size: ");
+	Serial.println(free_eeprom);
+	Serial.flush();
+        return 0;
 }
 
 int free_ram() {
