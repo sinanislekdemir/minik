@@ -14,3 +14,9 @@ jobs:
     - name: Run build
       run: |
         make build_test
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: reports
+        path: reports
+        retention-days: 5
