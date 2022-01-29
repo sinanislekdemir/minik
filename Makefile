@@ -20,6 +20,18 @@ build:
 clean:
 	@platformio run --target clean
 
+build_test:
+	@echo "Bluetooth test"
+	@echo "BLUETOOTH" > drivers.txt
+	@echo "BLUETOOTH_SERIAL" >> drivers.txt
+	@platformio run > bt_test.txt
+	@echo "Wifi test"
+	@echo "WIFI" > drivers.txt
+	@platformio run > wifi_test.txt
+	@echo "Display test"
+	@echo "DISPLAY_SSD1306" > drivers.txt
+	@platformio run > display_test.txt
+
 help:
 	@echo "Make Minik"
 	@echo "make mega          # Upload to ATMega"

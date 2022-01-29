@@ -1,6 +1,7 @@
 #include "wifi.hpp"
 #include "helpers.hpp"
 
+#ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 #include <Arduino.h>
 #include <WiFi.h>
@@ -345,4 +346,5 @@ int server(program *_p) {
 	return 0;
 }
 
+#endif
 #endif

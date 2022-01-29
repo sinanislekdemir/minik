@@ -13,4 +13,4 @@ jobs:
         echo "$HOME/.platformio/penv/bin" >> $GITHUB_PATH
     - name: Run build
       run: |
-        make build
+        make build_test

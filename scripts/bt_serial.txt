@@ -1,0 +1,29 @@
+main:
+SPRINTLN "Waiting for connection"
+SET BTSERIAL_NAME "MyESP32Device"
+SET BTSERIAL_CMD 1
+SYS 13
+SPRINTLN "Check for serial available"
+SET BTSERIAL_CMD 2
+SYS 13
+CMP BTSERIAL_AVAILABLE 0
+JG ready
+GOTO 5
+---
+ready:
+SPRINTLN "Client connected"
+CALL read
+---
+read:
+SET BTSERIAL_CMD 2
+SYS 13
+CMP BTSERIAL_AVAILABLE 0
+JG read_byte
+GOTO 0
+---
+read_byte:
+SET BTSERIAL_CMD 4
+SYS 13
+SPRINTLN BTSERIAL_READLN
+CALL read
+---

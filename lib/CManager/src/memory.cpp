@@ -85,7 +85,7 @@ variable *find_variable(const char *name, unsigned int pid) {
 	}
 
 	while (true) {
-		if (node->name != NULL && strcmp(node->name, name) == 0 && pid == node->pid && node->deleted == false) {
+		if (node->name != NULL && strcmp(node->name, name) == 0 && (pid == node->pid || pid == 0) && node->deleted == false) {
 			if (node->type == TYPE_VARIABLE && node->data != NULL) {
 				return find_variable(node->data, pid);
 			}

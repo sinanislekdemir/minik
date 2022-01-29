@@ -41,3 +41,17 @@ There are daemons for:
 
     sinan islekdemir
     sinan@islekdemir.com
+
+## Drivers
+
+Not all drivers can fit into your small flash storage. You can define the drivers you need
+inside `drivers.txt`. One driver name per line.
+
+Here is a full list of drivers:
+
+```
+WIFI
+BLUETOOTH_SERIAL
+BLUETOOTH
+DISPLAY_SSD1306
+```
