@@ -2,6 +2,20 @@
 
 #include "constants.hpp"
 
+int pfree() {
+#ifdef BOARD_ATMEGA
+	extern int __heap_start, *__brkval;
+	int v;
+	int x = (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
+	Serial.println(x);
+#endif
+
+#ifdef BOARD_ESP32
+	return ESP.getFreeHeap();
+#endif
+	return 0;
+}
+
 unsigned int extract_size(const char *text, char delimiter, unsigned int index) {
 	unsigned int index_counter = 0;
 	bool quote_block = false;

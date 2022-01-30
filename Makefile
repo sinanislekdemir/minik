@@ -21,7 +21,7 @@ clean:
 	@platformio run --target clean
 
 build_test:
-	@mkdir reports
+	@mkdir reports -p
 	@echo "Bluetooth test"
 	@echo "BLUETOOTH" > drivers.txt
 	@echo "BLUETOOTH_SERIAL" >> drivers.txt
@@ -32,6 +32,9 @@ build_test:
 	@echo "Display test"
 	@echo "DISPLAY_SSD1306" > drivers.txt
 	@platformio run > reports/display_test.txt
+	@echo "SDCard test"
+	@echo "SDCARD" > drivers.txt
+	@platformio run > reports/sdcard-test.txt
 
 help:
 	@echo "Make Minik"

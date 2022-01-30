@@ -1,17 +1,24 @@
 #include "tokenizer.hpp"
 #include "constants.hpp"
 #include "helpers.hpp"
+#include "statement.hpp"
 
 command *parse(const char *cmd, unsigned int pid) {
 	command *result = (command *)malloc(sizeof(command));
-	unsigned int argument_count = argc(cmd, ' ');
+	unsigned int argument_count = argc(cmd, ' ') - 1;
 	unsigned int command_size = extract_size(cmd, ' ', 0);
 	unsigned int argument_size;
-	result->cmd = extract(cmd, ' ', 0, command_size + 1);
+	char *temp_cmd = extract(cmd, ' ', 0, command_size + 1);
 
-	variable *args = new variable[argument_count];
+	result->cmd = find_statement((const char *)temp_cmd);
+	free(temp_cmd);
 
-	for (unsigned int i = 0; i < argument_count - 1; i++) {
+	variable *args = NULL;
+	if (argument_count > 0) {
+		args = new variable[argument_count];
+	}
+
+	for (unsigned int i = 0; i < argument_count; i++) {
 		argument_size = extract_size(cmd, ' ', i + 1);
 		char *temp = extract(cmd, ' ', i + 1, argument_size + 1);
 
@@ -27,7 +34,7 @@ command *parse(const char *cmd, unsigned int pid) {
 
 		if (args[i].type == TYPE_BYTE) {
 			args[i].datasize = 1;
-                        args[i].data = (char *)malloc(1);
+			args[i].data = (char *)malloc(1);
 			args[i].data[0] = (char)strtol(temp, NULL, 0);
 		} else if (args[i].type == TYPE_NUM) {
 			args[i].datasize = sizeof(double);
@@ -47,7 +54,7 @@ command *parse(const char *cmd, unsigned int pid) {
 		free(temp);
 	}
 
-	result->argc = argument_count - 1;
+	result->argc = argument_count;
 	result->args = args;
 	result->pid = pid;
 	result->next = NULL;

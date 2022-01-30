@@ -1,0 +1,46 @@
+main:
+SPRINTLN "Accessing SD Card through SPI"
+SET SD_SS_PIN 53
+SET SD_CMD 1
+SYS 15
+CMP SD_MOUNT 1
+JE mounted
+SPRINTLN "SD Card could not be mounted"
+SPRINT "Flag: "
+SPRINTLN SD_MOUNT
+HALT
+---
+mounted:
+SPRINTLN "  List files in SD Card root"
+SET SD_DIR "/"
+SET SD_CMD 2
+SYS 15
+SPRINT "  File count: "
+SPRINTLN SD_FILECOUNT
+SET index 0
+CALL list_dir
+---
+list_dir:
+SET SD_INDEX index
+SET SD_CMD 3
+SET SD_DIR "/"
+SYS 15
+SPRINT SD_FILENAME
+SPRINT " "
+SPRINT SD_FILESIZE
+SPRINT " bytes. Is DIR? "
+SPRINTLN SD_ISDIR
+ADD index index 1
+SET SD_INDEX index
+CMP index SD_FILECOUNT
+JE create_directory_test
+GOTO 1
+---
+create_directory_test:
+SPRINTLN "Halt here"
+HALT
+---
+on_exception:
+SPRINTLN ERR_EXCEPTION
+HALT
+---

@@ -5,7 +5,7 @@
 #include "memory.hpp"
 
 struct command {
-	char *cmd;
+	const char *cmd;
 	variable *args;
 	unsigned int argc;
 	unsigned int pid;

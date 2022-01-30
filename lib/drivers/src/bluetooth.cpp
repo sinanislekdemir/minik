@@ -39,7 +39,7 @@ int bluetooth_serial(program *_p) {
 		char *buffer = (char *)malloc(128);
 		memset(buffer, 0, 128);
 		SerialBT.readBytesUntil('\n', buffer, 128);
-		new_string((char *)"BTSERIAL_READLN", buffer, strlen(buffer) + 1, pid);
+		new_string((char *)"BTSERIAL_READLN", buffer, pid);
 		free(buffer);
 		return 0;
 	}
@@ -115,7 +115,7 @@ int bluetooth(program *_p) {
 		} else {
 			strcpy(temp, device.getAddress().toString().c_str());
 		}
-		new_string((char *)"BLE_NAME", temp, strlen(temp) + 1, pid);
+		new_string((char *)"BLE_NAME", temp, pid);
 		free(temp);
 		return 0;
 	}

@@ -231,14 +231,15 @@ void new_number(char *name, double value, unsigned int pid) {
 	res->deleted = false;
 }
 
-void new_string(char *name, char *value, int size, unsigned int pid) {
+void new_string(char *name, char *value, unsigned int pid) {
 	variable *res = find_variable(name, pid);
+	int size = strlen(value) + 1;
 	if (res == NULL) {
 		res = (variable *)malloc(sizeof(variable));
 		res->next = NULL;
 		res->data = (char *)malloc(size);
 		memset(res->data, 0, size);
-		memcpy(res->data, (const char *)value, size);
+		strcpy(res->data, (const char *)value);
 		res->type = TYPE_STR;
 		res->datasize = size;
 		res->pid = pid;
@@ -254,11 +255,11 @@ void new_string(char *name, char *value, int size, unsigned int pid) {
 	}
 	res->data = (char *)malloc(size);
 	memset(res->data, 0, size);
-	memcpy(res->data, (const char *)value, size);
+	strcpy(res->data, (const char *)value);
 	res->datasize = size;
 	res->deleted = false;
 }
 
-void error_msg(const char *msg, unsigned int pid) { new_string((char *)"ERR_EXCEPTION", (char *)msg, strlen(msg), pid); }
+void error_msg(const char *msg, unsigned int pid) { new_string((char *)"ERR_EXCEPTION", (char *)msg, pid); }
 
 void defrag_variables() {}

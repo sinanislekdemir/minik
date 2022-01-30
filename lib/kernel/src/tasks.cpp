@@ -87,6 +87,8 @@ bool step_tasks(int core) {
 			if (status != RUNNING) {
 				head->exit_code = status;
 				head->end_time = millis();
+                                head->prog->destroy();
+				free(head->prog);
 			}
 		}
 		head = head->next;

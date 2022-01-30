@@ -2,6 +2,7 @@
 #include "bluetooth.hpp"
 #include "display_ssd1306.hpp"
 #include "helpers.hpp"
+#include "sdcard.hpp"
 #include "wifi.hpp"
 
 int command_core(command *c, program *_p) {
@@ -35,6 +36,11 @@ int command_sys(command *c, program *_p) {
 		return bluetooth(_p);
 	}
 #endif
+#endif
+#ifdef WITH_SDCARD
+	if (call_num == 15) {
+		return sdcard(_p);
+	}
 #endif
 #ifdef WITH_DISPLAY_SSD1306
 	if (call_num == 12) {

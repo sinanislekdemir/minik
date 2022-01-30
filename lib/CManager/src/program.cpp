@@ -67,7 +67,6 @@ void _free_instructions(command *head) {
 			free(tmp->args[i].data);
 			free(tmp->args[i].name);
 		}
-		free(tmp->cmd);
 		free(tmp->args);
 		free(tmp);
 	}
@@ -246,8 +245,6 @@ int program::step() {
 				this->cursor->cursor = handler->root_instruction;
 				return RUNNING;
 			}
-			Serial.println("Exception occured");
-			Serial.println(this->cursor->cursor->exception->message);
 		}
 		return PROGRAM_END;
 	}
@@ -331,7 +328,6 @@ sub *program::compile_next_sub() {
 
 int program::compile() {
 	this->_sourcecode_cursor = 0;
-
 	sub *prev = NULL;
 	while (this->_sourcecode_cursor < this->line_count()) {
 		sub *s = this->compile_next_sub();

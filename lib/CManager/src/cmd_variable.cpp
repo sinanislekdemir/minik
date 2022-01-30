@@ -134,7 +134,7 @@ int command_str(command *c, program *_p) {
 	char *data = (char *)malloc(32);
 	memset(data, 0, 32);
 	dtostrf(d, 32, 4, data);
-	new_string(c->args[0].data, data, 32, c->pid);
+	new_string(c->args[0].data, data, c->pid);
 	return 0;
 }
 
@@ -169,7 +169,7 @@ int command_alloc(command *c, program *_p) {
 	int size = int(ctod(size_var->data));
 	char *data = (char *)malloc(size);
 	memset(data, 0, size);
-	new_string(c->args[0].data, data, size, c->pid);
+	new_string(c->args[0].data, data, c->pid);
 	free(data);
 	return 0;
 }

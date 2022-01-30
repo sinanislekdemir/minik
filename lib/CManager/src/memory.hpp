@@ -33,7 +33,7 @@ void free_variable(const char *name, unsigned int pid);
 void free_program(unsigned int pid);
 void new_variable(variable *v);
 void new_number(char *name, double value, unsigned int pid);
-void new_string(char *name, char *value, int size, unsigned int pid);
+void new_string(char *name, char *value, unsigned int pid);
 int find_number(const char *name, unsigned int pid);
 double find_double(const char *name, unsigned int pid);
 char *find_string(const char *name, unsigned int pid);

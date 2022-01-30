@@ -58,6 +58,7 @@ void SourceEngine::create_task() {
 	prog->source = this->source;
 	prog->compile();
 	add_task(prog, 1);
+	Serial.println(free_ram());
 }
 
 void SourceEngine::append_to_source() {

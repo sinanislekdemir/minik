@@ -89,7 +89,7 @@ int wifi(program *_p) {
 		char *sid = (char *)malloc(l);
 		memset(sid, 0, l);
 		s.toCharArray(sid, l - 1);
-		new_string((char *)"WIFI_SSID", sid, l, pid);
+		new_string((char *)"WIFI_SSID", sid, pid);
 		free(sid);
 		return 0;
 	}
@@ -106,7 +106,7 @@ int wifi(program *_p) {
 		char *ip_c = (char *)malloc(16);
 		memset(ip_c, 0, 16);
 		strcpy(ip_c, ips.c_str());
-		new_string((char *)"WIFI_LOCALIP", ip_c, 16, pid);
+		new_string((char *)"WIFI_LOCALIP", ip_c, pid);
 		free(ip_c);
 		return 0;
 	}
@@ -134,7 +134,7 @@ int wifi(program *_p) {
 		char *ip_c = (char *)malloc(16);
 		memset(ip_c, 0, 16);
 		strcpy(ip_c, ips.c_str());
-		new_string((char *)"WIFI_SOFTAPIP", ip_c, 16, pid);
+		new_string((char *)"WIFI_SOFTAPIP", ip_c, pid);
 		free(ip_c);
 		return 0;
 	}
@@ -260,7 +260,7 @@ int server(program *_p) {
 		}
 		char *cm = (char *)malloc(1);
 		cm[0] = s->client.read();
-		new_string((char *)"WIFI_CLIENT_READ", cm, 1, pid);
+		new_string((char *)"WIFI_CLIENT_READ", cm, pid);
 		free(cm);
 		return 0;
 	}
@@ -277,7 +277,7 @@ int server(program *_p) {
 		char *cm = (char *)malloc(st.length() + 1);
 		memset(cm, 0, st.length() + 1);
 		strcat(cm, st.c_str());
-		new_string((char *)"WIFI_CLIENT_READLINE", cm, st.length() + 1, pid);
+		new_string((char *)"WIFI_CLIENT_READLINE", cm, pid);
 		free(cm);
 		return 0;
 	}

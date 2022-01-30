@@ -28,7 +28,7 @@ int print_status() {
 	Serial.print("  free eeprom size: ");
 	Serial.println(free_eeprom);
 	Serial.flush();
-        return 0;
+	return 0;
 }
 
 int free_ram() {
@@ -61,6 +61,8 @@ int StatusEngine::process() {
 	}
 	_diff_milliseconds = now - _last_milliseconds;
 	if (_diff_milliseconds >= 1000) {
+		Serial.print("    Free ram: ");
+		Serial.println(free_ram());
 		_diff_milliseconds = 0;
 		_last_milliseconds = now;
 	}

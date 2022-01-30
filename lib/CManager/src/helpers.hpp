@@ -10,5 +10,5 @@ char *dtoc(double d);
 double ctod(char *data);
 void ltrim(char *src);
 bool is_data_type(int type);
-
+int pfree();
 #endif
