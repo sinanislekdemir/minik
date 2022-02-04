@@ -2,10 +2,12 @@
 
 #ifdef WITH_SDCARD
 
+#include "tasks.hpp"
 #include <SD.h>
 #include <SPI.h>
 
 uint8_t ss_pin = 0;
+extern int kernel_next_pid;
 
 int sdcard(program *_p) {
 	unsigned int pid = _p->pid;
@@ -262,6 +264,26 @@ int sdcard(program *_p) {
 		char *filename = find_string("SD_FILENAME", pid);
 		File file = SD.open(filename);
 		new_number((char *)"SD_SIZE", double(file.size()), pid);
+		file.close();
+		SD.end();
+		return 0;
+	}
+	if (cmd_var == 12) {
+		char *filename = find_string("SD_FILENAME", pid);
+		if (filename == NULL) {
+			error_msg("SD_FILENAME is not defined", pid);
+			SD.end();
+			return -1;
+		}
+		File file = SD.open(filename);
+		int size = file.size();
+		char *buffer = (char *)malloc(size + 1);
+		memset(buffer, 0, size + 1);
+		file.readBytes(buffer, size);
+		program *prog = new program(kernel_next_pid++);
+		prog->source = buffer;
+		prog->compile();
+		add_task(prog, 1);
 		file.close();
 		SD.end();
 		return 0;

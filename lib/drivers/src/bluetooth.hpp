@@ -5,6 +5,12 @@
 #include "program.hpp"
 
 #ifdef WITH_BLUETOOTH_SERIAL
+
+#ifndef BLUETOOTH_SERIAL_NAME
+#define BLUETOOTH_NAME "MinikESP32"
+#else
+#define BLUETOOTH_NAME XSTR(BLUETOOTH_SERIAL_NAME)
+#endif
 int bluetooth_serial(program *_p);
 #endif
 
@@ -13,4 +19,7 @@ int bluetooth(program *_p);
 #endif
 
 #endif
+
+int init_bt_serial();
+
 #endif

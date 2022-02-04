@@ -5,6 +5,18 @@
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 
+#ifndef WIFI_MODE
+#define WIFI_MODE "AP"
+#endif
+
+#ifndef WIFI_SSID
+#define WIFI_SSID "MinikESP32"
+#endif
+
+#ifndef WIFI_PASSWORD
+#define WIFI_PASSWORD "MyWifiPassword"
+#endif
+
 #include "program.hpp"
 #include <WiFi.h>
 struct n_server {
@@ -22,4 +34,6 @@ void print_vars();
 
 #endif
 #endif
+
+int init_wifi();
 #endif

@@ -1,5 +1,6 @@
 #ifndef _drivers_sdcard_hpp
 #define _drivers_sdcard_hpp
+
 #ifdef WITH_SDCARD
 
 #ifdef BOARD_ATMEGA

@@ -1,6 +1,9 @@
 #ifndef _program_hpp
 #define _program_hpp
 
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
 #include "command.hpp"
 #include "constants.hpp"
 #include <Arduino.h>
