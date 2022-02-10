@@ -3,9 +3,8 @@
 int output = LOG_SERIAL;
 
 void set_output(int output_type) { output = output_type; }
-int command_log(command *c, program *_p) {
-	char *typestr = (char *)malloc(12);
-	memset(typestr, 0, 12);
+int command_log(command *c, program *p) {
+	char typestr[12] = {0};
 	if (output == LOG_SERIAL) {
 		Serial.print("Command: ");
 		Serial.println(c->cmd);
@@ -40,6 +39,5 @@ int command_log(command *c, program *_p) {
 			Serial.println(typestr);
 		}
 	}
-	free(typestr);
 	return 0;
 }

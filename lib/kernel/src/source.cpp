@@ -14,10 +14,7 @@ SourceEngine::SourceEngine() {
 	EEPROM.begin(4096);
 #endif
 	char eeprom_defined = EEPROM.read(0);
-	Serial.print("EEPROM Flag: ");
-	Serial.println(eeprom_defined);
 	if (eeprom_defined == EEPROM_DEFINED) {
-		Serial.println("Source code found in EEPROM");
 		unsigned int code_size_d = 0;
 		for (unsigned int i = 0; i < EEPROM.length(); i++) {
 			if (EEPROM.read(i) == 0) {
@@ -26,10 +23,6 @@ SourceEngine::SourceEngine() {
 			}
 		}
 
-		Serial.print("  source code size: ");
-		Serial.print(code_size_d);
-		Serial.println(" bytes");
-
 		this->source = (char *)malloc(code_size_d + 1);
 		memset(this->source, 0, code_size_d + 1);
 
@@ -37,7 +30,6 @@ SourceEngine::SourceEngine() {
 			this->source[i] = EEPROM.read(i + 1);
 		}
 
-		Serial.println(this->source);
 		this->create_task();
 	}
 #ifdef BOARD_ESP32
@@ -62,7 +54,6 @@ void SourceEngine::create_task() {
 }
 
 void SourceEngine::append_to_source() {
-	Serial.println(this->buffer);
 	if (strcmp(this->buffer, ".") == 0) {
 		this->create_task();
 
@@ -141,6 +132,9 @@ void SourceEngine::append_to_source() {
 }
 
 int SourceEngine::process() {
+	if (serial_lock > KERNEL_LOCK)
+		return 1;
+
 #ifdef BOARD_ESP32
 	if (Serial.available() && !this->serial_open) {
 		this->serial_open = true;
@@ -155,8 +149,6 @@ int SourceEngine::process() {
 #endif
 	if (!this->serial_open)
 		return 1;
-	if (serial_lock > KERNEL_LOCK)
-		return 1;
 	if (!Serial.available())
 		return 1;
 	if (serial_lock == NO_LOCK) {
@@ -166,6 +158,6 @@ int SourceEngine::process() {
 	memset(this->buffer, 0, BUFFER_SIZE);
 	Serial.readBytesUntil('\n', this->buffer, BUFFER_SIZE);
 	append_to_source();
-	serial_lock = -1;
+	serial_lock = NO_LOCK;
 	return 1;
 }

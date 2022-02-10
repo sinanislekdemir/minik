@@ -2,10 +2,25 @@
 #include <Arduino.h>
 
 #ifdef BOARD_ESP32
-
 #ifdef WITH_BLUETOOTH_SERIAL
 #include <BluetoothSerial.h>
 BluetoothSerial SerialBT;
+#endif
+#endif
+
+int init_bt_serial() {
+#ifdef BOARD_ESP32
+#ifdef WITH_BLUETOOTH_SERIAL
+	bool start = SerialBT.begin(String(BLUETOOTH_NAME));
+	return start ? 1 : 0;
+#endif
+#endif
+	return 0;
+}
+
+#ifdef BOARD_ESP32
+
+#ifdef WITH_BLUETOOTH_SERIAL
 
 int bluetooth_serial(program *_p) {
 	unsigned int pid = _p->pid;
@@ -15,27 +30,16 @@ int bluetooth_serial(program *_p) {
 		return -1;
 	}
 	if (cmd_var == 1) {
-		char *device_name = find_string("BTSERIAL_NAME", pid);
-		if (device_name == NULL) {
-			error_msg("BTSERIAL_NAME is not defined", pid);
-			return -1;
-		}
-		String localName = String(device_name);
-		SerialBT.begin(localName);
-		return 0;
-	}
-	// Server mode
-	if (cmd_var == 2) {
 		int data_available = SerialBT.available();
 		new_number((char *)"BTSERIAL_AVAILABLE", double(data_available), pid);
 		return 0;
 	}
-	if (cmd_var == 3) {
+	if (cmd_var == 2) {
 		char b = SerialBT.read();
-                new_number((char *)"BTSERIAL_READ", double(b), pid);
+		new_number((char *)"BTSERIAL_READ", double(b), pid);
 		return 0;
 	}
-	if (cmd_var == 4) {
+	if (cmd_var == 3) {
 		char *buffer = (char *)malloc(128);
 		memset(buffer, 0, 128);
 		SerialBT.readBytesUntil('\n', buffer, 128);
@@ -43,17 +47,17 @@ int bluetooth_serial(program *_p) {
 		free(buffer);
 		return 0;
 	}
-	if (cmd_var == 5) {
+	if (cmd_var == 4) {
 		char *buffer = find_string("BTSERIAL_WRITE", pid);
 		SerialBT.write((const uint8_t *)buffer, strlen(buffer));
 		return 0;
 	}
-	if (cmd_var == 6) {
+	if (cmd_var == 5) {
 		char *device_name = find_string("BLE_DEVICE_NAME", pid);
 		SerialBT.connect(String(device_name));
 		return 0;
 	}
-	if (cmd_var == 7) {
+	if (cmd_var == 6) {
 		double connected = 0;
 		if (SerialBT.connected()) {
 			connected = 1;

@@ -79,9 +79,6 @@ def reader():
                 if "ready to receive" in buffer:
                     ready = True
 
-                if ".shutdown." in buffer:
-                    shutdown = True
-                    return True
                 buffer = ""
 
             sys.stdout.flush()
@@ -104,9 +101,9 @@ def upload(port: str, filename: str):
     print("Waiting for connection")
     while not ready:
         print("Sending source code request")
-        socket.write(bytes("#source-code\n", "ascii"))
-        print(f"Ready = {ready}")
+        socket.write(bytes("program\n", "ascii"))
         sleep(1)
+        print(f"Ready = {ready}")
 
     for fname in filename.split(","):
         if fname == "":
@@ -123,15 +120,6 @@ def upload(port: str, filename: str):
         socket.write(bytes("\n.\n", "ascii"))
         socket.flush()
         print("Sent program")
-
-    while not shutdown:
-        c = click.getchar(echo=False)
-        if ord(c) == 13:
-            socket.write(bytes("\n", "ascii"))
-            print("")
-        else:
-            socket.write(bytes(c, "ascii"))
-        socket.flush()
 
     r.join()
     active = False

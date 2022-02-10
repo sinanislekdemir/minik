@@ -6,13 +6,13 @@
 int get_v1_v2(command *c, variable *v1, variable *v2);
 int save_result(command *c, double result);
 
-int command_add(command *c, program *_p);
-int command_sub(command *c, program *_p);
-int command_div(command *c, program *_p);
-int command_mul(command *c, program *_p);
-int command_xor(command *c, program *_p);
-int command_or(command *c, program *_p);
-int command_and(command *c, program *_p);
-int command_pow(command *c, program *_p);
-int command_trigonometry(command *c, program *_p);
+int command_add(command *c, program *p);
+int command_sub(command *c, program *p);
+int command_div(command *c, program *p);
+int command_mul(command *c, program *p);
+int command_xor(command *c, program *p);
+int command_or(command *c, program *p);
+int command_and(command *c, program *p);
+int command_pow(command *c, program *p);
+int command_trigonometry(command *c, program *p);
 #endif

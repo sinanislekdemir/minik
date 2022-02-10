@@ -4,17 +4,12 @@
 
 unsigned int _occupied_pins[64] = {0};
 
-int command_int(command *c, program *_p) {
+int command_int(command *c, program *p) {
 	// INT <PIN> HIGH label
-	sub *interrupt_sub = _p->find_sub(c->args[2].name);
+	sub *interrupt_sub = p->find_sub(c->args[2].name);
 #ifndef DISABLE_EXCEPTIONS
 	if (interrupt_sub == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		strcat(msg, "Location not found: ");
-		strcat(msg, c->args[2].name);
-		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
-		free(msg);
+		c->exception = raise("Interrupt address not found", c->pid, ERR_ADDRESS_NOT_FOUND);
 		return -1;
 	}
 #endif
@@ -37,6 +32,6 @@ int command_int(command *c, program *_p) {
 	}
 
 	int a_state = int(ctod(state->data));
-	_p->register_interrupt(a_pin, a_state, interrupt_sub);
+	p->register_interrupt(a_pin, a_state, interrupt_sub);
 	return 0;
 }

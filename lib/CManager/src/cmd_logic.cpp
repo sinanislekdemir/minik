@@ -1,24 +1,20 @@
 #include "cmd_logic.hpp"
 #include "helpers.hpp"
 
-int _quick_jump(command *c, program *_p) {
-	sub *s = _p->find_sub(c->args[0].name);
+int _quick_jump(command *c, program *p) {
+	sub *s = p->find_sub(c->args[0].name);
 #ifndef DISABLE_EXCEPTIONS
 	if (s == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		strcat(msg, "Jump location not found");
-		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
-		free(msg);
+		c->exception = raise("Jump location not found", c->pid, ERR_ADDRESS_NOT_FOUND);
 		return -1;
 	}
 #endif
-	_p->cursor = s;
-	_p->cursor->cursor = _p->cursor->root_instruction;
+	p->cursor = s;
+	p->cursor->cursor = p->cursor->root_instruction;
 	return 1;
 }
 
-int command_cmp(command *c, program *_p) {
+int command_cmp(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (c->argc != 2) {
 		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
@@ -29,7 +25,7 @@ int command_cmp(command *c, program *_p) {
 	variable *v1 = get_var(c, 0);
 	variable *v2 = get_var(c, 1);
 	if (v1 == NULL || v2 == NULL) {
-		_p->set_cmp_flag(CMP_N);
+		p->set_cmp_flag(CMP_N);
 		return 0;
 	}
 
@@ -41,7 +37,7 @@ int command_cmp(command *c, program *_p) {
 #endif
 
 	if (memcmp(v1->data, v2->data, v1->datasize) == 0) {
-		_p->set_cmp_flag(CMP_JE);
+		p->set_cmp_flag(CMP_JE);
 		return 0;
 	}
 
@@ -49,11 +45,11 @@ int command_cmp(command *c, program *_p) {
 		char i1 = v1->data[0];
 		char i2 = v2->data[0];
 		if (i1 > i2) {
-			_p->set_cmp_flag(CMP_JG);
+			p->set_cmp_flag(CMP_JG);
 			return 0;
 		}
 		if (i1 < i2) {
-			_p->set_cmp_flag(CMP_JL);
+			p->set_cmp_flag(CMP_JL);
 			return 0;
 		}
 	}
@@ -61,56 +57,56 @@ int command_cmp(command *c, program *_p) {
 		double d1 = ctod(v1->data);
 		double d2 = ctod(v2->data);
 		if (d1 > d2) {
-			_p->set_cmp_flag(CMP_JG);
+			p->set_cmp_flag(CMP_JG);
 			return 0;
 		}
 		if (d1 < d2) {
-			_p->set_cmp_flag(CMP_JL);
+			p->set_cmp_flag(CMP_JL);
 			return 0;
 		}
 	}
-	_p->set_cmp_flag(CMP_N);
+	p->set_cmp_flag(CMP_N);
 	return 0;
 }
 
-int command_je(command *c, program *_p) {
-	if (_p->_cmp_flag != CMP_JE) {
+int command_je(command *c, program *p) {
+	if (p->_cmp_flag != CMP_JE) {
 		return 0;
 	}
-	return _quick_jump(c, _p);
+	return _quick_jump(c, p);
 }
 
-int command_jne(command *c, program *_p) {
-	if (_p->_cmp_flag == CMP_JE) {
+int command_jne(command *c, program *p) {
+	if (p->_cmp_flag == CMP_JE) {
 		return 0;
 	}
-	return _quick_jump(c, _p);
+	return _quick_jump(c, p);
 }
 
-int command_jg(command *c, program *_p) {
-	if (_p->_cmp_flag != CMP_JG) {
+int command_jg(command *c, program *p) {
+	if (p->_cmp_flag != CMP_JG) {
 		return 0;
 	}
-	return _quick_jump(c, _p);
+	return _quick_jump(c, p);
 }
 
-int command_jge(command *c, program *_p) {
-	if (_p->_cmp_flag == CMP_JE || _p->_cmp_flag == CMP_JG) {
-		return _quick_jump(c, _p);
+int command_jge(command *c, program *p) {
+	if (p->_cmp_flag == CMP_JE || p->_cmp_flag == CMP_JG) {
+		return _quick_jump(c, p);
 	}
 	return 0;
 }
 
-int command_jl(command *c, program *_p) {
-	if (_p->_cmp_flag != CMP_JL) {
+int command_jl(command *c, program *p) {
+	if (p->_cmp_flag != CMP_JL) {
 		return 0;
 	}
-	return _quick_jump(c, _p);
+	return _quick_jump(c, p);
 }
 
-int command_jle(command *c, program *_p) {
-	if (_p->_cmp_flag == CMP_JE || _p->_cmp_flag == CMP_JL) {
-		return _quick_jump(c, _p);
+int command_jle(command *c, program *p) {
+	if (p->_cmp_flag == CMP_JE || p->_cmp_flag == CMP_JL) {
+		return _quick_jump(c, p);
 	}
 	return 0;
 }
@@ -138,7 +134,7 @@ int _command_validations(command *c, variable *v1, variable *v2) {
 	return 0;
 }
 
-int command_lrotate(command *c, program *_p) {
+int command_lrotate(command *c, program *p) {
 	variable *v1;
 	variable *v2 = get_var(c, 1);
 	v1 = find_variable(c->args[0].data, c->pid);
@@ -162,7 +158,7 @@ int command_lrotate(command *c, program *_p) {
 	return 0;
 }
 
-int command_rrotate(command *c, program *_p) {
+int command_rrotate(command *c, program *p) {
 	variable *v1;
 	variable *v2 = get_var(c, 1);
 	v1 = find_variable(c->args[0].data, c->pid);
@@ -186,7 +182,7 @@ int command_rrotate(command *c, program *_p) {
 	return 0;
 }
 
-int command_lshift(command *c, program *_p) {
+int command_lshift(command *c, program *p) {
 	variable *v1;
 	variable *v2 = get_var(c, 1);
 	v1 = find_variable(c->args[0].data, c->pid);
@@ -210,7 +206,7 @@ int command_lshift(command *c, program *_p) {
 	return 0;
 }
 
-int command_rshift(command *c, program *_p) {
+int command_rshift(command *c, program *p) {
 	variable *v1;
 	variable *v2 = get_var(c, 1);
 	v1 = find_variable(c->args[0].data, c->pid);

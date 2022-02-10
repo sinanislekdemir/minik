@@ -3,61 +3,44 @@
 #include "helpers.hpp"
 #include "statement.hpp"
 
-command *parse(const char *cmd, unsigned int pid) {
-	command *result = (command *)malloc(sizeof(command));
+extern command commands[MAX_CMDS];
+
+int parse(const char *cmd, unsigned int pid, int index) {
 	unsigned int argument_count = argc(cmd, ' ') - 1;
-	unsigned int command_size = extract_size(cmd, ' ', 0);
-	unsigned int argument_size;
-	char *temp_cmd = extract(cmd, ' ', 0, command_size + 1);
-
-	result->cmd = find_statement((const char *)temp_cmd);
-	free(temp_cmd);
-
-	variable *args = NULL;
-	if (argument_count > 0) {
-		args = new variable[argument_count];
+	char temp_buffer[MAX_LINE_LENGTH] = {0};
+	extract(cmd, ' ', 0, temp_buffer);
+	if (argument_count > 3) {
+		argument_count = 3;
 	}
+
+	commands[index].statement = find_statement((const char *)temp_buffer);
+	commands[index].pid = pid;
+	commands[index].exception = false;
+	commands[index].arg_count = argument_count;
 
 	for (unsigned int i = 0; i < argument_count; i++) {
-		argument_size = extract_size(cmd, ' ', i + 1);
-		char *temp = extract(cmd, ' ', i + 1, argument_size + 1);
-
-		args[i].type = arg_type(temp);
-
-		args[i].pid = pid;
-		args[i].deleted = false;
-		args[i].name = (char *)malloc(strlen(temp) + 1);
-		args[i].next = NULL;
-
-		memset(args[i].name, 0, strlen(temp) + 1);
-		strcpy(args[i].name, temp);
-
-		if (args[i].type == TYPE_BYTE) {
-			args[i].datasize = 1;
-			args[i].data = (char *)malloc(1);
-			args[i].data[0] = (char)strtol(temp, NULL, 0);
-		} else if (args[i].type == TYPE_NUM) {
-			args[i].datasize = sizeof(double);
-			args[i].data = dtoc(atof(temp));
-		} else {
-			int lshift = 0;
-			int rshift = 0;
-			if (temp[0] == '"') {
-				lshift = 1;
-				rshift = 2;
-			}
-			args[i].data = (char *)malloc(argument_size + 1);
-			memset(args[i].data, 0, argument_size + 1);
-			memcpy(args[i].data, temp + lshift, argument_size - rshift);
-			args[i].datasize = argument_size;
+		memset(temp_buffer, 0, MAX_LINE_LENGTH);
+		int check = extract(cmd, ' ', i + 1, temp_buffer);
+		if (check == 0) {
+			break;
 		}
-		free(temp);
+		commands[index].variable_type[i] = arg_type(temp_buffer);
+		if (commands[index].variable_type[i] == TYPE_NUM) {
+			commands[index].variable_index[i] = new_number((char *)"", atof(temp_buffer), pid);
+		}
+		if (commands[i].variable_type[i] == TYPE_STR) {
+			char sbuffer[MAX_LINE_LENGTH] = {0};
+			memcpy(sbuffer, temp_buffer + 1, strlen(temp_buffer) - 2);
+			commands[index].variable_index[i] = new_string((char *)"", sbuffer, pid);
+		}
+		if (commands[index].variable_type[i] == TYPE_BYTE) {
+			char sbuffer[1] = {0};
+			sbuffer[0] = (char)strtol(temp_buffer, NULL, 0);
+			commands[index].variable_index[i] = new_string((char *)"", sbuffer, pid);
+		}
+		if (commands[index].variable_type[i] == TYPE_VARIABLE) {
+			commands[index].variable_index[i] = -1; // unknown yet
+		}
 	}
-
-	result->argc = argument_count;
-	result->args = args;
-	result->pid = pid;
-	result->next = NULL;
-	result->exception = NULL;
-	return result;
+	return 0;
 }

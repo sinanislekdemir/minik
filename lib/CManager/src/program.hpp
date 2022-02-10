@@ -1,70 +1,71 @@
 #ifndef _program_hpp
 #define _program_hpp
 
+#ifdef BOARD_ESP32
+#define MAX_SUB_COMMANDS 128
+#define MAX_SUBS 64
+#define PROG_SUBS 16
+#define MAX_PROGS 16
+#else
+#define MAX_SUB_COMMANDS 64
+#define MAX_SUBS 32
+#define PROG_SUBS 8
+#defien MAX_PROGS 4
+#endif
+
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
 #include "command.hpp"
 #include "constants.hpp"
 #include <Arduino.h>
 
-struct command_history {
-	command *item;
-	command_history *next;
-};
-
 struct sub {
-	command_history back_history;
-	command *root_instruction;
-	char *name;
-	command *cursor;
-	unsigned int exit;
-	unsigned int index;
-	sub *next;
-};
-
-struct sub_history {
-	sub *item;
-	sub_history *next;
+	short back_history[16];
+	short commands[MAX_SUB_COMMANDS];
+	char name[24];
+	unsigned short cursor;
+	char command_count;
+	byte exit;
+	byte pid;
 };
 
 struct interrupt {
-	unsigned int pin;
-	int state;
+	byte pin;
+	byte state;
 	bool triggered;
-	sub *routine;
-	interrupt *next;
+	short routine;
 };
 
 class program {
       private:
 	bool _serial_input;
-	int _line_count;
+	char valid_sub_count;
+
+	short _compile_cursor;
 
       public:
-	unsigned int _cmp_flag;
-	sub_history back_history;
-	sub *cursor;
-	sub *main;
-	interrupt *interrupts;
+	char _cmp_flag;
+	short back_sub_history[PROG_SUBS];
+	short cursor;
+	short subs[PROG_SUBS];
+	interrupt interrupts[8];
 
 	bool _sleep;
 	unsigned long _sleep_start;
 	unsigned long _sleep_duration;
 
-	unsigned int line_count();
-	sub *compile_next_sub();
-	sub *previous_sub();
-	command *previous_instruction();
-	sub *find_sub(char *name);
-	void append_to_history(sub *cursor, command *instruction);
-	void register_interrupt(unsigned int pin, unsigned int state, sub *routine);
+	short find_sub(char *name);
+	void append_to_history(unsigned short cursor, unsigned short instruction);
+	void register_interrupt(char pin, unsigned int state, char routine);
 	int check_interrupts();
+	short pop_sub();
 
-	char *source;
-	unsigned int _sourcecode_cursor;
-	unsigned int pid;
-	unsigned int exit_code;
+	char pid;
+	char exit_code;
 
-	int compile();
-	program(int pid);
+	int compile(const char *line);
+	program(char pid);
 	~program();
 	int step();
 	void destroy();

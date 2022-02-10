@@ -4,6 +4,5 @@
 #include "command.hpp"
 #include <Arduino.h>
 
-command *parse(const char *cmd, unsigned int pid);
-
+int parse(const char *cmd, unsigned int pid, int index);
 #endif

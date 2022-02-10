@@ -1,9 +1,12 @@
 #include "kernel.hpp"
 #include "daemon.hpp"
-#include "source.hpp"
+#include "drivers.hpp"
 #include "tasks.hpp"
+#include "term.hpp"
 
 volatile int serial_lock;
+volatile int kernel_wifi_lock;
+volatile int kernel_bt_lock;
 int kernel_next_pid;
 
 extern daemon_task daemons;
@@ -72,14 +75,14 @@ int kmain() {
 	Serial.println("ATMEGA");
 #endif
 	Serial.println("Minik Kernel KMain");
-	Serial.println("Ready to receive source code");
-	Serial.flush();
+	init_drivers();
 	print_status();
-	SourceEngine *source_engine = new SourceEngine();
-	_add_daemon(source_engine);
+	Term *mterm = new Term();
+	Serial.println("Send a few bytes to start terminal on Serial");
+	_add_daemon(mterm);
 #ifdef BOARD_ESP32
 	char core_id[2];
-	for (unsigned int i = 0; i < CORES; i++) {
+	for (long i = 0; i < CORES; i++) {
 		char *name = (char *)malloc(8);
 		memset(name, 0, 8);
 		memset(core_id, 0, 2);

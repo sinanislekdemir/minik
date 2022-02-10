@@ -79,6 +79,7 @@ bool step_tasks(int core) {
 			head = head->next;
 			continue;
 		}
+
 		for (unsigned int i = 0; i < head->priority; i++) {
 			int status = head->prog->step();
 #ifdef BOARD_ESP32

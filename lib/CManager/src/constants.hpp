@@ -21,7 +21,11 @@
 #define CMP_JG 2
 #define CMP_JL 3
 
+#ifdef BOARD_ESP32
 #define MAX_LINE_LENGTH 128
+#else
+#define MAX_LINE_LENGTH 80
+#endif
 #define PROGRAM_END 0
 #define RUNNING 1
 #define SUB_END "---"
@@ -41,5 +45,4 @@
 #define ERR_STR_VARIABLE_FULL "Variable is full"
 #define ERR_STR_DIVISION_BY_ZERO "Division by zero"
 
-const char *type_tostr(int type);
 #endif

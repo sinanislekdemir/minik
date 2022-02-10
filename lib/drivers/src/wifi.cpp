@@ -6,6 +6,54 @@
 #include <Arduino.h>
 #include <WiFi.h>
 
+char *_local_ip = NULL;
+#endif
+#endif
+
+int init_wifi() {
+#ifdef BOARD_ESP32
+#ifdef WITH_WIFI
+	Serial.printf("[%s] - [%s] - [%s]\n", XSTR(WIFI_SSID), XSTR(WIFI_PASSWORD), XSTR(WIFI_MODE));
+	if (strcmp(XSTR(WIFI_MODE), "AP") == 0) {
+		WiFi.mode(WIFI_AP);
+		WiFi.softAP(XSTR(WIFI_SSID), XSTR(WIFI_PASSWORD));
+		IPAddress ip = WiFi.softAPIP();
+		String ips = ip.toString();
+		char *_local_ip = (char *)malloc(16);
+		memset(_local_ip, 0, 16);
+		strcpy(_local_ip, ips.c_str());
+		Serial.printf("  IP: [%s]\n", _local_ip);
+		return 1;
+	}
+	if (strcmp(XSTR(WIFI_MODE), "STA") == 0) {
+		WiFi.mode(WIFI_STA);
+		WiFi.begin(XSTR(WIFI_SSID), XSTR(WIFI_PASSWORD));
+		int timeout = 0;
+		while (!WiFi.isConnected()) {
+			delay(1000);
+			timeout++;
+			if (timeout >= 20) {
+				Serial.println("WIFI Timeout");
+				return 0;
+			}
+		}
+		IPAddress ip = WiFi.localIP();
+		String ips = ip.toString();
+		char *_local_ip = (char *)malloc(16);
+		memset(_local_ip, 0, 16);
+		strcpy(_local_ip, ips.c_str());
+		Serial.printf("  IP: [%s]\n", _local_ip);
+		return 1;
+	}
+
+#endif
+#endif
+	return 0;
+}
+
+#ifdef BOARD_ESP32
+#ifdef WITH_WIFI
+
 n_server *root_server = NULL;
 
 int wifi(program *_p) {
@@ -17,71 +65,23 @@ int wifi(program *_p) {
 	}
 
 	if (cmd_var == 1) {
-		int mode = find_number("WIFI_MODE", pid);
-		if (mode == 0) {
-			error_msg("WIFI_MODE not defined", pid);
-			return -1;
-		}
-		wifi_mode_t m = static_cast<wifi_mode_t>(mode);
-		WiFi.mode(m);
-		return 0;
-	}
-	if (cmd_var == 2) {
-		char *ssid = find_string("WIFI_SSID", pid);
-		char *passwd = find_string("WIFI_PASSWORD", pid);
-		if (ssid == NULL || passwd == NULL) {
-			error_msg("WIFI_SSID or WIFI_PASSWORD not defined", pid);
-			return -1;
-		}
-		WiFi.begin(ssid, passwd);
-		return 0;
-	}
-	if (cmd_var == 3) {
 		int status = WiFi.status();
 		new_number((char *)"WIFI_STATUS", double(status), pid);
 		return 0;
 	}
-	if (cmd_var == 4) {
-		char *ssid = find_string("WIFI_SSID", pid);
-		char *passwd = find_string("WIFI_PASSWORD", pid);
-		int channel = 3;
-		int ch = find_number("WIFI_CHANNEL", pid);
-		if (ch != 0) {
-			channel = ch;
-		}
-		int ssid_hidden = 0;
-		int shd = find_number("WIFI_SSID_HIDDEN", pid);
-
-		if (shd != 0) {
-			ssid_hidden = shd;
-		}
-
-		int max_conn = 4;
-		int mc = find_number("WIFI_MAX_CONNECTION", pid);
-
-		if (mc != 0) {
-			max_conn = mc;
-		}
-		if (ssid == NULL || passwd == NULL) {
-			error_msg("WIFI_SSID or WIFI_PASSWORD not defined", pid);
-			return -1;
-		}
-		WiFi.softAP(ssid, passwd, channel, ssid_hidden, max_conn);
-		return 0;
-	}
-	if (cmd_var == 5) {
+	if (cmd_var == 2) {
 		int n = WiFi.scanNetworks();
 		new_number((char *)"WIFI_NUM_NETWORKS", double(n), pid);
 		return 0;
 	}
-	if (cmd_var == 6) {
+	if (cmd_var == 3) {
 		int windex = find_number("WIFI_INDEX", pid);
 		uint8_t i = uint8_t(windex);
 		int n = WiFi.encryptionType(i);
 		new_number((char *)"WIFI_ENCRYPTION_TYPE", double(n), pid);
 		return 0;
 	}
-	if (cmd_var == 7) {
+	if (cmd_var == 4) {
 		int windex = find_number("WIFI_INDEX", pid);
 		uint8_t i = uint8_t(windex);
 		String s = WiFi.SSID(i);
@@ -93,14 +93,14 @@ int wifi(program *_p) {
 		free(sid);
 		return 0;
 	}
-	if (cmd_var == 8) {
+	if (cmd_var == 5) {
 		int windex = find_number("WIFI_INDEX", pid);
 		uint8_t i = uint8_t(windex);
 		int strength = WiFi.RSSI(i);
 		new_number((char *)"WIFI_RSSI", double(strength), pid);
 		return 0;
 	}
-	if (cmd_var == 9) {
+	if (cmd_var == 6) {
 		IPAddress ip = WiFi.localIP();
 		String ips = ip.toString();
 		char *ip_c = (char *)malloc(16);
@@ -110,7 +110,7 @@ int wifi(program *_p) {
 		free(ip_c);
 		return 0;
 	}
-	if (cmd_var == 10) {
+	if (cmd_var == 7) {
 		bool success = WiFi.reconnect();
 		if (success) {
 			new_number((char *)"WIFI_RECONNECT", 1.0, pid);
@@ -119,7 +119,7 @@ int wifi(program *_p) {
 		}
 		return 0;
 	}
-	if (cmd_var == 11) {
+	if (cmd_var == 8) {
 		char *hostname = find_string("WIFI_HOSTNAME", pid);
 		if (hostname == NULL) {
 			error_msg("WIFI_HOSTNAME not defined", pid);
@@ -128,7 +128,7 @@ int wifi(program *_p) {
 		WiFi.setHostname(hostname);
 		return 0;
 	}
-	if (cmd_var == 12) {
+	if (cmd_var == 9) {
 		IPAddress ip = WiFi.softAPIP();
 		String ips = ip.toString();
 		char *ip_c = (char *)malloc(16);

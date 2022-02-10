@@ -14,6 +14,8 @@
 - [ ] Stepper
 - [ ] Bridge
 - [ ] Ethernet
-- [ ] Wifi
-- [ ] Network - socket
-- [ ] Str Operations
+- [X] Wifi
+- [X] Network - socket
+- [X] Str Operations
+- [ ] Make WIFI Sharable between Kernel and User space;
+- [ ] Kernel should decide about letting user app to acquire wifi control or not

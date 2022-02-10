@@ -1,25 +1,19 @@
 #include "interpreter.hpp"
 #include "statement.hpp"
 
-extern statement *root_statement;
+extern statement statements[55];
+extern command commands[MAX_CMDS];
 
-int run(command *c, program *_p) {
-	statement *node = root_statement;
-	while (node != NULL) {
-		if (strcmp(c->cmd, node->command) == 0) {
-			return node->f(c, _p);
+int run(unsigned short c, program *_p) {
+	for (char i = 0; i < 55; i++) {
+		if (commands[c].statement == statements[i].command) {
+			return statements[i].f(commands[c], _p);
 		}
-		node = node->next;
 	}
 
 #ifndef DISABLE_EXCEPTIONS
-	char *msg = (char *)malloc(64);
-	memset(msg, 0, 64);
-	strcat(msg, "Invalid command: ");
-	strcat(msg, c->cmd);
-
-	c->exception = raise(msg, c->pid, ERR_INVALID_COMMAND);
-	free(msg);
+	commands[c].exception = true;
+	error_msg("Unknown command", _p->pid);
 #endif
 
 	return -1;

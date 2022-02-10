@@ -50,19 +50,15 @@ unsigned int extract_size(const char *text, char delimiter, unsigned int index) 
 }
 
 // strtok should do fine but I need to keep "..." intact
-char *extract(const char *text, char delimiter, unsigned int index, unsigned int size) {
+int extract(const char *text, char delimiter, unsigned int index, char *back) {
 	// Extract the given parameter from a full string and return *back
 
 	int cursor = 0;
 	unsigned int index_counter = 0;
 	bool quote_block = false;
-	char *back = NULL;
 
 	for (unsigned int i = 0; i < strlen(text); i++) {
 		if (index_counter == index) {
-			back = (char *)malloc(size);
-			memset(back, 0, size);
-
 			for (unsigned int j = i; j < strlen(text); j++) {
 				if (text[j] == '"') {
 					quote_block = !quote_block;
@@ -72,12 +68,12 @@ char *extract(const char *text, char delimiter, unsigned int index, unsigned int
 						back[cursor++] = text[j];
 						continue;
 					} else {
-						return back;
+						return strlen(back);
 					}
 				}
 				back[cursor++] = text[j];
 			}
-			return back;
+			return 0;
 		}
 		if (text[i] == '"') {
 			quote_block = !quote_block;
@@ -86,7 +82,7 @@ char *extract(const char *text, char delimiter, unsigned int index, unsigned int
 			index_counter++;
 		}
 	}
-	return back;
+	return strlen(back);
 }
 
 unsigned int argc(const char *text, char delimiter) {

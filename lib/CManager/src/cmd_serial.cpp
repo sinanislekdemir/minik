@@ -9,13 +9,10 @@ extern int serial_lock;
 bool _breaker(char c) { return c == '\n'; }
 bool _ignore(char c) { return (c < 32); }
 
-char *_serial_getline(unsigned int buffer_size) {
-	char *result = (char *)malloc(buffer_size);
-	memset(result, 0, buffer_size);
-
+int _serial_getline(char *result) {
 	char c = 0;
 	unsigned int cursor = 0;
-	while (strlen(result) < buffer_size) {
+	while (strlen(result) < MAX_LINE_LENGTH) {
 		if (!Serial.available()) {
 			continue;
 		}
@@ -31,10 +28,9 @@ char *_serial_getline(unsigned int buffer_size) {
 	}
 
 	Serial.println("");
-	return result;
 }
 
-int command_serial_println(command *c, program *_p) {
+int command_serial_println(command *c, program *p) {
 	if (c->args[0].type == TYPE_STR) {
 		Serial.println(c->args[0].data);
 		return 0;
@@ -75,7 +71,7 @@ int command_serial_println(command *c, program *_p) {
 	return 0;
 }
 
-int command_serial_print(command *c, program *_p) {
+int command_serial_print(command *c, program *p) {
 	if (c->args[0].type == TYPE_STR) {
 		Serial.print(c->args[0].data);
 		return 0;
@@ -115,7 +111,7 @@ int command_serial_print(command *c, program *_p) {
 	return 0;
 }
 
-int command_getln(command *c, program *_p) {
+int command_getln(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (c->args[0].type != TYPE_VARIABLE) {
 		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_COMMAND);
@@ -141,7 +137,8 @@ int command_getln(command *c, program *_p) {
 	}
 
 	serial_lock = _p->pid;
-	char *data = _serial_getline((unsigned int)(ctod(buflen->data)));
+	char data[MAX_LINE_LENGTH] = {0};
+	_serial_getline(data);
 	serial_lock = -1;
 	variable *v = find_variable(c->args[0].data, c->pid);
 

@@ -22,5 +22,4 @@ SPRINTLN n1
 SPRINTLN "Bye!"
 HALT
 ---
-eeprom
 

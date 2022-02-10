@@ -1,7 +1,20 @@
 #ifndef _memory_hpp
 #define _memory_hpp
 
+#include "constants.hpp"
 #include "variable.hpp"
+
+#ifdef BOARD_ESP32
+#define MAX_STR 100
+#else
+#define MAX_STR 10
+#endif
+
+#ifdef BOARD_ESP32
+#define MAX_NUM 1000
+#else
+#define MAX_NUM 50
+#endif
 
 #if defined(BOARD_ATMEGA)
 #define BITS 8
@@ -14,31 +27,37 @@
 // jump request
 struct jump_request {
 	int request;
-	int pid;
-	int label;
+	char pid;
+	short label;
 };
 
-struct variable {
-	char *name;
-	char *data;
-	unsigned int datasize;
-	unsigned int pid;
-	unsigned int type;
-	bool deleted;
-	variable *next;
+struct dvariable {
+	double val;
+	char pid;
+	bool free;
 };
 
-variable *find_variable(const char *name, unsigned int pid);
-void free_variable(const char *name, unsigned int pid);
-void free_program(unsigned int pid);
-void new_variable(variable *v);
-void new_number(char *name, double value, unsigned int pid);
-void new_string(char *name, char *value, unsigned int pid);
-int find_number(const char *name, unsigned int pid);
-double find_double(const char *name, unsigned int pid);
-char *find_string(const char *name, unsigned int pid);
-void error_msg(const char *msg, unsigned int pid);
-void defrag_variables();
+struct svariable {
+	char data[MAX_LINE_LENGTH];
+	char pid;
+	bool free;
+};
+void free_variable(short index, char pid, char type);
+void free_program(char pid);
+void new_variable(svariable v);
+void new_variable(dvariable v);
+int init_mem();
+
+double get_d(short index);
+void get_s(short index, char *back);
+
+int new_number(double value, char pid);
+int new_string(char *value, char pid);
+
+void update_number(short index, double value);
+void update_string(short index, char *value);
+
+void error_msg(const char *msg, char pid);
 void mem_dump();
 
 #endif

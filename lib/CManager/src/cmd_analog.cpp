@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 int channels[16] = {-1};
+
 #ifdef BOARD_ESP32
 int _get_channel(int pin) {
 	for (unsigned int i = 0; i < 16; i++) {
@@ -23,50 +24,49 @@ int _get_channel(int pin) {
 }
 #endif
 
-int command_analogread(command *c, program *_p) {
+int command_analogread(command c, program *p) {
 	// AREAD src pin
 #ifndef DISABLE_EXCEPTIONS
-	if (c->argc != 2) {
-		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_ADDRESS_NOT_FOUND);
+	if (c.arg_count != 2) {
+		c.exception = true;
+		error_msg(ERR_STR_NOT_ENOUGH_PARAMS, c.pid);
 		return -1;
 	}
 #endif
-	variable *pin = get_var(c, 1);
-	unsigned int a_pin = int(ctod(pin->data));
-	int val = analogRead(a_pin);
-	new_number(c->args[0].data, double(val), c->pid);
+	int pin = pin_number(c, p);
+	int val = analogRead(pin);
+	if (c.variable_index[0] == -1) {
+		c.variable_index[0] = new_number(double(val), p->pid);
+	} else {
+		update_number(c.variable_index[0], double(val));
+	}
+
 	return 0;
 }
 
-int command_analogwrite(command *c, program *_p) {
-	int *pins = pins_def(c, _p);
-	if (pins[1] > 255) {
-		pins[1] = 255;
+int command_analogwrite(command c, program *p) {
+	int pin = pin_number(c, p);
+	int val = pin_value(c, p);
+	if (val > 255) {
+		val = 255;
 	}
-	if (pins[1] < 0) {
-		pins[1] = 0;
-	}
-	if (pins == NULL) {
-		return -1;
+	if (val < 0) {
+		val = 0;
 	}
 #ifdef BOARD_ESP32
-	int channel = _get_channel(pins[0]);
+	int channel = _get_channel(pin);
 	if (channel == -1) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		strcat(msg, "No empty channels");
-		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
-		free(msg);
+		error_msg("No empty channels", c.pid);
+		c.exception = true;
 		return -1;
 	}
 
-	ledcWrite(channel, pins[1]);
+	ledcWrite(channel, val);
 #endif
 
 #ifdef BOARD_ATMEGA
-	analogWrite(pins[0], pins[1]);
+	analogWrite(pin, val);
 #endif
-	free(pins);
 	return 0;
 }
-int command_analogref(command *c, program *_p) { return 0; }
+int command_analogref(command c, program *p) { return 0; }

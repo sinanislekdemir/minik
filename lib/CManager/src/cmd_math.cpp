@@ -9,7 +9,7 @@ int save_result(command *c, double result) {
 	return 0;
 }
 
-int command_add(command *c, program *_p) {
+int command_add(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 3) != 0) {
 		return -1;
@@ -29,7 +29,7 @@ int command_add(command *c, program *_p) {
 	return save_result(c, add);
 }
 
-int command_sub(command *c, program *_p) {
+int command_sub(command *c, program *p) {
 	if (validate_command(c, 3) != 0) {
 		return -1;
 	}
@@ -48,7 +48,7 @@ int command_sub(command *c, program *_p) {
 	return save_result(c, sub);
 }
 
-int command_div(command *c, program *_p) {
+int command_div(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 3) != 0) {
 		return -1;
@@ -77,7 +77,7 @@ int command_div(command *c, program *_p) {
 	return save_result(c, div);
 }
 
-int command_mul(command *c, program *_p) {
+int command_mul(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 3) != 0) {
 		return -1;
@@ -98,7 +98,7 @@ int command_mul(command *c, program *_p) {
 	return save_result(c, mul);
 }
 
-int command_xor(command *c, program *_p) {
+int command_xor(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 3) != 0) {
 		return -1;
@@ -119,7 +119,7 @@ int command_xor(command *c, program *_p) {
 	return save_result(c, xord);
 }
 
-int command_or(command *c, program *_p) {
+int command_or(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 3) != 0) {
 		return -1;
@@ -140,7 +140,7 @@ int command_or(command *c, program *_p) {
 	return save_result(c, or_r);
 }
 
-int command_and(command *c, program *_p) {
+int command_and(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 3) != 0) {
 		return -1;
@@ -161,7 +161,7 @@ int command_and(command *c, program *_p) {
 	return save_result(c, and_r);
 }
 
-int command_pow(command *c, program *_p) {
+int command_pow(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 3) != 0) {
 		return -1;
@@ -182,7 +182,7 @@ int command_pow(command *c, program *_p) {
 	return save_result(c, pow_r);
 }
 
-int command_trigonometry(command *c, program *_p) {
+int command_trigonometry(command *c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
 	if (validate_command(c, 2) != 0) {
 		return -1;
