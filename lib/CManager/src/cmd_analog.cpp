@@ -6,6 +6,13 @@
 int channels[16] = {-1};
 
 #ifdef BOARD_ESP32
+/**
+ * @brief In ESP32, we dont have analogWrite command
+ *        Instead, we do have led commands to help us.
+ * 
+ * @param pin 
+ * @return int 
+ */
 int _get_channel(int pin) {
 	for (unsigned int i = 0; i < 16; i++) {
 		if (channels[i] == pin) {
@@ -35,11 +42,7 @@ int command_analogread(command c, program *p) {
 #endif
 	int pin = pin_number(c, p);
 	int val = analogRead(pin);
-	if (c.variable_index[0] == -1) {
-		c.variable_index[0] = new_number(double(val), p->pid);
-	} else {
-		update_number(c.variable_index[0], double(val));
-	}
+	write_area(c.variable_index[0], val);
 
 	return 0;
 }

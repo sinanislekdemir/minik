@@ -15,12 +15,18 @@
 
 struct command {
 	char statement;	       // no need to copy the cmd
-	char variable_type[3]; // 0 - none | 1 - number | 2 - string
 	short variable_index[3];
+	char variable_type[3];
+	double variable_constant[3];
 	char arg_count;
 	char pid;
 	bool exception;
 };
 
-svariable get_var(command *c, int index);
+double get_double(command c, int index);
+int get_int(command c, int index);
+long get_long(command c, int index);
+void get_string(command c, int index, char *back, unsigned int size);
+char get_byte(command c, int index);
+
 #endif

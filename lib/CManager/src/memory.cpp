@@ -9,45 +9,13 @@
 #include "helpers.hpp"
 #include <Arduino.h>
 
-svariable string_variables[MAX_STR] = {0};
-dvariable double_variables[MAX_NUM] = {0};
-
-void update_number(short index, double value) {
-	if (index >= MAX_NUM) {
-		return;
-	}
-	double_variables[index].val = value;
-}
-
-void update_string(short index, char *value) {
-	if (index > MAX_STR) {
-		return;
-	}
-	memset(string_variables[index].data, 0, MAX_LINE_LENGTH);
-	strcat(string_variables[index].data, value);
-}
-
-double get_d(short index) {
-	if (index >= MAX_NUM) {
-		return 0;
-	}
-	return double_variables[index].val;
-}
-
-void get_s(short index, char *back) {
-	memset(back, 0, MAX_LINE_LENGTH);
-	if (index >= MAX_STR) {
-		return;
-	}
-	memcpy(back, string_variables[index].data, MAX_LINE_LENGTH);
-}
+char _memory_area[MAX_MEM] = {0};
+_protected _protected_memory[64] = {0};
+char _last_err[MAX_LINE_LENGTH] = {0};
 
 int init_mem() {
-	for (unsigned short i = 0; i < MAX_NUM; i++) {
-		double_variables[i].free = true;
-	}
-	for (unsigned short i = 0; i < MAX_STR; i++) {
-		string_variables[i].free = true;
+	for (unsigned short i = 0; i < 64; i++) {
+		_protected_memory[i].pid = -1;
 	}
 }
 
@@ -56,99 +24,92 @@ void free_program(char pid) {
 		// 0 is reserved pid;
 		return;
 	}
-	for (unsigned short i = 0; i < MAX_STR; i++) {
-		if (string_variables[i].pid == pid) {
-			string_variables[i].free = true;
-			memset(string_variables[i].data, 0, MAX_LINE_LENGTH);
-			string_variables[i].pid = 0;
-		}
-	}
-
-	for (unsigned short i = 0; i < MAX_NUM; i++) {
-		if (double_variables[i].pid == pid) {
-			double_variables[i].free = true;
-			double_variables[i].pid = 0;
-			double_variables[i].val = 0;
+	for (unsigned short i = 0; i < 64; i++) {
+		if (_protected_memory[i].pid == pid) {
+			_protected_memory[i].pid = -1;
 		}
 	}
 }
 
-void mem_dump() {
-	Serial.println("String allocation:");
-	for (unsigned short i = 0; i < MAX_STR; i++) {
-		if (string_variables[i].free) {
-			Serial.print(0);
-		} else {
-			Serial.print(1);
-		}
-		if (i % 40 == 0) {
-			Serial.print('\n');
-		}
-	}
-	Serial.println("\nDouble allocation:");
-	for (unsigned short i = 0; i < MAX_NUM; i++) {
-		if (double_variables[i].free) {
-			Serial.print(0);
-		} else {
-			Serial.print(1);
-		}
-		if (i % 40 == 0) {
-			Serial.print('\n');
-		}
-	}
+void free_area(unsigned int index, unsigned int size) { memset(_memory_area + index, 0, size); }
+
+int write_area(unsigned int index, char *data) {
+	memcpy(_memory_area + index, data, strlen(data));
+	return 0;
 }
 
-void free_variable(short index, char pid, char type) {
-	if (type == TYPE_NUM) {
-		double_variables[index].free = true;
-		double_variables[index].pid = 0;
-		double_variables[index].val = 0;
-		return;
-	}
-	if (type == TYPE_STR) {
-		string_variables[index].free = true;
-		string_variables[index].pid = 0;
-		memset(string_variables[index].data, 0, MAX_LINE_LENGTH);
-	}
+int write_area(unsigned int index, int data) {
+	memcpy(_memory_area + index, &data, sizeof(int));
+	return 0;
 }
 
-void new_variable(svariable v) {
-	/**
-	   Add the variable to the linked list.
-	 */
-	for (unsigned short i = 0; i < MAX_STR; i++) {
-		if (string_variables[i].free) {
-			memcpy(string_variables[i].data, v.data, MAX_LINE_LENGTH);
-			string_variables[i].free = false;
-			string_variables[i].pid = v.pid;
-			return;
-		}
-	}
+int write_area(unsigned int index, double data) {
+	memcpy(_memory_area + index, &data, sizeof(double));
+	return 0;
 }
 
-int new_number(double value, char pid) {
-	for (unsigned short i = 0; i < MAX_NUM; i++) {
-		if (double_variables[i].free) {
-			double_variables[i].pid = pid;
-			double_variables[i].free = false;
-			double_variables[i].val = value;
-			return i;
+int write_area(unsigned int index, long data) {
+	memcpy(_memory_area + index, &data, sizeof(double));
+	return 0;
+}
+
+int write_area(unsigned int index, char data) {
+	_memory_area[index] = data;
+	return 0;
+}
+
+int write_area(unsigned int index, char *data, unsigned int size) {
+	memcpy(_memory_area + index, data, size);
+	return 0;
+}
+
+int append_area(unsigned int index, char data) {
+	for (unsigned int i = index; i < MAX_MEM; i++) {
+		if (_memory_area[i] == 0) {
+			_memory_area[i] = data;
+			return 0;
 		}
 	}
 	return -1;
 }
 
-int new_string(char *value, char pid) {
-	for (unsigned short i = 0; i < MAX_STR; i++) {
-		if (string_variables[i].free) {
-			memset(string_variables[i].data, 0, MAX_LINE_LENGTH);
-			strcat(string_variables[i].data, value);
-			string_variables[i].pid = pid;
-			string_variables[i].free = false;
-			return i;
+int read_area_str(unsigned int index, unsigned int size, char *back) {
+	if (size == 0) {
+		unsigned int tmp = 0;
+		for (unsigned int i = index; i < MAX_MEM; i++) {
+			if (_memory_area[i] != 0) {
+				tmp++;
+			} else {
+				break;
+			}
 		}
+		size = tmp;
 	}
-	return -1;
+	memcpy(back, _memory_area + index, size);
+	return size;
 }
 
-void error_msg(const char *msg, char pid) { new_string((char *)msg, pid); }
+double read_area_double(unsigned int index) {
+	double result;
+	memcpy(&result, _memory_area + index, sizeof(double));
+	return result;
+}
+
+int read_area_int(unsigned int index) {
+	int result;
+	memcpy(&result, _memory_area + index, sizeof(int));
+	return result;
+}
+
+long read_area_long(unsigned int index) {
+	long result;
+	memcpy(&result, _memory_area + index, sizeof(long));
+	return result;
+}
+
+char read_area_char(unsigned int index) { return _memory_area[index]; }
+
+void error_msg(const char *msg, char pid) {
+	memset(_last_err, 0, MAX_LINE_LENGTH);
+	strcat(_last_err, msg);
+}

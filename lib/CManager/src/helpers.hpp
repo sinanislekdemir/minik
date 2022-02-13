@@ -5,9 +5,13 @@
 unsigned int extract_size(const char *text, char delimiter, unsigned int index);
 int extract(const char *text, char delimiter, unsigned int index, char *back);
 unsigned int argc(const char *text, char delimiter);
+unsigned int arg_loc(const char *arg);
 unsigned int arg_type(const char *arg);
 char *dtoc(double d);
 double ctod(char *data);
+
+char hex2c(char *hex);
+
 void ltrim(char *src);
 bool is_data_type(int type);
 int pfree();

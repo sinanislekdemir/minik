@@ -3,16 +3,15 @@
 #include "helpers.hpp"
 #include <Arduino.h>
 
-extern error err;
 extern int serial_lock;
 
 bool _breaker(char c) { return c == '\n'; }
 bool _ignore(char c) { return (c < 32); }
 
-int _serial_getline(char *result) {
+int _serial_getline(char *result, int buffer_length) {
 	char c = 0;
 	unsigned int cursor = 0;
-	while (strlen(result) < MAX_LINE_LENGTH) {
+	while (strlen(result) < buffer_length) {
 		if (!Serial.available()) {
 			continue;
 		}
@@ -30,152 +29,46 @@ int _serial_getline(char *result) {
 	Serial.println("");
 }
 
-int command_serial_println(command *c, program *p) {
-	if (c->args[0].type == TYPE_STR) {
-		Serial.println(c->args[0].data);
-		return 0;
-	}
-
-	if (c->args[0].type == TYPE_NUM) {
-		Serial.println(ctod(c->args[0].data));
-		return 0;
-	}
-	if (c->args[0].type == TYPE_BYTE) {
-		Serial.println(c->args[0].data[0]);
-		return 0;
-	}
-
-	if (c->args[0].type == TYPE_VARIABLE) {
-		variable *v = find_variable(c->args[0].data, c->pid);
-#ifndef DISABLE_EXCEPTIONS
-		if (v == NULL) {
-			c->exception = raise(ERR_STR_VAR_NOT_FOUND, c->pid, ERR_VARIABLE_NOT_FOUND);
-			return -1;
-		}
-#endif
-
-		if (v->type == TYPE_NUM) {
-			Serial.println(ctod(v->data));
-			return 0;
-		}
-
-		if (v->type == TYPE_STR) {
-			Serial.println(v->data);
-			return 0;
-		}
-		if (v->type == TYPE_BYTE) {
-			Serial.println(v->data[0]);
-			return 0;
-		}
-	}
+int command_serial_println(command c, program *p) {
+	char buffer[MAX_LINE_LENGTH] = {0};
+	get_string(c, 0, buffer, 0);
+	Serial.println(buffer);
 	return 0;
 }
 
-int command_serial_print(command *c, program *p) {
-	if (c->args[0].type == TYPE_STR) {
-		Serial.print(c->args[0].data);
-		return 0;
-	}
-	if (c->args[0].type == TYPE_NUM) {
-		Serial.print(ctod(c->args[0].data));
-		return 0;
-	}
-	if (c->args[0].type == TYPE_BYTE) {
-		Serial.print(c->args[0].data[0]);
-		return 0;
-	}
-
-	if (c->args[0].type == TYPE_VARIABLE) {
-		variable *v = find_variable(c->args[0].data, c->pid);
-#ifndef DISABLE_EXCEPTIONS
-		if (v == NULL) {
-			c->exception = raise(ERR_STR_VAR_NOT_FOUND, c->pid, ERR_VARIABLE_NOT_FOUND);
-			return -1;
-		}
-#endif
-
-		if (v->type == TYPE_NUM) {
-			Serial.print(ctod(v->data));
-			return 0;
-		}
-
-		if (v->type == TYPE_STR) {
-			Serial.print(v->data);
-			return 0;
-		}
-		if (v->type == TYPE_BYTE) {
-			Serial.print(v->data[0]);
-			return 0;
-		}
-	}
+int command_serial_print(command c, program *p) {
+	char buffer[MAX_LINE_LENGTH] = {0};
+	get_string(c, 0, buffer, 0);
+	Serial.print(buffer);
 	return 0;
 }
 
-int command_getln(command *c, program *p) {
+int command_getln(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (c->args[0].type != TYPE_VARIABLE) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_COMMAND);
+	if (c.variable_type[0] != TYPE_ADDRESS) {
+		error_msg(ERR_STR_INVALID_TYPE, c.pid);
 		return -1;
 	}
-	if (c->argc < 2) {
-		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
+	if (c.arg_count < 2) {
+		error_msg(ERR_STR_NOT_ENOUGH_PARAMS, c.pid);
 		return -1;
 	}
 #endif
 
-	variable *buflen = get_var(c, 1);
-
-#ifndef DISABLE_EXCEPTIONS
-	if (buflen->type != TYPE_NUM) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_INVALID_PARAMETER_TYPE);
-		return -1;
+	unsigned int buf_size = (unsigned int)(get_double(c, 1));
+	if (buf_size > MAX_LINE_LENGTH) {
+		buf_size = MAX_LINE_LENGTH;
 	}
-#endif
+
+	char buffer[MAX_LINE_LENGTH] = {0};
 
 	while (serial_lock != -1) {
 		delay(100); // wait for the lock
 	}
 
-	serial_lock = _p->pid;
-	char data[MAX_LINE_LENGTH] = {0};
-	_serial_getline(data);
+	serial_lock = p->pid;
+	_serial_getline(buffer, buf_size);
 	serial_lock = -1;
-	variable *v = find_variable(c->args[0].data, c->pid);
 
-	if (v == NULL) {
-		v = (variable *)malloc(sizeof(variable));
-		v->next = NULL;
-
-		uint8_t dsize = strlen(data) + 1;
-		v->data = (char *)malloc(dsize);
-		memset(v->data, 0, dsize);
-		strcpy(v->data, data);
-		free(data);
-		v->datasize = dsize;
-
-		v->type = TYPE_STR;
-		v->pid = c->pid;
-		dsize = strlen(c->args[0].data) + 1;
-		v->name = (char *)malloc(dsize);
-		memset(v->name, 0, dsize);
-		strcpy(v->name, c->args[0].data);
-		new_variable(v);
-		return 0;
-	}
-
-	if (v->data != NULL) {
-		free(v->data);
-	}
-	if (v->type != TYPE_STR) {
-		v->type = TYPE_STR;
-	}
-
-	uint8_t dsize = strlen(data) + 1;
-	v->data = (char *)malloc(dsize);
-	memset(v->data, 0, dsize);
-	strcpy(v->data, data);
-	free(data);
-	v->datasize = dsize;
-
-	return 0;
+	return write_area(c.variable_index[0], buffer, buf_size);
 }

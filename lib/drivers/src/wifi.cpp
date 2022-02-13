@@ -6,7 +6,12 @@
 #include <Arduino.h>
 #include <WiFi.h>
 
-char *_local_ip = NULL;
+char _local_ip[16] = {0};
+
+WiFiServer _server[4];
+WiFiClient _client[4];
+uint16_t _ports[4] = {0};
+
 #endif
 #endif
 
@@ -19,7 +24,6 @@ int init_wifi() {
 		WiFi.softAP(XSTR(WIFI_SSID), XSTR(WIFI_PASSWORD));
 		IPAddress ip = WiFi.softAPIP();
 		String ips = ip.toString();
-		char *_local_ip = (char *)malloc(16);
 		memset(_local_ip, 0, 16);
 		strcpy(_local_ip, ips.c_str());
 		Serial.printf("  IP: [%s]\n", _local_ip);
@@ -39,7 +43,6 @@ int init_wifi() {
 		}
 		IPAddress ip = WiFi.localIP();
 		String ips = ip.toString();
-		char *_local_ip = (char *)malloc(16);
 		memset(_local_ip, 0, 16);
 		strcpy(_local_ip, ips.c_str());
 		Serial.printf("  IP: [%s]\n", _local_ip);
@@ -54,11 +57,9 @@ int init_wifi() {
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 
-n_server *root_server = NULL;
-
 int wifi(program *_p) {
 	unsigned int pid = _p->pid;
-	int cmd_var = find_number("WIFI_CMD", pid);
+	int cmd_var = int(read_area_double(WIFI_CMD_ADDRESS));
 	if (cmd_var == 0) {
 		error_msg("WIFI_CMD not defined", pid);
 		return -1;
@@ -66,76 +67,69 @@ int wifi(program *_p) {
 
 	if (cmd_var == 1) {
 		int status = WiFi.status();
-		new_number((char *)"WIFI_STATUS", double(status), pid);
+		write_area(WIFI_DATA_ADDRESS, double(status));
 		return 0;
 	}
 	if (cmd_var == 2) {
 		int n = WiFi.scanNetworks();
-		new_number((char *)"WIFI_NUM_NETWORKS", double(n), pid);
+		write_area(WIFI_DATA_ADDRESS, double(n));
 		return 0;
 	}
 	if (cmd_var == 3) {
-		int windex = find_number("WIFI_INDEX", pid);
+		int windex = int(read_area_double(WIFI_DATA_ADDRESS));
 		uint8_t i = uint8_t(windex);
 		int n = WiFi.encryptionType(i);
-		new_number((char *)"WIFI_ENCRYPTION_TYPE", double(n), pid);
+		write_area(WIFI_DATA_ADDRESS, double(n));
 		return 0;
 	}
 	if (cmd_var == 4) {
-		int windex = find_number("WIFI_INDEX", pid);
+		int windex = int(read_area_double(WIFI_DATA_ADDRESS));
 		uint8_t i = uint8_t(windex);
 		String s = WiFi.SSID(i);
 		int l = s.length() + 1;
-		char *sid = (char *)malloc(l);
-		memset(sid, 0, l);
+		char sid[MAX_LINE_LENGTH]= {0};
 		s.toCharArray(sid, l - 1);
-		new_string((char *)"WIFI_SSID", sid, pid);
-		free(sid);
+		free_area(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH);
+		write_area(WIFI_DATA_ADDRESS, sid, MAX_LINE_LENGTH);
 		return 0;
 	}
 	if (cmd_var == 5) {
-		int windex = find_number("WIFI_INDEX", pid);
+		int windex = int(read_area_double(WIFI_DATA_ADDRESS));
 		uint8_t i = uint8_t(windex);
 		int strength = WiFi.RSSI(i);
-		new_number((char *)"WIFI_RSSI", double(strength), pid);
+		write_area(WIFI_DATA_ADDRESS, double(strength));
 		return 0;
 	}
 	if (cmd_var == 6) {
 		IPAddress ip = WiFi.localIP();
 		String ips = ip.toString();
-		char *ip_c = (char *)malloc(16);
-		memset(ip_c, 0, 16);
+		char ip_c[16] = {0};
 		strcpy(ip_c, ips.c_str());
-		new_string((char *)"WIFI_LOCALIP", ip_c, pid);
-		free(ip_c);
+		free_area(WIFI_DATA_ADDRESS, 16);
+		write_area(WIFI_DATA_ADDRESS, ip_c, 16);
 		return 0;
 	}
 	if (cmd_var == 7) {
 		bool success = WiFi.reconnect();
 		if (success) {
-			new_number((char *)"WIFI_RECONNECT", 1.0, pid);
+			write_area(WIFI_DATA_ADDRESS, double(1.0));
 		} else {
-			new_number((char *)"WIFI_RECONNECT", 0.0, pid);
+			write_area(WIFI_DATA_ADDRESS, double(0));
 		}
 		return 0;
 	}
 	if (cmd_var == 8) {
-		char *hostname = find_string("WIFI_HOSTNAME", pid);
-		if (hostname == NULL) {
-			error_msg("WIFI_HOSTNAME not defined", pid);
-			return -1;
-		}
+		char hostname[MAX_LINE_LENGTH] = {0};
+		read_area_str(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH, hostname);
 		WiFi.setHostname(hostname);
 		return 0;
 	}
 	if (cmd_var == 9) {
 		IPAddress ip = WiFi.softAPIP();
 		String ips = ip.toString();
-		char *ip_c = (char *)malloc(16);
-		memset(ip_c, 0, 16);
+		char ip_c[16] = {0};
 		strcpy(ip_c, ips.c_str());
-		new_string((char *)"WIFI_SOFTAPIP", ip_c, pid);
-		free(ip_c);
+		write_area(WIFI_DATA_ADDRESS, ip_c, 16);
 		return 0;
 	}
 	return 0;
@@ -150,82 +144,45 @@ void print_vars() {
 	Serial.println(WIFI_AUTH_WPA2_ENTERPRISE);
 }
 
-n_server *_get_server(unsigned int pid) {
-	n_server *head = root_server;
-	int server_id = find_number("WIFI_SERVER_ID", pid);
-	while (head != NULL) {
-		if (head->id == server_id && head->pid == pid) {
-			return head;
-		}
-		head = head->next;
-	}
-	return NULL;
-}
-
-unsigned int _get_next_id(unsigned int pid) {
-	n_server *head = root_server;
-	unsigned int result = 0;
-	while (head != NULL) {
-		result = head->id;
-		if (head->next == NULL) {
-			return result + 1;
-		}
-		head = head->next;
-	}
-	return result;
-}
-
 int server(program *_p) {
 	unsigned int pid = _p->pid;
-	int cmd_var = find_number("WIFI_SERVER_CMD", pid);
+	int cmd_var = int(read_area_double(WIFI_CMD_ADDRESS));
 	if (cmd_var == 0) {
 		error_msg("WIFI_SERVER_CMD not defined", pid);
 		return -1;
 	}
 
 	if (cmd_var == 1) {
-		int port = find_number("WIFI_SERVER_PORT", pid);
+		int port = int(read_area_double(WIFI_DATA_ADDRESS));
 		if (port == 0) {
 			error_msg("WIFI_SERVER_PORT not defined", pid);
 			return -1;
 		}
 		uint16_t iport = uint16_t(port);
-		n_server *s = new n_server;
-		s->server = new WiFiServer(iport);
-		s->server->begin();
-		s->next = NULL;
-		s->pid = pid;
-		s->port = iport;
-		s->id = _get_next_id(pid);
-		new_number((char *)"WIFI_SERVER_ID", double(s->id), pid);
-		if (root_server == NULL) {
-			root_server = s;
-		} else {
-			n_server *head = root_server;
-			while (head != NULL) {
-				if (head->next == NULL) {
-					head->next = s;
-					break;
-				}
-				head = head->next;
+
+		for (char i = 0; i < 4; i++) {
+			if (_ports[i] == 0) {
+				_ports[i] = iport;
+				_server[i] = WiFiServer(iport);
+				_server[i].begin();
+				write_area(WIFI_DATA_ADDRESS, double(i));
+				return 0;
 			}
 		}
+		error_msg("No empty server slots", _p->pid);
 		return 0;
 	}
 	if (cmd_var == 2) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		if (!s->server->hasClient()) {
-			new_number((char *)"WIFI_CLIENT", 0.0, pid);
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (!_server[server].hasClient()) {
+			write_area(WIFI_DATA_ADDRESS, double(0));
 			return 0;
 		}
-		s->client = s->server->available();
-		if (s->client) {
-			new_number((char *)"WIFI_CLIENT", 1.0, pid);
+		_client[server] = _server->available();
+		if (_client[server]) {
+			write_area(WIFI_DATA_ADDRESS, double(1.0));
 		} else {
-			new_number((char *)"WIFI_CLIENT", 0.0, pid);
+			write_area(WIFI_DATA_ADDRESS, double(0));
 		}
 		return 0;
 	}

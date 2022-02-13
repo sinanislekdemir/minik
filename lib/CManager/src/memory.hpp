@@ -2,23 +2,16 @@
 #define _memory_hpp
 
 #include "constants.hpp"
-#include "variable.hpp"
 
 #ifdef BOARD_ESP32
-#define MAX_STR 100
+#define MAX_MEM 160 * 1024
 #else
-#define MAX_STR 10
+#define MAX_MEM 3 * 1024
 #endif
 
-#ifdef BOARD_ESP32
-#define MAX_NUM 1000
-#else
-#define MAX_NUM 50
-#endif
-
-#if defined(BOARD_ATMEGA)
+#ifdef BOARD_ATMEGA
 #define BITS 8
-#elif defined(BOARD_ESP32)
+#elif BOARD_ESP32
 #define BITS 32
 #else
 #define BITS 8
@@ -31,33 +24,27 @@ struct jump_request {
 	short label;
 };
 
-struct dvariable {
-	double val;
-	char pid;
-	bool free;
+struct _protected {
+	short pid;
+	unsigned int from;
+	unsigned int to;
 };
 
-struct svariable {
-	char data[MAX_LINE_LENGTH];
-	char pid;
-	bool free;
-};
-void free_variable(short index, char pid, char type);
+void free_area(unsigned int index, unsigned int size);
 void free_program(char pid);
-void new_variable(svariable v);
-void new_variable(dvariable v);
-int init_mem();
-
-double get_d(short index);
-void get_s(short index, char *back);
-
-int new_number(double value, char pid);
-int new_string(char *value, char pid);
-
-void update_number(short index, double value);
-void update_string(short index, char *value);
+int write_area(unsigned int index, char *data);
+int write_area(unsigned int index, char *data, unsigned int size);
+int write_area(unsigned int index, int data);
+int write_area(unsigned int index, double data);
+int write_area(unsigned int index, long data);
+int write_area(unsigned int index, char data);
+int append_area(unsigned int index, char data);
+int read_area_str(unsigned int index, unsigned int size, char *back);
+double read_area_double(unsigned int index);
+int read_area_int(unsigned int index);
+long read_area_long(unsigned int index);
+char read_area_char(unsigned int index);
 
 void error_msg(const char *msg, char pid);
-void mem_dump();
 
 #endif

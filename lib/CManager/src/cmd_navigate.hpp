@@ -3,7 +3,7 @@
 
 #include "program.hpp"
 
-int command_call(command *c, program *p);
-int command_goto(command *c, program *p);
-int command_halt(command *c, program *p);
+int command_call(command c, program *p);
+int command_goto(command c, program *p);
+int command_halt(command c, program *p);
 #endif

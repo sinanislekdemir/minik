@@ -6,16 +6,19 @@
 
 #ifdef WITH_BLUETOOTH_SERIAL
 
+#define BT_SERIAL_ADDRESS 10
+#define BT_DATA_ADDRESS 14
+
 #ifndef BLUETOOTH_SERIAL_NAME
 #define BLUETOOTH_NAME "MinikESP32"
 #else
 #define BLUETOOTH_NAME XSTR(BLUETOOTH_SERIAL_NAME)
 #endif
-int bluetooth_serial(program *_p);
+int bluetooth_serial(program *p);
 #endif
 
 #ifdef WITH_BLUETOOTH
-int bluetooth(program *_p);
+int bluetooth(program *p);
 #endif
 
 #endif

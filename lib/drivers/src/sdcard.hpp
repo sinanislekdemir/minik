@@ -3,6 +3,9 @@
 
 #ifdef WITH_SDCARD
 
+#define SDCARD_ADDRESS 10
+#define SDCARD_DATA_ADDRESS 14
+
 #ifdef BOARD_ATMEGA
 #include <SD.h>
 #define FILE_APPEND O_APPEND

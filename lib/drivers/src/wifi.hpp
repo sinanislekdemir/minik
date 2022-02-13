@@ -5,6 +5,9 @@
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 
+#define WIFI_CMD_ADDRESS 10
+#define WIFI_DATA_ADDRESS 14
+
 #ifndef WIFI_MODE
 #define WIFI_MODE "AP"
 #endif
@@ -19,14 +22,6 @@
 
 #include "program.hpp"
 #include <WiFi.h>
-struct n_server {
-	WiFiServer *server;
-	n_server *next;
-	unsigned int id;
-	uint16_t port;
-	unsigned int pid;
-	WiFiClient client;
-};
 
 int wifi(program *_p);
 int server(program *_p);

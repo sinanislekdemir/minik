@@ -3,7 +3,7 @@
 
 #include "program.hpp"
 
-int pin_number(command c, program *_p);
-int pin_value(command c, program *_p);
+int pin_number(command c, program *p);
+int pin_value(command c, program *p);
 
 #endif

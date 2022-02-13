@@ -16,7 +16,7 @@
 
 statement statements[55] = {0};
 
-void add_statement(char cmd, int (*f)(command *c, program *_p), char index) {
+void add_statement(char cmd, int (*f)(command c, program *p), char index) {
 	statements[index].command = cmd;
 	statements[index].f = f;
 }
@@ -111,10 +111,6 @@ char find_statement(const char *cmd) {
 		return STATEMENT_APPEND;
 	if (strcmp(cmd, "SET") == 0)
 		return STATEMENT_SET;
-	if (strcmp(cmd, "STR") == 0)
-		return STATEMENT_STR;
-	if (strcmp(cmd, "NUM") == 0)
-		return STATEMENT_NUM;
 	if (strcmp(cmd, "DEL") == 0)
 		return STATEMENT_DEL;
 	if (strcmp(cmd, "CPY") == 0)
@@ -197,8 +193,6 @@ void register_statements() {
 	add_statement(STATEMENT_ALLOC, command_alloc, 34);
 	add_statement(STATEMENT_APPEND, command_append, 35);
 	add_statement(STATEMENT_SET, command_set, 36);
-	add_statement(STATEMENT_STR, command_str, 37);
-	add_statement(STATEMENT_NUM, command_num, 38);
 	add_statement(STATEMENT_DEL, command_del, 39);
 	add_statement(STATEMENT_CPY, command_cpy, 40);
 	add_statement(STATEMENT_LROTATE, command_lrotate, 41);

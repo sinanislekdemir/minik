@@ -100,6 +100,12 @@ unsigned int argc(const char *text, char delimiter) {
 	return count;
 }
 
+unsigned int arg_loc(const char *arg) {
+	char tmp[MAX_LINE_LENGTH] = {0};
+	strcpy(tmp, arg + 1);
+	return atoi(tmp);
+}
+
 unsigned int arg_type(const char *arg) {
 	// return the argument's type
 	if (strlen(arg) == 0) {
@@ -113,6 +119,9 @@ unsigned int arg_type(const char *arg) {
 	}
 	if (strncmp(arg, "0x", 2) == 0) {
 		return TYPE_BYTE;
+	}
+	if (arg[0] == '@') {
+		return TYPE_ADDRESS;
 	}
 	bool isnum = true;
 	for (unsigned int i = 0; i < strlen(arg); i++) {
@@ -128,7 +137,7 @@ unsigned int arg_type(const char *arg) {
 	// skip file check for now.
 	// @TODO: Do File type check once we have the
 	//        file system drivers in-place.
-	return TYPE_VARIABLE;
+	return TYPE_LABEL;
 }
 
 char *dtoc(double d) {
@@ -141,6 +150,24 @@ double ctod(char *data) {
 	double resp = 0;
 	memcpy(&resp, data, sizeof(resp));
 	return resp;
+}
+
+char hex2c(char *hex) {
+	char decimal = 0;
+	char base = 1;
+	for (char i = 3; i >= 2; i--) {
+		if (hex[i] >= 0 && hex[i] <= 9) {
+			decimal += (hex[i] - 48) * base;
+			base *= 16;
+		} else if (hex[i] >= 'A' && hex[i] <= 'F') {
+			decimal += (hex[i] - 55) * base;
+			base *= 16;
+		} else if (hex[i] >= 'a' && hex[i] <= 'f') {
+			decimal += (hex[i] - 87) * base;
+			base *= 16;
+		}
+	}
+	return decimal;
 }
 
 void ltrim(char *src) {
@@ -165,5 +192,5 @@ void ltrim(char *src) {
 
 bool is_data_type(int type) {
 	return (type == TYPE_NUM || type == TYPE_STR || type == TYPE_FILE || type == TYPE_REGISTER || type == TYPE_CONSTANT ||
-		type == TYPE_BYTE || type == TYPE_VARIABLE);
+		type == TYPE_BYTE || type == TYPE_ADDRESS);
 }

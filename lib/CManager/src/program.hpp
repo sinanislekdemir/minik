@@ -44,6 +44,8 @@ class program {
 
 	short _compile_cursor;
 
+	int parse(const char *cmd, unsigned int pid, int index);
+
       public:
 	char _cmp_flag;
 	short back_sub_history[PROG_SUBS];

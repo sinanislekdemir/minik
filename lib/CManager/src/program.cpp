@@ -1,10 +1,11 @@
 #include "program.hpp"
 #include "helpers.hpp"
 #include "interpreter.hpp"
-#include "tokenizer.hpp"
+#include "statement.hpp"
 
 sub _subs[MAX_SUBS] = {0};
 extern command commands[MAX_CMDS];
+extern constant _constants[];
 
 int next_sub() {
 	for (unsigned short i = 0; i < MAX_SUBS; i++) {
@@ -102,8 +103,8 @@ void program::set_cmp_flag(unsigned int flag) { this->_cmp_flag = flag; }
 
 short program::find_sub(char *name) {
 	for (char i = 0; i < PROG_SUBS; i++) {
-		if (strcmp(_subs[this->subs[i]].name, name) == 0) {
-			return this->subs[i];
+		if (strcmp(_subs[this->subs[i]].name, name) == 0 && _subs[this->subs[i]].pid == this->pid) {
+			return i;
 		}
 	}
 	return -1;
@@ -277,5 +278,84 @@ int program::check_interrupts() {
 		}
 	}
 
+	return 0;
+}
+
+int program::parse(const char *cmd, unsigned int pid, int index) {
+	unsigned int argument_count = argc(cmd, ' ') - 1;
+	char temp_buffer[MAX_LINE_LENGTH] = {0};
+	extract(cmd, ' ', 0, temp_buffer);
+
+	if (argument_count > 3) {
+		argument_count = 3;
+	}
+
+	commands[index].statement = find_statement((const char *)temp_buffer);
+	commands[index].pid = pid;
+	commands[index].exception = false;
+	commands[index].arg_count = argument_count;
+
+	if (commands[index].statement == STATEMENT_SET) {
+		if (argument_count != 2) {
+			return -1;
+		}
+		char location[16] = {0};
+		extract(cmd, ' ', 1, location);
+		extract(cmd, ' ', 2, temp_buffer);
+		if (location[0] != '@') {
+			return -1;
+		}
+		unsigned int t = arg_type(temp_buffer);
+		if (t == TYPE_STR) {
+			long l = atol(location + 1);
+			write_area((unsigned int)(l), temp_buffer);
+			return 0;
+		}
+	}
+
+	for (unsigned int i = 0; i < argument_count; i++) {
+		memset(temp_buffer, 0, MAX_LINE_LENGTH);
+		int check = extract(cmd, ' ', i + 1, temp_buffer);
+		if (check == 0) {
+			break;
+		}
+		for (char j = 0; j < CONST_COUNT; j++) {
+			if (strcmp(temp_buffer, _constants[j].keyword) == 0) {
+				commands[index].variable_type[i] = TYPE_NUM;
+				commands[index].variable_constant[i] = _constants[j].val;
+				continue;
+			}
+		}
+		unsigned int t = arg_type(temp_buffer);
+		commands[index].variable_type[i] = t;
+
+		if (t == TYPE_NUM) {
+			commands[index].variable_constant[i] = atof(temp_buffer);
+		}
+
+		if (t == TYPE_STR) {
+			// not allowed
+			error_msg("STR argument not allowed", 0);
+			return -1;
+		}
+
+		if (t == TYPE_BYTE) {
+			char val = hex2c(temp_buffer);
+			commands[index].variable_constant[i] = double(val);
+		}
+
+		if (t == TYPE_ADDRESS) {
+			unsigned short loc = atoi(temp_buffer + 1);
+			commands[index].variable_index[i] = loc; // unknown yet
+		}
+		if (t == TYPE_LABEL) {
+			short sub = this->find_sub(temp_buffer);
+			if (sub == -1) {
+				error_msg("Sub not defined (yet)", 0);
+				return -1;
+			}
+			commands[index].variable_index[i] = sub;
+		}
+	}
 	return 0;
 }
