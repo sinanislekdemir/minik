@@ -16,7 +16,7 @@
 
 statement statements[55] = {0};
 
-void add_statement(char cmd, int (*f)(command c, program *p), char index) {
+void add_statement(char cmd, int (*f)(command c, program *p), unsigned int index) {
 	statements[index].command = cmd;
 	statements[index].f = f;
 }

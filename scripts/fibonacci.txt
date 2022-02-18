@@ -1,9 +1,7 @@
-main:
-SET n1 0
-SET n2 1
-SET count 0
-SET to 40
-CALL loop
+exit:
+SPRINTLN n1
+SPRINTLN "Bye!"
+HALT
 ---
 loop:
 ADD nth n1 n2
@@ -14,8 +12,10 @@ CMP count to
 JE exit
 GOTO 0
 ---
-exit:
-SPRINTLN n1
-SPRINTLN "Bye!"
-HALT
+main:
+SET n1 0
+SET n2 1
+SET count 0
+SET to 40
+CALL loop
 ---

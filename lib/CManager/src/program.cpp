@@ -3,7 +3,7 @@
 #include "interpreter.hpp"
 #include "statement.hpp"
 
-sub _subs[MAX_SUBS] = {0};
+sub _subs[MAX_SUBS];
 extern command commands[MAX_CMDS];
 extern constant _constants[];
 
@@ -19,7 +19,7 @@ int next_sub() {
 int sub_command_count(short sub) {
 	for (unsigned int i = 0; i < MAX_SUB_COMMANDS; i++) {
 		if (_subs[sub].commands[i] == -1) {
-			return i;
+			return i + 1;
 		}
 	}
 	return -1;
@@ -43,33 +43,39 @@ int sub_next_command(short sub) {
 	return -1;
 }
 
-program::program(char pid) {
-	if (pid == 0) {
-		pid = 1;
+program::program() {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		this->back_sub_history[i] = -1;
+		this->subs[i] = -1;
 	}
-	memset(this->back_sub_history, -1, PROG_SUBS);
-	memset(this->subs, -1, PROG_SUBS);
 
-	for (char i = 0; i < 8; i++) {
+	for (unsigned int i = 0; i < 8; i++) {
 		this->interrupts[i].pin = 0;
 		this->interrupts[i].state = 0;
 		this->interrupts[i].triggered = false;
 		this->interrupts[i].routine = -1;
 	}
-
-	this->pid = pid;
 	this->exit_code = 0;
 	this->valid_sub_count = 0;
 
 	this->_sleep = false;
 	this->_sleep_start = 0;
 	this->_sleep_duration = 0;
+	this->compiling = true;
+}
+
+void program::set_pid(char pid) {
+
+	if (pid == 0) {
+		pid = 1;
+	}
+	this->pid = pid;
 }
 
 program::~program() { this->destroy(); }
 
 void program::register_interrupt(char pin, unsigned int state, char routine) {
-	for (char i = 0; i < 8; i++) {
+	for (unsigned int i = 0; i < 8; i++) {
 		if (this->interrupts[i].routine == -1) {
 			this->interrupts[i].pin = pin;
 			this->interrupts[i].state = state;
@@ -80,18 +86,25 @@ void program::register_interrupt(char pin, unsigned int state, char routine) {
 }
 
 void program::destroy() {
-	for (char i = 0; i < PROG_SUBS; i++) {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
 		_subs[this->subs[i]].pid = 0;
-		memset(_subs[this->subs[i]].back_history, 0, 16);
-		memset(_subs[this->subs[i]].commands, 0, MAX_SUB_COMMANDS);
+		for (unsigned int j = 0; j < 16; j++) {
+			_subs[this->subs[i]].back_history[j] = 0;
+		}
+		for (unsigned int j = 0; j < MAX_SUB_COMMANDS; j++) {
+			_subs[this->subs[i]].commands[j] = 0;
+		}
 		memset(_subs[this->subs[i]].name, 0, 24);
 		_subs[this->subs[i]].cursor = 0;
 		_subs[this->subs[i]].exit = 0;
 	}
 	for (unsigned int i = 0; i < MAX_CMDS; i++) {
 		if (commands[i].pid == this->pid) {
-			memset(commands[i].variable_index, 0, 3);
-			memset(commands[i].variable_type, 0, 3);
+			for (unsigned int j = 0; j < 3; j++) {
+				commands[i].variable_index[j] = 0;
+				commands[i].variable_type[j] = 0;
+				commands[i].variable_constant[j] = 0;
+			}
 			commands[i].pid = 0;
 			commands[i].statement = 0;
 		}
@@ -102,7 +115,7 @@ void program::destroy() {
 void program::set_cmp_flag(unsigned int flag) { this->_cmp_flag = flag; }
 
 short program::find_sub(char *name) {
-	for (char i = 0; i < PROG_SUBS; i++) {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
 		if (strcmp(_subs[this->subs[i]].name, name) == 0 && _subs[this->subs[i]].pid == this->pid) {
 			return i;
 		}
@@ -112,7 +125,7 @@ short program::find_sub(char *name) {
 
 short program::pop_sub() {
 	short result;
-	for (char i = PROG_SUBS - 1; i >= 0; i--) {
+	for (unsigned int i = PROG_SUBS - 1; i >= 0; i--) {
 		if (this->back_sub_history[i] != -1) {
 			result = this->back_sub_history[i];
 			this->back_sub_history[i] = -1;
@@ -122,14 +135,50 @@ short program::pop_sub() {
 	return -1;
 }
 
+void program::sdump() {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		if (this->subs[i] != -1) {
+			int subx = this->subs[i];
+			Serial.print("Sub number ");
+			Serial.print(i);
+			Serial.println(" - Sub index ");
+			Serial.println(subx);
+			Serial.print("Sub: ");
+			Serial.println(_subs[subx].name);
+			for (unsigned int j = 0; j < _subs[subx].command_count; j++) {
+				int cmdx = _subs[subx].commands[j];
+				Serial.print("  Cursor index: ");
+				Serial.print(j);
+				Serial.print(" - Command index: ");
+				Serial.print(cmdx);
+				Serial.print(" - Statement number: ");
+				Serial.println(int(commands[cmdx].statement));
+				Serial.print("    Arg Count: ");
+				Serial.println(commands[cmdx].arg_count);
+				for (unsigned int k = 0; k < commands[cmdx].arg_count; k++) {
+					Serial.print("    ");
+					Serial.print(k);
+					Serial.print(": ");
+					Serial.print(" Type: ");
+					Serial.print(int(commands[cmdx].variable_type[k]));
+					Serial.print(" Value: ");
+					Serial.print(commands[cmdx].variable_constant[k]);
+					Serial.print(" Index: ");
+					Serial.println(commands[cmdx].variable_index[k]);
+				}
+			}
+		}
+	}
+}
+
 void program::append_to_history(unsigned short cursor, unsigned short instruction) {
-	for (char i = 0; i < PROG_SUBS; i++) {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
 		if (this->back_sub_history[i] == -1) {
 			this->back_sub_history[i] = cursor;
 			break;
 		}
 	}
-	for (char i = 0; i < 16; i++) {
+	for (unsigned int i = 0; i < 16; i++) {
 		if (_subs[this->subs[cursor]].back_history[i] == -1) {
 			_subs[this->subs[cursor]].back_history[i] = instruction;
 			break;
@@ -138,8 +187,14 @@ void program::append_to_history(unsigned short cursor, unsigned short instructio
 }
 
 int program::step() {
+	int sub_cursor_location = this->cursor;
 	int int_status = this->check_interrupts();
 	int sub_index = this->subs[this->cursor];
+	int cmd_cursor_location = _subs[sub_index].cursor;
+	int cmd_index = _subs[sub_index].commands[_subs[sub_index].cursor];
+	// this->sdump();
+	//	while (1)
+	//	;
 
 	if (int_status == 1) {
 		this->_sleep = false;
@@ -160,9 +215,9 @@ int program::step() {
 	}
 
 	if (this->valid_sub_count == 0) {
-		for (char i = 0; i < PROG_SUBS; i++) {
+		for (unsigned int i = 0; i < PROG_SUBS; i++) {
 			if (this->subs[i] == -1) {
-				this->valid_sub_count = i;
+				this->valid_sub_count = i + 1;
 				break;
 			}
 		}
@@ -172,46 +227,36 @@ int program::step() {
 		return PROGRAM_END;
 	}
 
-	if (_subs[sub_index].cursor >= _subs[sub_index].command_count) {
-		this->cursor = this->pop_sub();
-		return RUNNING;
-	}
-
-	unsigned short c = _subs[sub_index].cursor;
-	unsigned short command_index = _subs[sub_index].commands[c];
-	int result = run(command_index, this->pid);
+	int result = run(cmd_index, this);
 
 	if (result == -1) {
 		// TODO: raise
-		if (commands[command_index].exception) {
-			// Check if program has an exception handler
-			short handle_sub = this->find_sub((char *)"on_exception");
-			if (handle_sub > -1) {
-				this->cursor = handle_sub;
-				sub_index = this->subs[this->cursor];
-				_subs[sub_index].cursor = 0;
-				return RUNNING;
-			}
+		// Check if program has an exception handler
+		short handle_sub = this->find_sub((char *)"on_exception");
+		if (handle_sub > -1) {
+			this->cursor = handle_sub;
+			sub_index = this->subs[this->cursor];
+			_subs[sub_index].cursor = 0;
+			return RUNNING;
 		}
+		return PROGRAM_END;
+	}
+	if (result == -2) {
 		return PROGRAM_END;
 	}
 
 	if (result == 1) {
 		// Cursor is explicitly set by the instruction
+		this->append_to_history(sub_cursor_location, cmd_cursor_location);
 		return RUNNING;
 	}
-
-	if (_subs[sub_index].command_count == -1) {
-		_subs[sub_index].command_count = sub_command_count(sub_index);
-	}
-	if (c == _subs[sub_index].command_count - 1) {
-		// end of the instructions, head back to caller;
+	_subs[sub_index].cursor++;
+	if (_subs[sub_index].cursor == _subs[sub_index].command_count) {
 		this->cursor = this->pop_sub();
 		if (this->cursor == -1) {
 			return PROGRAM_END;
 		}
 	}
-	_subs[sub_index].cursor = c + 1;
 
 	return RUNNING;
 }
@@ -240,6 +285,9 @@ int program::compile(const char *line) {
 		_subs[n].pid = this->pid;
 		memset(_subs[n].name, 0, 24);
 		strncpy(_subs[n].name, line, l - 1);
+		if (strcmp(line, "main:") == 0) {
+			this->cursor = this->_compile_cursor;
+		}
 		for (unsigned short i = 0; i < MAX_SUB_COMMANDS; i++) {
 			_subs[n].commands[i] = -1;
 		}
@@ -254,18 +302,25 @@ int program::compile(const char *line) {
 	// End the existing sub
 	int sub_index = this->subs[this->_compile_cursor];
 	if (strcmp(line, SUB_END) == 0) {
-		_subs[sub_index].command_count = sub_command_count(this->_compile_cursor);
-		return 0;
+		_subs[sub_index].command_count = sub_command_count(sub_index);
+		return 1;
 	}
 	int nci = next_command_index();
 	int snc = sub_next_command(sub_index);
-	parse(line, this->pid, nci);
+	int check = parse(line, this->pid, nci);
+	if (check < 0) {
+		return -1;
+	}
+	if (check > 0) {
+		return 0;
+	}
 	_subs[sub_index].commands[snc] = nci;
+	return 0;
 }
 
 int program::check_interrupts() {
 	// Return 1 if it jumps
-	for (char i = 0; i < 8; i++) {
+	for (unsigned int i = 0; i < 8; i++) {
 		if (this->interrupts[i].pin == 0) {
 			continue;
 		}
@@ -290,12 +345,9 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 		argument_count = 3;
 	}
 
-	commands[index].statement = find_statement((const char *)temp_buffer);
-	commands[index].pid = pid;
-	commands[index].exception = false;
-	commands[index].arg_count = argument_count;
+	char st = find_statement((const char *)temp_buffer);
 
-	if (commands[index].statement == STATEMENT_SET) {
+	if (st == STATEMENT_SET) {
 		if (argument_count != 2) {
 			return -1;
 		}
@@ -307,11 +359,18 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 		}
 		unsigned int t = arg_type(temp_buffer);
 		if (t == TYPE_STR) {
+			char tmp[MAX_LINE_LENGTH] = {0};
+			memcpy(tmp, temp_buffer + 1, strlen(temp_buffer) - 2);
 			long l = atol(location + 1);
-			write_area((unsigned int)(l), temp_buffer);
-			return 0;
+			write_area((unsigned int)(l), tmp);
+			return 1;
 		}
 	}
+
+	commands[index].statement = st;
+	commands[index].pid = pid;
+	commands[index].exception = false;
+	commands[index].arg_count = argument_count;
 
 	for (unsigned int i = 0; i < argument_count; i++) {
 		memset(temp_buffer, 0, MAX_LINE_LENGTH);
@@ -319,7 +378,7 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 		if (check == 0) {
 			break;
 		}
-		for (char j = 0; j < CONST_COUNT; j++) {
+		for (unsigned int j = 0; j < CONST_COUNT; j++) {
 			if (strcmp(temp_buffer, _constants[j].keyword) == 0) {
 				commands[index].variable_type[i] = TYPE_NUM;
 				commands[index].variable_constant[i] = _constants[j].val;
@@ -331,6 +390,7 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 
 		if (t == TYPE_NUM) {
 			commands[index].variable_constant[i] = atof(temp_buffer);
+			commands[index].variable_index[i] = -1;
 		}
 
 		if (t == TYPE_STR) {
@@ -340,13 +400,15 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 		}
 
 		if (t == TYPE_BYTE) {
-			char val = hex2c(temp_buffer);
+			char val = (char)strtol(temp_buffer, 0, 16);
 			commands[index].variable_constant[i] = double(val);
+			commands[index].variable_index[i] = -1;
 		}
 
 		if (t == TYPE_ADDRESS) {
 			unsigned short loc = atoi(temp_buffer + 1);
 			commands[index].variable_index[i] = loc; // unknown yet
+			commands[index].variable_constant[i] = 0;
 		}
 		if (t == TYPE_LABEL) {
 			short sub = this->find_sub(temp_buffer);

@@ -5,13 +5,16 @@
 #include "status.hpp"
 #include "tasks.hpp"
 
-extern variable root_variable;
 extern int kernel_next_pid;
+extern char _memory_area[MAX_MEM];
+extern program programs[MAX_PROGRAM_COUNT];
+
+Term main_term;
 
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 #include <WiFi.h>
-WiFiServer *s = NULL;
+WiFiServer s;
 WiFiClient terminal_client;
 #endif
 #endif
@@ -28,14 +31,14 @@ Term::Term() {
 	this->baud_rate = 9600;
 	this->port = 23;
 	this->has_client = false;
+
 	this->_is_in_readline = false;
 	this->io_cursor = 0;
-	this->program_buffer = NULL;
-	this->program_buffer_size = 0;
+
 	this->programming_mode = false;
-	this->io_buffer = (char *)malloc(BUFFER_SIZE);
+	memset(this->io_buffer, 0, MAX_LINE_LENGTH);
+	this->tmp_pid = 0;
 	this->io_cursor = 0;
-	memset(this->io_buffer, 0, BUFFER_SIZE);
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 	this->set_port(this->port);
@@ -44,7 +47,22 @@ Term::Term() {
 #endif
 }
 
-Term::~Term() { free(this->io_buffer); }
+void to_hex(char *buf, char *str) {
+	char *pin = buf;
+	const char *hex = "0123456789ABCDEF";
+	char *pout = str;
+	int i = 0;
+	for (; i < sizeof(buf) - 1; ++i) {
+		*pout++ = hex[(*pin >> 4) & 0xF];
+		*pout++ = hex[(*pin++) & 0xF];
+		*pout++ = ':';
+	}
+	*pout++ = hex[(*pin >> 4) & 0xF];
+	*pout++ = hex[(*pin) & 0xF];
+	*pout = 0;
+}
+
+Term::~Term() {}
 
 void Term::set_baud_rate(unsigned long rate) {
 	this->baud_rate = rate;
@@ -58,14 +76,7 @@ void Term::set_baud_rate(unsigned long rate) {
 
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
-void Term::start_server() {
-	if (s != NULL) {
-		s->end();
-		free(s);
-	}
-	s = new WiFiServer(this->port);
-	s->begin();
-}
+void Term::start_server() { s.begin(this->port); }
 #endif
 #endif
 
@@ -118,7 +129,7 @@ int Term::readline() {
 	if (this->out_device == OUT_BT) {
 #ifdef BOARD_ESP32
 #ifdef WITH_BLUETOOTH_SERIAL
-		SerialBT.readBytesUntil('\n', this->io_buffer, BUFFER_SIZE);
+		SerialBT.readBytesUntil('\n', this->io_buffer, MAX_LINE_LENGTH);
 #endif
 #endif
 		return 1;
@@ -126,7 +137,7 @@ int Term::readline() {
 	if (this->out_device == OUT_WIFI) {
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
-		terminal_client.readBytesUntil('\n', this->io_buffer, BUFFER_SIZE);
+		terminal_client.readBytesUntil('\n', this->io_buffer, MAX_LINE_LENGTH);
 		return 1;
 #endif
 #endif
@@ -138,8 +149,14 @@ void Term::append_program_buffer() {
 	if (strlen(this->io_buffer) < 2) {
 		return;
 	}
-	strcat(this->program_buffer, this->io_buffer);
-	strcat(this->program_buffer, "\n");
+	if (this->tmp_pid != 0) {
+		for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
+			if (programs[i].pid == this->tmp_pid) {
+				programs[i].compile(this->io_buffer);
+				break;
+			}
+		}
+	}
 }
 
 int Term::process() {
@@ -155,68 +172,61 @@ int Term::process() {
 	}
 	if (this->programming_mode) {
 		if (strcmp(this->io_buffer, ".") == 0) {
-			program *prog = new program(kernel_next_pid++);
-			prog->source = this->program_buffer;
-			prog->compile();
-
-			Serial.println(this->program_buffer);
-			Serial.println(free_ram());
-
-			this->program_buffer_size = 0;
-			add_task(prog, 1);
-
+			for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
+				if (programs[i].pid == this->tmp_pid) {
+					programs[i].compiling = false;
+					programs[i].exit_code = RUNNING;
+					break;
+				}
+			}
 			this->programming_mode = false;
-			memset(this->io_buffer, 0, BUFFER_SIZE);
+			memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 			this->io_cursor = 0;
 			return 1;
 		}
 		this->append_program_buffer();
-		memset(this->io_buffer, 0, BUFFER_SIZE);
+		memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 		this->io_cursor = 0;
 		return 1;
 	}
 	if (strcmp(this->io_buffer, "free") == 0) {
-		char *tmp = (char *)malloc(16);
-		memset(tmp, 0, 16);
+		char tmp[16] = {0};
 		int ram = free_ram();
 		itoa(ram, tmp, 10);
 		kprint((char *)"Free ram size: ");
 		kprint(tmp);
 		kprint((char *)"\n");
-		free(tmp);
 	}
 	if (strcmp(this->io_buffer, "memdump") == 0) {
-		variable *node = &root_variable;
-		while (node != NULL) {
-			char *tmp = (char *)malloc(16);
-			memset(tmp, 0, 16);
-			kprint((char *)"Name: ");
-			kprint(node->name);
-			kprint((char *)"\n  Type: ");
-			itoa(node->type, tmp, 10);
-			kprint(tmp);
-			kprint((char *)"\n  Size: ");
-			memset(tmp, 0, 16);
-			itoa(node->datasize, tmp, 10);
-			kprint((char *)"\n  PID: ");
-			kprint(tmp);
-			kprint((char *)"\n");
-			node = node->next;
-			free(tmp);
+		char chunk[32] = {0};
+		char out[100] = {0};
+		for (unsigned int i = 0; i < MAX_MEM; i += 32) {
+			read_area_str(i, 32, chunk);
+			to_hex(chunk, out);
+			kprint(out);
+			kprint("\n");
+			memset(out, 0, 100);
+			memset(chunk, 0, 32);
 		}
 	}
 	if (strcmp(this->io_buffer, "program") == 0) {
 		kprint((char *)"Programming mode activated\n");
-		this->allocate_program_buffer();
 		kprint((char *)"End programming with a dot (.) as a single line\n");
 		kprint((char *)"ready to receive\n");
 		this->programming_mode = true;
-		memset(this->io_buffer, 0, BUFFER_SIZE);
+		this->tmp_pid = kernel_next_pid++;
+		for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
+			if (programs[i].pid == 0) {
+				programs[i].set_pid(this->tmp_pid);
+				programs[i].compiling = true;
+			}
+		}
+		memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 		this->io_cursor = 0;
 		return 1;
 	}
 	kprint((char *)"> ");
-	memset(this->io_buffer, 0, BUFFER_SIZE);
+	memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 	this->io_cursor = 0;
 	return 1;
 }
@@ -227,8 +237,8 @@ bool Term::wait_for_client() {
 	if (terminal_client.connected()) {
 		return true;
 	}
-	if (s != NULL && s->hasClient()) {
-		terminal_client = s->available();
+	if (s && s.hasClient()) {
+		terminal_client = s.available();
 		this->set_port(23);
 		this->set_output(OUT_WIFI);
 		kprint((char *)"Minik Terminal\n> ");
@@ -271,41 +281,4 @@ int Term::available() {
 		return Serial.available();
 	}
 	return 0;
-}
-
-int Term::allocate_program_buffer() {
-	char *tmp = (char *)malloc(16);
-	memset(tmp, 0, 16);
-
-	if (this->program_buffer_size != 0) {
-		free(this->program_buffer);
-		this->program_buffer = NULL;
-                this->program_buffer_size = 0;
-	}
-
-	// only the half of free ram should be allocated;
-#ifdef BOARD_ESP32
-	this->program_buffer_size = 10 * 1024;
-#else
-	int fr = free_ram();
-	this->program_buffer_size = fr / 2;
-#endif
-
-	while (this->program_buffer == NULL) {
-		this->program_buffer = (char *)malloc(this->program_buffer_size);
-		if (this->program_buffer == NULL) {
-			this->program_buffer_size -= 100;
-		}
-	}
-
-	itoa(this->program_buffer_size, tmp, 10);
-	kprint((char *)"Allocated memory: ");
-	kprint(tmp);
-	kprint((char *)"\n");
-
-	memset(this->program_buffer, 0, this->program_buffer_size);
-
-	kprint((char *)"Allocated program buffer\n");
-	free(tmp);
-	return this->program_buffer_size;
 }

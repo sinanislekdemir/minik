@@ -24,7 +24,7 @@ int command_set(command c, program *p) {
 	}
 
 	if (c.variable_type[1] == TYPE_BYTE) {
-		char val = get_byte(c, 1);
+		char val = (char)c.variable_constant[1];
 		write_area(c.variable_index[0], val);
 		return 0;
 	}

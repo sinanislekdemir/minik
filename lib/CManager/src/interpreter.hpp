@@ -3,6 +3,6 @@
 
 #include "program.hpp"
 
-int run(unsigned short c, char _p);
+int run(unsigned short c, program *_p);
 
 #endif

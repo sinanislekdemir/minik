@@ -17,6 +17,7 @@ int init_mem() {
 	for (unsigned short i = 0; i < 64; i++) {
 		_protected_memory[i].pid = -1;
 	}
+	return 0;
 }
 
 void free_program(char pid) {
@@ -84,6 +85,9 @@ int read_area_str(unsigned int index, unsigned int size, char *back) {
 			}
 		}
 		size = tmp;
+	}
+	if (size == 0) {
+		return 0;
 	}
 	memcpy(back, _memory_area + index, size);
 	return size;

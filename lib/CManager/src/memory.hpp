@@ -6,7 +6,7 @@
 #ifdef BOARD_ESP32
 #define MAX_MEM 160 * 1024
 #else
-#define MAX_MEM 3 * 1024
+#define MAX_MEM 1024
 #endif
 
 #ifdef BOARD_ATMEGA

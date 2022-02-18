@@ -13,7 +13,7 @@ int command_int(command c, program *p) {
 	}
 
 	double state = get_double(c, 1);
-	int pin = get_int(c, 0);
+	unsigned int pin = (unsigned int)(get_int(c, 0));
 	int interrupt_sub = c.variable_index[2];
 
 	if (interrupt_sub == -1) {

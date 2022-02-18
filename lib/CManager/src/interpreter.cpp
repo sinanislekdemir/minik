@@ -5,7 +5,7 @@ extern statement statements[55];
 extern command commands[MAX_CMDS];
 
 int run(unsigned short c, program *_p) {
-	for (char i = 0; i < 55; i++) {
+	for (unsigned int i = 0; i < 55; i++) {
 		if (commands[c].statement == statements[i].command) {
 			return statements[i].f(commands[c], _p);
 		}

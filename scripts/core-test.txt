@@ -1,7 +1,8 @@
 main:
-CORE core_number
-SPRINT "Hi, I am running on core "
-SPRINTLN core_number
+SET @10 "Hi, I am running on core "
+CORE @1
+SPRINT @10
+SPRINTLN @1 2
 SLEEP 1000
 GOTO 1
 HALT

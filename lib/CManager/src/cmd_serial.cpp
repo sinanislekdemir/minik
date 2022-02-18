@@ -8,7 +8,7 @@ extern int serial_lock;
 bool _breaker(char c) { return c == '\n'; }
 bool _ignore(char c) { return (c < 32); }
 
-int _serial_getline(char *result, int buffer_length) {
+int _serial_getline(char *result, unsigned int buffer_length) {
 	char c = 0;
 	unsigned int cursor = 0;
 	while (strlen(result) < buffer_length) {
@@ -27,10 +27,30 @@ int _serial_getline(char *result, int buffer_length) {
 	}
 
 	Serial.println("");
+	return 0;
 }
 
 int command_serial_println(command c, program *p) {
 	char buffer[MAX_LINE_LENGTH] = {0};
+	if (c.variable_type[0] == TYPE_NUM) {
+		Serial.println(c.variable_constant[0]);
+		return 0;
+	}
+	if (c.variable_type[0] == TYPE_BYTE) {
+		Serial.println(char(c.variable_constant[0]));
+		return 0;
+	}
+	if (c.arg_count == 2) {
+		if (c.variable_constant[1] == 2) {
+			Serial.println(get_double(c, 0));
+			return 0;
+		}
+		if (c.variable_constant[1] == 8) {
+			char lumune = get_byte(c, 0);
+			Serial.println(int(lumune));
+			return 0;
+		}
+	}
 	get_string(c, 0, buffer, 0);
 	Serial.println(buffer);
 	return 0;
@@ -38,6 +58,25 @@ int command_serial_println(command c, program *p) {
 
 int command_serial_print(command c, program *p) {
 	char buffer[MAX_LINE_LENGTH] = {0};
+	if (c.variable_type[0] == TYPE_NUM) {
+		Serial.println(c.variable_constant[0]);
+		return 0;
+	}
+	if (c.variable_type[0] == TYPE_BYTE) {
+		Serial.println(char(c.variable_constant[0]));
+		return 0;
+	}
+	if (c.arg_count == 2) {
+		if (c.variable_constant[1] == 2) {
+			Serial.print(get_double(c, 0));
+			return 0;
+		}
+		if (c.variable_constant[1] == 8) {
+			char lumune = get_byte(c, 0);
+			Serial.print(int(lumune));
+			return 0;
+		}
+	}
 	get_string(c, 0, buffer, 0);
 	Serial.print(buffer);
 	return 0;

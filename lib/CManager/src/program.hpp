@@ -7,10 +7,10 @@
 #define PROG_SUBS 16
 #define MAX_PROGS 16
 #else
-#define MAX_SUB_COMMANDS 64
-#define MAX_SUBS 32
+#define MAX_SUB_COMMANDS 36
+#define MAX_SUBS 8
 #define PROG_SUBS 8
-#defien MAX_PROGS 4
+#define MAX_PROGS 4
 #endif
 
 #define XSTR(x) STR(x)
@@ -25,7 +25,7 @@ struct sub {
 	short commands[MAX_SUB_COMMANDS];
 	char name[24];
 	unsigned short cursor;
-	char command_count;
+	short command_count;
 	byte exit;
 	byte pid;
 };
@@ -65,9 +65,15 @@ class program {
 
 	char pid;
 	char exit_code;
+	unsigned int priority;
+	unsigned long start_time;
+	unsigned long end_time;
+	bool compiling;
 
 	int compile(const char *line);
-	program(char pid);
+	void set_pid(char pid);
+	void sdump();
+	program();
 	~program();
 	int step();
 	void destroy();

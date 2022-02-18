@@ -73,7 +73,7 @@ int extract(const char *text, char delimiter, unsigned int index, char *back) {
 				}
 				back[cursor++] = text[j];
 			}
-			return 0;
+			return strlen(back);
 		}
 		if (text[i] == '"') {
 			quote_block = !quote_block;
@@ -155,7 +155,7 @@ double ctod(char *data) {
 char hex2c(char *hex) {
 	char decimal = 0;
 	char base = 1;
-	for (char i = 3; i >= 2; i--) {
+	for (unsigned int i = 3; i >= 2; i--) {
 		if (hex[i] >= 0 && hex[i] <= 9) {
 			decimal += (hex[i] - 48) * base;
 			base *= 16;

@@ -1,5 +1,4 @@
 #include "kernel.hpp"
-#include "daemon.hpp"
 #include "drivers.hpp"
 #include "tasks.hpp"
 #include "term.hpp"
@@ -9,8 +8,7 @@ volatile int kernel_wifi_lock;
 volatile int kernel_bt_lock;
 int kernel_next_pid;
 
-extern daemon_task daemons;
-extern StatusEngine *status_engine;
+extern StatusEngine status_engine;
 
 #ifdef BOARD_ESP32
 TaskHandle_t task_handles[CORES];
@@ -23,46 +21,17 @@ void core_run(void *_core) {
 }
 #endif
 
-void _add_daemon(daemon *dae) {
-	if (daemons.task == NULL) {
-		daemons.end_time = 0;
-		daemons.exit_code = RUNNING;
-		daemons.next = NULL;
-		daemons.start_time = millis();
-		daemons.task = dae;
-		return;
-	}
-	daemon_task *d = (daemon_task *)malloc(sizeof(daemon_task));
-	d->task = dae;
-	d->next = NULL;
-	d->exit_code = RUNNING;
-	d->start_time = millis();
-	d->end_time = 0;
-	daemon_task *head = &daemons;
-
-	while (true) {
-		if (head->next == NULL) {
-			head->next = d;
-			break;
-		}
-		head = head->next;
-	}
-}
-
-void register_kernel_tasks() { _add_daemon(status_engine); }
-
 /**
    Main Kernel Entrypoint
  */
 int kmain() {
 	Serial.begin(9600);
-	register_kernel_tasks();
 
 	register_statements();
 	init_cores();
 
-	status_engine->change_status_pin(STATUS_PIN);
-	status_engine->set_status(READY);
+	status_engine.change_status_pin(STATUS_PIN);
+	status_engine.set_status(READY);
 
 	serial_lock = -1;
 	kernel_next_pid = 1;
@@ -77,20 +46,16 @@ int kmain() {
 	Serial.println("Minik Kernel KMain");
 	init_drivers();
 	print_status();
-	Term *mterm = new Term();
 	Serial.println("Send a few bytes to start terminal on Serial");
-	_add_daemon(mterm);
+
 #ifdef BOARD_ESP32
-	char core_id[2];
+	char core_id[2] = {0};
 	for (long i = 0; i < CORES; i++) {
-		char *name = (char *)malloc(8);
-		memset(name, 0, 8);
-		memset(core_id, 0, 2);
+		char name[8] = {0};
 		itoa(i, core_id, 10);
 		strcat(name, "core_");
 		strcat(name, core_id);
 		xTaskCreatePinnedToCore(core_run, name, STACK_SIZE, (void *)i, 1, &task_handles[i], i);
-		free(name);
 	}
 #endif
 #ifdef BOARD_ATMEGA
@@ -98,7 +63,6 @@ int kmain() {
 	}
 #endif
 #ifndef BOARD_ESP32
-	mem_dump();
 	stop();
 #endif
 	return 0;
@@ -113,13 +77,8 @@ void stop() {
 		Serial.println(".shutdown.");
 	}
 #endif
-	status_engine->set_status(STOP);
+	status_engine.set_status(STOP);
 	while (1) {
-		status_engine->process();
+		status_engine.process();
 	}
-}
-
-char *kernel_stats(program *p) {
-	char *result = (char *)malloc(1024);
-	return result;
 }

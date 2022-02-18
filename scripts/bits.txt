@@ -1,19 +1,24 @@
 main:
-SPRINTLN "Bit operations test"
-SET byte 16
-SPRINT "byte = "
-SPRINTLN byte
-LROTATE byte 2
-SPRINT "l-rotate 2 = "
-SPRINTLN byte
-RROTATE byte 2
-SPRINT "r-rotate 2 = "
-SPRINTLN byte
-LSHIFT byte 3
-SPRINT "l-shift 3 = "
-SPRINTLN byte
-RSHIFT byte 3
-SPRINT "r-shift 3 = "
-SPRINTLN byte
+SET @0 "Bit operations test"
+SET @25 "byte = "
+SET @35 "LROTATE 2 = "
+SET @50 "RROTATE 2 = "
+SET @65 "LSHIFT 3 = "
+SET @80 "RSHIFT 3 = "
+SET @100 0x10
+SPRINT @25
+SPRINTLN @100 8
+LROTATE @100 2
+SPRINT @35
+SPRINTLN @100 8
+RROTATE @100 2
+SPRINT @50
+SPRINTLN @100 8
+LSHIFT @100 3
+SPRINT @65
+SPRINTLN @100 8
+RSHIFT @100 3
+SPRINT @80
+SPRINTLN @100 8
 HALT
 ---

@@ -160,7 +160,7 @@ int server(program *_p) {
 		}
 		uint16_t iport = uint16_t(port);
 
-		for (char i = 0; i < 4; i++) {
+		for (unsigned int i = 0; i < 4; i++) {
 			if (_ports[i] == 0) {
 				_ports[i] = iport;
 				_server[i] = WiFiServer(iport);
@@ -187,117 +187,78 @@ int server(program *_p) {
 		return 0;
 	}
 	if (cmd_var == 3) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		new_number((char *)"WIFI_CLIENT_CONNECTED", double(s->client.connected()), pid);
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		write_area(WIFI_DATA_ADDRESS, double(_client[server].connected()));
 		return 0;
 	}
 	if (cmd_var == 4) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		if (!s->client.connected()) {
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (_client[server].connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		new_number((char *)"WIFI_CLIENT_AVAILABLE", double(s->client.available()), pid);
+		write_area(WIFI_DATA_ADDRESS, double(_client[server].available()));
 		return 0;
 	}
 	if (cmd_var == 5) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		if (!s->client.connected()) {
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (!_client[server].connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		char *cm = (char *)malloc(1);
-		cm[0] = s->client.read();
-		new_string((char *)"WIFI_CLIENT_READ", cm, pid);
-		free(cm);
+		write_area(WIFI_DATA_ADDRESS,  char(_client[server].read()));
 		return 0;
 	}
 	if (cmd_var == 6) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		if (!s->client.connected()) {
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (!_client[server].connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		String st = s->client.readStringUntil('\n');
-		char *cm = (char *)malloc(st.length() + 1);
-		memset(cm, 0, st.length() + 1);
-		strcat(cm, st.c_str());
-		new_string((char *)"WIFI_CLIENT_READLINE", cm, pid);
-		free(cm);
+		char buffer[MAX_LINE_LENGTH] = {0};
+		_client->readBytesUntil('\n', buffer, MAX_LINE_LENGTH);
+		free_area(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH);
+		write_area(WIFI_DATA_ADDRESS, buffer, MAX_LINE_LENGTH);
 		return 0;
 	}
 	if (cmd_var == 7) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		if (!s->client.connected()) {
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (!_client[server].connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		char *data = find_string("WIFI_CLIENT_PRINT", pid);
-		if (data == NULL) {
-			error_msg("WIFI_CLIENT_PRINT not defined", pid);
-			return -1;
-		}
-		s->client.print(data);
+		char data[MAX_LINE_LENGTH] = {0};
+		read_area_str(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH, data);
+		_client[server].print(data);
 		return 0;
 	}
 	if (cmd_var == 8) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		if (!s->client.connected()) {
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (!_client[server].connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		char *data = find_string("WIFI_CLIENT_PRINTLN", pid);
-		if (data == NULL) {
-			error_msg("WIFI_CLIENT_PRINT not defined", pid);
-			return -1;
-		}
-		s->client.println(data);
+		char data[MAX_LINE_LENGTH] = {0};
+		read_area_str(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH, data);
+		_client[server].println(data);
 		return 0;
 	}
 	if (cmd_var == 9) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
-		}
-		if (!s->client.connected()) {
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (!_client[server].connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		s->client.stop();
+		_client[server].stop();
 		return 0;
 	}
 	if (cmd_var == 10) {
-		n_server *s = _get_server(pid);
-		if (s == NULL) {
-			return -1;
+		int server = int(read_area_double(WIFI_DATA_ADDRESS));
+		if (_client[server].connected()) {
+			_client[server].stop();
 		}
-		if (s->client) {
-			if (s->client.connected()) {
-				s->client.stop();
-			}
-		}
-		free(s->server);
-		s->id = 0;
-		s->pid = 0;
-		s->port = 0;
+		_server[server].stopAll();
+		_ports[server] = 0;
 		return 0;
 	}
 	return 0;

@@ -1,6 +1,6 @@
 #include "cmd_math.hpp"
-#include "helpers.hpp"
 #include "constants.hpp"
+#include "helpers.hpp"
 #include <math.h>
 
 int _validate_command(command c) {
