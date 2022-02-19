@@ -40,19 +40,17 @@ int command_serial_println(command c, program *p) {
 		Serial.println(char(c.variable_constant[0]));
 		return 0;
 	}
-	if (c.arg_count == 2) {
-		if (c.variable_constant[1] == 2) {
+	if (c.variable_type[0] == TYPE_ADDRESS) {
+		char type = area_type(c.variable_index[0]);
+		if (type == TYPE_NUM) {
 			Serial.println(get_double(c, 0));
-			return 0;
-		}
-		if (c.variable_constant[1] == 8) {
-			char lumune = get_byte(c, 0);
-			Serial.println(int(lumune));
-			return 0;
+		} else if (type == TYPE_BYTE) {
+			Serial.println(int(get_byte(c, 0)));
+		} else {
+			get_string(c, 0, buffer, 0);
+			Serial.println(buffer);
 		}
 	}
-	get_string(c, 0, buffer, 0);
-	Serial.println(buffer);
 	return 0;
 }
 
@@ -66,19 +64,17 @@ int command_serial_print(command c, program *p) {
 		Serial.println(char(c.variable_constant[0]));
 		return 0;
 	}
-	if (c.arg_count == 2) {
-		if (c.variable_constant[1] == 2) {
+	if (c.variable_type[0] == TYPE_ADDRESS) {
+		char type = area_type(c.variable_index[0]);
+		if (type == TYPE_NUM) {
 			Serial.print(get_double(c, 0));
-			return 0;
-		}
-		if (c.variable_constant[1] == 8) {
-			char lumune = get_byte(c, 0);
-			Serial.print(int(lumune));
-			return 0;
+		} else if (type == TYPE_BYTE) {
+			Serial.print(int(get_byte(c, 0)));
+		} else {
+			get_string(c, 0, buffer, 0);
+			Serial.print(buffer);
 		}
 	}
-	get_string(c, 0, buffer, 0);
-	Serial.print(buffer);
 	return 0;
 }
 

@@ -4,7 +4,7 @@
 #include "constants.hpp"
 
 #ifdef BOARD_ESP32
-#define MAX_MEM 160 * 1024
+#define MAX_MEM 1024 * 24
 #else
 #define MAX_MEM 1024
 #endif
@@ -32,6 +32,7 @@ struct _protected {
 
 void free_area(unsigned int index, unsigned int size);
 void free_program(char pid);
+int area_type(unsigned int index);
 int write_area(unsigned int index, char *data);
 int write_area(unsigned int index, char *data, unsigned int size);
 int write_area(unsigned int index, int data);

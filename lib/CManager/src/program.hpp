@@ -3,8 +3,8 @@
 
 #ifdef BOARD_ESP32
 #define MAX_SUB_COMMANDS 128
-#define MAX_SUBS 64
-#define PROG_SUBS 16
+#define MAX_SUBS 32
+#define PROG_SUBS 32
 #define MAX_PROGS 16
 #else
 #define MAX_SUB_COMMANDS 36
@@ -26,8 +26,7 @@ struct sub {
 	char name[24];
 	unsigned short cursor;
 	short command_count;
-	byte exit;
-	byte pid;
+	long pid;
 };
 
 struct interrupt {
@@ -63,15 +62,14 @@ class program {
 	int check_interrupts();
 	short pop_sub();
 
-	char pid;
-	char exit_code;
+	long pid;
+	char status_code;
 	unsigned int priority;
 	unsigned long start_time;
 	unsigned long end_time;
-	bool compiling;
 
 	int compile(const char *line);
-	void set_pid(char pid);
+	void set_pid(long pid);
 	void sdump();
 	program();
 	~program();

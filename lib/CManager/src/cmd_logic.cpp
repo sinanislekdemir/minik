@@ -70,17 +70,45 @@ int command_cmp(command c, program *p) {
 	}
 
 	if (c.variable_type[0] == TYPE_ADDRESS) {
-		char c1 = get_byte(c, 0);
-		char c2 = get_byte(c, 1);
-		if (c1 == c2) {
-			p->set_cmp_flag(CMP_JE);
+		char type = area_type(c.variable_index[0]);
+		if (type == TYPE_NUM) {
+			double d1 = get_double(c, 0);
+			double d2 = get_double(c, 1);
+			if (d1 == d2) {
+				p->set_cmp_flag(CMP_JE);
+			}
+			if (d1 > d2) {
+				p->set_cmp_flag(CMP_JG);
+			}
+			if (d1 < d2) {
+				p->set_cmp_flag(CMP_JL);
+			}
 		}
-		if (c1 > c2) {
-			p->set_cmp_flag(CMP_JG);
+		if (type == TYPE_BYTE) {
+			char c1 = get_byte(c, 0);
+			char c2 = get_byte(c, 1);
+			if (c1 == c2) {
+				p->set_cmp_flag(CMP_JE);
+			}
+			if (c1 > c2) {
+				p->set_cmp_flag(CMP_JG);
+			}
+			if (c1 < c2) {
+				p->set_cmp_flag(CMP_JL);
+			}
 		}
-		if (c1 < c2) {
-			p->set_cmp_flag(CMP_JL);
+		if (type == TYPE_STR) {
+			char buffer1[MAX_LINE_LENGTH] = {0};
+			char buffer2[MAX_LINE_LENGTH] = {0};
+			get_string(c, 0, buffer1, 0);
+			get_string(c, 1, buffer2, 0);
+			if (strcmp(buffer1, buffer2) == 0) {
+				p->set_cmp_flag(CMP_JE);
+			} else {
+				p->set_cmp_flag(CMP_N);
+			}
 		}
+
 		return 0;
 	}
 

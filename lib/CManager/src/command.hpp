@@ -18,7 +18,7 @@ struct command {
 	short variable_index[3];
 	char variable_type[3];
 	double variable_constant[3];
-	char arg_count;
+	short arg_count;
 	char pid;
 	bool exception;
 };

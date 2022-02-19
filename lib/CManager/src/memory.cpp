@@ -36,31 +36,40 @@ void free_area(unsigned int index, unsigned int size) { memset(_memory_area + in
 
 int write_area(unsigned int index, char *data) {
 	memcpy(_memory_area + index, data, strlen(data));
+	_memory_area[index - 1] = char(TYPE_STR);
 	return 0;
 }
 
 int write_area(unsigned int index, int data) {
 	memcpy(_memory_area + index, &data, sizeof(int));
+	_memory_area[index - 1] = char(TYPE_NUM);
 	return 0;
 }
 
 int write_area(unsigned int index, double data) {
 	memcpy(_memory_area + index, &data, sizeof(double));
+	_memory_area[index - 1] = char(TYPE_NUM);
 	return 0;
 }
 
 int write_area(unsigned int index, long data) {
 	memcpy(_memory_area + index, &data, sizeof(double));
+	_memory_area[index - 1] = char(TYPE_NUM);
 	return 0;
 }
 
 int write_area(unsigned int index, char data) {
+	if (index == 0) {
+		return 0;
+	}
 	_memory_area[index] = data;
+	_memory_area[index - 1] = char(TYPE_BYTE);
 	return 0;
 }
 
 int write_area(unsigned int index, char *data, unsigned int size) {
 	memcpy(_memory_area + index, data, size);
+	_memory_area[index - 1] = char(TYPE_STR);
 	return 0;
 }
 
@@ -92,6 +101,8 @@ int read_area_str(unsigned int index, unsigned int size, char *back) {
 	memcpy(back, _memory_area + index, size);
 	return size;
 }
+
+int area_type(unsigned int index) { return _memory_area[index - 1]; }
 
 double read_area_double(unsigned int index) {
 	double result;

@@ -26,7 +26,7 @@ class Term {
 	int tmp_pid;
 
 	void append_program_buffer();
-	int kprint(char *data);
+	int kprint(const char *data);
 	int readline();
 	int receive_source();
 #ifdef BOARD_ESP32

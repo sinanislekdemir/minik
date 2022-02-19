@@ -1,5 +1,6 @@
 #include "term.hpp"
 
+#include "constants.hpp"
 #include "memory.hpp"
 #include "program.hpp"
 #include "status.hpp"
@@ -47,21 +48,6 @@ Term::Term() {
 #endif
 }
 
-void to_hex(char *buf, char *str) {
-	char *pin = buf;
-	const char *hex = "0123456789ABCDEF";
-	char *pout = str;
-	int i = 0;
-	for (; i < sizeof(buf) - 1; ++i) {
-		*pout++ = hex[(*pin >> 4) & 0xF];
-		*pout++ = hex[(*pin++) & 0xF];
-		*pout++ = ':';
-	}
-	*pout++ = hex[(*pin >> 4) & 0xF];
-	*pout++ = hex[(*pin) & 0xF];
-	*pout = 0;
-}
-
 Term::~Term() {}
 
 void Term::set_baud_rate(unsigned long rate) {
@@ -84,7 +70,7 @@ void Term::set_output(uint8_t out) { this->out_device = out; }
 
 void Term::set_port(int port) { this->port = port; }
 
-int Term::kprint(char *data) {
+int Term::kprint(const char *data) {
 	if (this->out_device == OUT_SERIAL) {
 		Serial.print((const char *)data);
 		return 0;
@@ -174,8 +160,8 @@ int Term::process() {
 		if (strcmp(this->io_buffer, ".") == 0) {
 			for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
 				if (programs[i].pid == this->tmp_pid) {
-					programs[i].compiling = false;
-					programs[i].exit_code = RUNNING;
+					Serial.println("Program compiled");
+					programs[i].status_code = PROGRAM_RUNNING;
 					break;
 				}
 			}
@@ -193,39 +179,54 @@ int Term::process() {
 		char tmp[16] = {0};
 		int ram = free_ram();
 		itoa(ram, tmp, 10);
-		kprint((char *)"Free ram size: ");
+		kprint("Free ram size: ");
 		kprint(tmp);
-		kprint((char *)"\n");
+		kprint("\n");
 	}
 	if (strcmp(this->io_buffer, "memdump") == 0) {
-		char chunk[32] = {0};
-		char out[100] = {0};
-		for (unsigned int i = 0; i < MAX_MEM; i += 32) {
-			read_area_str(i, 32, chunk);
-			to_hex(chunk, out);
-			kprint(out);
-			kprint("\n");
-			memset(out, 0, 100);
-			memset(chunk, 0, 32);
+		char tmp[8] = {0};
+		for (unsigned int i = 0; i < MAX_MEM; i++) {
+			if (i % 16 == 0 && i > 0) {
+				kprint("\n");
+			}
+			char c = read_area_char(i);
+			itoa(c, tmp, HEX);
+			if (strlen(tmp) > 2) {
+				memset(tmp + 2, 0, 6);
+			}
+			if (strlen(tmp) == 1) {
+				kprint(" ");
+			}
+
+			kprint(tmp);
+			kprint(" ");
+
+			memset(tmp, 0, 8);
 		}
+		kprint("\n");
 	}
 	if (strcmp(this->io_buffer, "program") == 0) {
-		kprint((char *)"Programming mode activated\n");
-		kprint((char *)"End programming with a dot (.) as a single line\n");
-		kprint((char *)"ready to receive\n");
+		kprint("Programming mode activated\n");
+		kprint("End programming with a dot (.) as a single line\n");
+		kprint("ready to receive\n");
 		this->programming_mode = true;
 		this->tmp_pid = kernel_next_pid++;
 		for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
 			if (programs[i].pid == 0) {
 				programs[i].set_pid(this->tmp_pid);
-				programs[i].compiling = true;
+				programs[i].status_code = PROGRAM_COMPILING;
+				programs[i].start_time = 0;
+				programs[i].end_time = 0;
+				Serial.print("Compiling PID:");
+				Serial.println(this->tmp_pid);
+				break;
 			}
 		}
 		memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 		this->io_cursor = 0;
 		return 1;
 	}
-	kprint((char *)"> ");
+	kprint("> ");
 	memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 	this->io_cursor = 0;
 	return 1;
@@ -241,7 +242,7 @@ bool Term::wait_for_client() {
 		terminal_client = s.available();
 		this->set_port(23);
 		this->set_output(OUT_WIFI);
-		kprint((char *)"Minik Terminal\n> ");
+		kprint("Minik Terminal\n> ");
 		this->has_client = true;
 		return true;
 	}
@@ -250,7 +251,7 @@ bool Term::wait_for_client() {
 	if (Serial.available() && !this->has_client) {
 		this->has_client = true;
 		this->set_output(OUT_SERIAL);
-		kprint((char *)"Minik Terminal\n> ");
+		kprint("Minik Terminal\n> ");
 		return true;
 	}
 	if (this->out_device == OUT_SERIAL && !Serial) {

@@ -86,8 +86,12 @@
 #else
 #define MAX_LINE_LENGTH 80
 #endif
-#define PROGRAM_END 0
-#define RUNNING 1
+#define PROGRAM_ERR -1
+#define PROGRAM_FREE 0
+#define PROGRAM_RUNNING 1
+#define PROGRAM_HALT 2
+#define PROGRAM_COMPILING 3
+
 #define SUB_END "---"
 #define MAIN "main"
 

@@ -20,7 +20,6 @@ void init_cores() {
 	for (unsigned int i = 0; i < MAX_SUBS; i++) {
 		_subs[i].command_count = -1;
 		_subs[i].cursor = 0;
-		_subs[i].exit = 0;
 		_subs[i].pid = 0;
 		for (unsigned k = 0; k < 16; k++) {
 			_subs[i].back_history[k] = -1;
@@ -57,21 +56,23 @@ bool step_tasks(int core) {
 	}
 
 	for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
-		if (programs[i].pid == 0 || programs[i].exit_code == 0 || programs[i].compiling) {
+		if (programs[i].status_code != PROGRAM_RUNNING) {
 			continue;
 		}
+
 		if (programs[i].start_time == 0) {
 			programs[i].start_time = millis();
 		}
 		int result = programs[i].step();
+
 #ifdef BOARD_ESP32
 		vTaskDelay(1);
 #endif
-		if (result != RUNNING) {
-			programs[i].exit_code = 0;
+		if (result != PROGRAM_RUNNING) {
+			programs[i].status_code = PROGRAM_FREE;
 			programs[i].end_time = millis();
-			programs[i].destroy();
 			programs[i].pid = 0;
+			programs[i].destroy();
 		}
 	}
 

@@ -4,21 +4,21 @@ SPRINTLN @60
 HALT
 ---
 print:
-SPRINTLN @50 2
+SPRINTLN @50
 ---
 test_two:
 SET @50 0
 ADD @50 1 @50
-SPRINTLN @50 2
+SPRINTLN @50
 CMP @50 100
 JE exit
 GOTO 1
 ---
 test:
 SET @50 3
-SPRINTLN @50 2
+SPRINTLN @50
 ADD @50 2 @50
-SPRINTLN @50 2
+SPRINTLN @50
 CALL test_two
 ---
 main:

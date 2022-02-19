@@ -27,7 +27,7 @@ int _get_channel(int pin) {
 			return i;
 		}
 	}
-	return -1;
+	return PROGRAM_ERR;
 }
 #endif
 
@@ -37,7 +37,7 @@ int command_analogread(command c, program *p) {
 	if (c.arg_count != 2) {
 		c.exception = true;
 		error_msg(ERR_STR_NOT_ENOUGH_PARAMS, c.pid);
-		return -1;
+		return PROGRAM_ERR;
 	}
 #endif
 	int pin = pin_number(c, p);

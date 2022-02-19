@@ -12,6 +12,11 @@ int command_set(command c, program *p) {
 
 	if (c.variable_type[1] == TYPE_ADDRESS) {
 		char buffer[MAX_LINE_LENGTH] = {0};
+		char type = area_type(c.variable_index[1]);
+		if (type == TYPE_NUM) {
+			write_area(c.variable_index[0], read_area_double(c.variable_index[1]));
+			return 0;
+		}
 		read_area_str(c.variable_index[1], 0, buffer);
 		write_area(c.variable_index[0], buffer);
 		return 0;

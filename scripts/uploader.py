@@ -84,6 +84,15 @@ def reader():
             sys.stdout.flush()
 
 
+def writer():
+    global active
+    while active:
+        c = input("").strip().replace("\n", "")
+        if socket is not None:
+            socket.write(bytes(c, "ascii"))
+        if c == "quit":
+            active = False
+
 @click.command("upload")
 @click.option("--port", default="", help="Device address")
 @click.option("--filename", help="File to upload")
@@ -121,8 +130,10 @@ def upload(port: str, filename: str):
         socket.flush()
         print("Sent program")
 
+    w = threading.Thread(target=writer)
+    w.start()
     r.join()
-    active = False
+    r.join()
 
 
 @click.command("list")

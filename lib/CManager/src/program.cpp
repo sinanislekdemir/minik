@@ -55,22 +55,16 @@ program::program() {
 		this->interrupts[i].triggered = false;
 		this->interrupts[i].routine = -1;
 	}
-	this->exit_code = 0;
+	this->status_code = PROGRAM_FREE;
 	this->valid_sub_count = 0;
 
 	this->_sleep = false;
 	this->_sleep_start = 0;
 	this->_sleep_duration = 0;
-	this->compiling = true;
+	this->pid = 0;
 }
 
-void program::set_pid(char pid) {
-
-	if (pid == 0) {
-		pid = 1;
-	}
-	this->pid = pid;
-}
+void program::set_pid(long pid) { this->pid = pid; }
 
 program::~program() { this->destroy(); }
 
@@ -86,20 +80,22 @@ void program::register_interrupt(char pin, unsigned int state, char routine) {
 }
 
 void program::destroy() {
+
 	for (unsigned int i = 0; i < PROG_SUBS; i++) {
 		_subs[this->subs[i]].pid = 0;
+		_subs[this->subs[i]].cursor = 0;
 		for (unsigned int j = 0; j < 16; j++) {
-			_subs[this->subs[i]].back_history[j] = 0;
+			_subs[this->subs[i]].back_history[j] = -1;
 		}
 		for (unsigned int j = 0; j < MAX_SUB_COMMANDS; j++) {
-			_subs[this->subs[i]].commands[j] = 0;
+			_subs[this->subs[i]].commands[j] = -1;
 		}
 		memset(_subs[this->subs[i]].name, 0, 24);
 		_subs[this->subs[i]].cursor = 0;
-		_subs[this->subs[i]].exit = 0;
 	}
 	for (unsigned int i = 0; i < MAX_CMDS; i++) {
 		if (commands[i].pid == this->pid) {
+			commands[i].arg_count = 0;
 			for (unsigned int j = 0; j < 3; j++) {
 				commands[i].variable_index[j] = 0;
 				commands[i].variable_type[j] = 0;
@@ -109,6 +105,21 @@ void program::destroy() {
 			commands[i].statement = 0;
 		}
 	}
+	this->cursor = 0;
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		this->back_sub_history[i] = -1;
+		this->subs[i] = -1;
+	}
+
+	for (unsigned int i = 0; i < 8; i++) {
+		this->interrupts[i].pin = 0;
+		this->interrupts[i].state = 0;
+		this->interrupts[i].triggered = false;
+		this->interrupts[i].routine = -1;
+	}
+	this->valid_sub_count = 0;
+	this->_sleep = false;
+	this->pid = 0;
 	free_program(this->pid);
 }
 
@@ -145,7 +156,7 @@ void program::sdump() {
 			Serial.println(subx);
 			Serial.print("Sub: ");
 			Serial.println(_subs[subx].name);
-			for (unsigned int j = 0; j < _subs[subx].command_count; j++) {
+			for (short j = 0; j < _subs[subx].command_count; j++) {
 				int cmdx = _subs[subx].commands[j];
 				Serial.print("  Cursor index: ");
 				Serial.print(j);
@@ -192,15 +203,12 @@ int program::step() {
 	int sub_index = this->subs[this->cursor];
 	int cmd_cursor_location = _subs[sub_index].cursor;
 	int cmd_index = _subs[sub_index].commands[_subs[sub_index].cursor];
-	// this->sdump();
-	//	while (1)
-	//	;
 
 	if (int_status == 1) {
 		this->_sleep = false;
 		this->_sleep_start = 0;
 		this->_sleep_duration = 0;
-		return RUNNING;
+		return PROGRAM_RUNNING;
 	}
 
 	if (this->_sleep) {
@@ -210,7 +218,7 @@ int program::step() {
 			this->_sleep_start = 0;
 			this->_sleep_duration = 0;
 		} else {
-			return RUNNING;
+			return PROGRAM_RUNNING;
 		}
 	}
 
@@ -224,9 +232,8 @@ int program::step() {
 	}
 
 	if (this->cursor >= this->valid_sub_count) {
-		return PROGRAM_END;
+		return PROGRAM_HALT;
 	}
-
 	int result = run(cmd_index, this);
 
 	if (result == -1) {
@@ -237,28 +244,28 @@ int program::step() {
 			this->cursor = handle_sub;
 			sub_index = this->subs[this->cursor];
 			_subs[sub_index].cursor = 0;
-			return RUNNING;
+			return PROGRAM_RUNNING;
 		}
-		return PROGRAM_END;
+		return PROGRAM_HALT;
 	}
 	if (result == -2) {
-		return PROGRAM_END;
+		return PROGRAM_HALT;
 	}
 
 	if (result == 1) {
 		// Cursor is explicitly set by the instruction
 		this->append_to_history(sub_cursor_location, cmd_cursor_location);
-		return RUNNING;
+		return PROGRAM_RUNNING;
 	}
 	_subs[sub_index].cursor++;
-	if (_subs[sub_index].cursor == _subs[sub_index].command_count) {
+	if (_subs[sub_index].cursor == (unsigned short)_subs[sub_index].command_count) {
 		this->cursor = this->pop_sub();
 		if (this->cursor == -1) {
-			return PROGRAM_END;
+			return PROGRAM_HALT;
 		}
 	}
 
-	return RUNNING;
+	return PROGRAM_RUNNING;
 }
 
 int program::compile(const char *line) {
@@ -282,7 +289,6 @@ int program::compile(const char *line) {
 		this->_compile_cursor = free_sub;
 		this->subs[free_sub] = n;
 
-		_subs[n].pid = this->pid;
 		memset(_subs[n].name, 0, 24);
 		strncpy(_subs[n].name, line, l - 1);
 		if (strcmp(line, "main:") == 0) {
@@ -294,8 +300,8 @@ int program::compile(const char *line) {
 		for (unsigned short i = 0; i < 16; i++) {
 			_subs[n].back_history[i] = -1;
 		}
+		_subs[n].pid = this->pid;
 		_subs[n].cursor = 0;
-		_subs[n].exit = 0;
 		_subs[n].command_count = -1;
 		return 0;
 	}
