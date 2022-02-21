@@ -1,97 +1,119 @@
-main:
-SPRINTLN "Accessing SD Card through SPI"
-SET SD_SS_PIN 53
-SET SD_CMD 1
+append_test:
+SPRINTLN @1850
+SET SD_CMD 10
+SET SD_FILENAME @1600
+SET SD_BUFFER @1900
 SYS 15
-CMP SD_MOUNT 1
-JE mounted
-SPRINTLN "SD Card could not be mounted"
-SPRINT "Flag: "
-SPRINTLN SD_MOUNT
+SPRINTLN @2000
+SET SD_CMD 11
+SET SD_FILENAME @1600
+SYS 15
+SET read_length SD_SIZE
+SET SD_SEEK 0
+SET SD_SIZE read_length
+SET SD_CMD 8
+SYS 15
+SPRINTLN @1800
+SPRINTLN SD_BUFFER
 HALT
 ---
-mounted:
-SPRINTLN "  List files in SD Card root"
-SET SD_DIR "/"
-SET SD_CMD 2
+read_file_test:
+SPRINTLN @1750
+SET SD_CMD 11
+SET SD_FILENAME @1600
 SYS 15
-SPRINT "  File count: "
-SPRINTLN SD_FILECOUNT
-SET SD_INDEX 0
-CALL list_dir
+SET read_length SD_SIZE
+SET SD_SEEK 0
+SET SD_SIZE read_length
+SET SD_CMD 8
+SYS 15
+SPRINTLN @1800
+SPRINTLN SD_BUFFER
+CALL append_test
+---
+write_file_test:
+SPRINTLN @1550
+SET SD_CMD 9
+SET SD_FILENAME @1600
+SET SD_BUFFER @1650
+SYS 15
+CMP SD_SUCCESS 1
+JE read_file_test
+SPRINTLN @1700
+HALT
+---
+create_dir_success:
+SPRINTLN @1500
+SET SD_CMD 5
+SET SD_DIR @1400
+SYS 15
+CALL write_file_test
+---
+create_directory_test:
+SPRINTLN @1350
+SET SD_DIR @1400
+SET SD_CMD 4
+SYS 15
+CMP SD_SUCCESS 1
+JE create_dir_success
+SPRINTLN @1450
+CALL write_file_test
 ---
 list_dir:
 SET SD_CMD 3
-SET SD_DIR "/"
+SET SD_DIR @1200
 SYS 15
 SPRINT SD_FILENAME
-SPRINT " "
+SPRINT @1300
 SPRINT SD_FILESIZE
-SPRINT "bytes. Is DIR? "
+SPRINT @1310
 SPRINTLN SD_ISDIR
 ADD SD_INDEX SD_INDEX 1
 CMP SD_INDEX SD_FILECOUNT
 JE create_directory_test
 GOTO 0
 ---
-create_directory_test:
-SPRINTLN "Creating directory"
-SET SD_DIR "/dummy-directory"
-SET SD_CMD 4
+mounted:
+SPRINTLN @1150
+SET SD_DIR @1200
+SET SD_CMD 2
 SYS 15
-CMP SD_SUCCESS 1
-JE create_dir_success
-SPRINTLN "Failed mkdir"
-CALL write_file_test
+SPRINT @1250
+SPRINTLN SD_FILECOUNT
+SET SD_INDEX 0
+CALL list_dir
 ---
-create_dir_success:
-SPRINTLN "Created dummy-directory, deleting"
-SET SD_CMD 5
-SET SD_DIR "/dummy-directory"
+main:
+SET @1000 "Accessing SD Card through SPI"
+SET @1050 "SDCard could not be mounted"
+SET @1100 "Flag: "
+SET @1150 " List files in SD Card root"
+SET @1200 "/"
+SET @1250 " File count: "
+SET @1300 " "
+SET @1310 " bytes. Is DIR? "
+SET @1350 "Creating directory"
+SET @1400 "/dummy-directory"
+SET @1450 "Failed mkdir"
+SET @1500 "Created dummy-directory, deleting"
+SET @1550 "Write files"
+SET @1600 "/dummy-file.txt"
+SET @1650 "Hello world"
+SET @1700 "Write failed"
+SET @1750 "Reading dummy-file.txt"
+SET @1800 "Data inside file: "
+SET @1850 "Appending text to file"
+SET @1900 " I am alive!"
+SET @2000 "Appended file and checking data"
+
+SPRINTLN @1000
+SET @20 53
+SET @10 1
 SYS 15
-CALL write_file_test
----
-write_file_test:
-SPRINTLN "write files"
-SET SD_CMD 9
-SET SD_FILENAME "/dummy-file.txt"
-SET SD_BUFFER "Hello world"
-SYS 15
-CMP SD_SUCCESS 1
-JE read_file_test
-SPRINTLN "Write failed"
-HALT
----
-read_file_test:
-SPRINTLN "Reading dummy-file.txt"
-SET SD_CMD 11
-SET SD_FILENAME "/dummy-file.txt"
-SYS 15
-SET read_length SD_SIZE
-SET SD_SEEK 0
-SET SD_SIZE read_length
-SET SD_CMD 8
-SYS 15
-SPRINTLN "Data inside file:"
-SPRINTLN SD_BUFFER
-CALL append_test
----
-append_test:
-SPRINTLN "Appending text to file"
-SET SD_CMD 10
-SET SD_FILENAME "/dummy-file.txt"
-SET SD_BUFFER " I am alive!"
-SYS 15
-SPRINTLN "Appended file, now checking data"
-SET SD_CMD 11
-SET SD_FILENAME "/dummy-file.txt"
-SYS 15
-SET read_length SD_SIZE
-SET SD_SEEK 0
-SET SD_SIZE read_length
-SET SD_CMD 8
-SYS 15
-SPRINTLN "Data inside file:"
-SPRINTLN SD_BUFFER
+CMP @20 1
+JE mounted
+SPRINTLN @1050
+SPRINT @1100
+SPRINTLN @20
 HALT
 ---

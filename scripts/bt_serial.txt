@@ -1,26 +1,28 @@
-main:
-SPRINTLN "Waiting for connection"
-SPRINTLN "Check for serial available"
-SET BTSERIAL_CMD 1
+read_byte:
+SET @10 3
 SYS 13
-CMP BTSERIAL_AVAILABLE 0
-JG ready
-GOTO 5
----
-ready:
-SPRINTLN "Client connected"
-CALL read
+SPRINTLN @20
 ---
 read:
-SET BTSERIAL_CMD 1
+SET @10 1
 SYS 13
-CMP BTSERIAL_AVAILABLE 0
+CMP @20 0
 JG read_byte
 GOTO 0
 ---
-read_byte:
-SET BTSERIAL_CMD 3
-SYS 13
-SPRINTLN BTSERIAL_READLN
+ready:
+SET @260 "Client connected"
+SPRINTLN @260
 CALL read
+---
+main:
+SET @200 "Waiting for connection"
+SET @230 "Check for serial available"
+SPRINTLN @200
+SPRINTLN @230
+SET @10 1
+SYS 13
+CMP @20 0
+JG ready
+GOTO 4
 ---

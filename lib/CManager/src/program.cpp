@@ -19,7 +19,7 @@ int next_sub() {
 int sub_command_count(short sub) {
 	for (unsigned int i = 0; i < MAX_SUB_COMMANDS; i++) {
 		if (_subs[sub].commands[i] == -1) {
-			return i + 1;
+			return i;
 		}
 	}
 	return -1;
@@ -140,6 +140,14 @@ short program::pop_sub() {
 		if (this->back_sub_history[i] != -1) {
 			result = this->back_sub_history[i];
 			this->back_sub_history[i] = -1;
+			this->cursor = result;
+			for (unsigned int j = 15; j >= 0; j--) {
+				if (_subs[this->subs[this->cursor]].back_history[j] != -1) {
+					int k = _subs[this->subs[this->cursor]].back_history[j];
+					_subs[this->subs[this->cursor]].cursor = k + 1;
+					break;
+				}
+			}
 			return result;
 		}
 	}
@@ -201,7 +209,6 @@ int program::step() {
 	int sub_cursor_location = this->cursor;
 	int int_status = this->check_interrupts();
 	int sub_index = this->subs[this->cursor];
-	int cmd_cursor_location = _subs[sub_index].cursor;
 	int cmd_index = _subs[sub_index].commands[_subs[sub_index].cursor];
 
 	if (int_status == 1) {
@@ -234,7 +241,10 @@ int program::step() {
 	if (this->cursor >= this->valid_sub_count) {
 		return PROGRAM_HALT;
 	}
-	int result = run(cmd_index, this);
+
+	int result = 0;
+	if (cmd_index > -1)
+		result = run(cmd_index, this);
 
 	if (result == -1) {
 		// TODO: raise
@@ -254,12 +264,12 @@ int program::step() {
 
 	if (result == 1) {
 		// Cursor is explicitly set by the instruction
-		this->append_to_history(sub_cursor_location, cmd_cursor_location);
 		return PROGRAM_RUNNING;
 	}
 	_subs[sub_index].cursor++;
-	if (_subs[sub_index].cursor == (unsigned short)_subs[sub_index].command_count) {
-		this->cursor = this->pop_sub();
+
+	if (_subs[sub_index].cursor >= (unsigned short)_subs[sub_index].command_count) {
+		this->pop_sub();
 		if (this->cursor == -1) {
 			return PROGRAM_HALT;
 		}
@@ -317,9 +327,7 @@ int program::compile(const char *line) {
 	if (check < 0) {
 		return -1;
 	}
-	if (check > 0) {
-		return 0;
-	}
+
 	_subs[sub_index].commands[snc] = nci;
 	return 0;
 }
@@ -369,7 +377,8 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 			memcpy(tmp, temp_buffer + 1, strlen(temp_buffer) - 2);
 			long l = atol(location + 1);
 			write_area((unsigned int)(l), tmp);
-			return 1;
+			st = STATEMENT_NOOP;
+			argument_count = 0;
 		}
 	}
 
@@ -384,12 +393,16 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 		if (check == 0) {
 			break;
 		}
+		bool assigned = false;
 		for (unsigned int j = 0; j < CONST_COUNT; j++) {
 			if (strcmp(temp_buffer, _constants[j].keyword) == 0) {
 				commands[index].variable_type[i] = TYPE_NUM;
 				commands[index].variable_constant[i] = _constants[j].val;
-				continue;
+				assigned = true;
 			}
+		}
+		if (assigned) {
+			continue;
 		}
 		unsigned int t = arg_type(temp_buffer);
 		commands[index].variable_type[i] = t;

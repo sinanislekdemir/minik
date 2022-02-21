@@ -1,25 +1,26 @@
-main:
-SET n1 0
-SET n2 1
-SET count 0
-SET to 40
-CALL loop
----
-loop:
-ADD nth n1 n2
-SPRINT "Fibonacci: "
-SPRINTLN nth
-SET n1 n2
-SET n2 nth
-SLEEP 500
-ADD count 1 count
-CMP count to
-JE exit
-GOTO 0
----
 exit:
-SPRINTLN n1
-SPRINTLN "Bye!"
+SET @1 "Bye!"
+SPRINTLN @30 2
+SPRINTLN @1
 HALT
 ---
-
+loop:
+ADD @30 @10 @15
+SPRINTLN @30
+SET @10 @15
+SET @15 @30
+ADD @20 1 @20
+CMP @20 @25
+JE exit
+SLEEP 500
+GOTO 0
+---
+main:
+# n1 - 10, n2 - 15, count - 20, to - 25, nth - 30
+SET @10 0
+SET @15 1
+SET @20 0
+SET @25 40
+SET @30 0
+CALL loop
+---

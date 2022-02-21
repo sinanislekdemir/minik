@@ -1,7 +1,15 @@
 main:
-SET @0 "sinan"
-SET @5 " "
-SET @6 "islekdemir"
+SET @0 "sinan "
+APPEND @0 0x69
+APPEND @0 0x73
+APPEND @0 0x6C
+APPEND @0 0x65
+APPEND @0 0x6B
+APPEND @0 0x64
+APPEND @0 0x65
+APPEND @0 0x6D
+APPEND @0 0x69
+APPEND @0 0x72
 SPRINTLN @0
 HALT
 ---

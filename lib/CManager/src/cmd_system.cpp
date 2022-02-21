@@ -5,6 +5,8 @@
 #include "sdcard.hpp"
 #include "wifi.hpp"
 
+int command_noop(command c, program *p) { return 0; }
+
 int command_core(command c, program *p) {
 	int core = 0;
 #ifdef BOARD_ESP32

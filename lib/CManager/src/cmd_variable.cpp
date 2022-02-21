@@ -14,7 +14,8 @@ int command_set(command c, program *p) {
 		char buffer[MAX_LINE_LENGTH] = {0};
 		char type = area_type(c.variable_index[1]);
 		if (type == TYPE_NUM) {
-			write_area(c.variable_index[0], read_area_double(c.variable_index[1]));
+			double val = read_area_double(c.variable_index[1]);
+			write_area(c.variable_index[0], val);
 			return 0;
 		}
 		read_area_str(c.variable_index[1], 0, buffer);

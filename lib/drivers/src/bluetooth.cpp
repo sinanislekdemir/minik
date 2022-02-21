@@ -106,7 +106,7 @@ int bluetooth(program *_p) {
 			return -1;
 		}
 		foundDevices = _btScanner->start(scanTime, false);
-		free_area(BT_DATA_ADDRESS, sizeof(double)+1);
+		free_area(BT_DATA_ADDRESS, sizeof(double) + 1);
 		write_area(BT_DATA_ADDRESS, double(foundDevices.getCount()));
 		return 0;
 	}
@@ -123,7 +123,7 @@ int bluetooth(program *_p) {
 		} else {
 			strcpy(temp, device.getAddress().toString().c_str());
 		}
-		free_area(BT_DATA_ADDRESS, MAX_LINE_LENGTH+1);
+		free_area(BT_DATA_ADDRESS, MAX_LINE_LENGTH + 1);
 		write_area(BT_DATA_ADDRESS, temp, MAX_LINE_LENGTH);
 		return 0;
 	}

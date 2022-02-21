@@ -23,17 +23,21 @@ clean:
 build_test:
 	@mkdir reports -p
 	@echo "Bluetooth test"
-	@echo "BLUETOOTH" > drivers.txt
-	@echo "BLUETOOTH_SERIAL" >> drivers.txt
+	@echo "BLUETOOTH" > config.txt
+	@echo "BLUETOOTH_SERIAL" >> config.txt
+	@echo 'BLUETOOTH_SERIAL_NAME="MyMinikDevice"' >> config.txt
 	@platformio run > reports/bt_test.txt
 	@echo "Wifi test"
-	@echo "WIFI" > drivers.txt
+	@echo "WIFI" > config.txt
+	@echo 'WIFI_MODE="AP"' >> config.txt
+	@echo 'WIFI_SSID="MinikESP32"' >> config.txt
+	@echo 'WIFI_PASSWORD="MyWifiPassword"' >> config.txt
 	@platformio run > reports/wifi_test.txt
 	@echo "Display test"
-	@echo "DISPLAY_SSD1306" > drivers.txt
+	@echo "DISPLAY_SSD1306" > config.txt
 	@platformio run > reports/display_test.txt
 	@echo "SDCard test"
-	@echo "SDCARD" > drivers.txt
+	@echo "SDCARD" > config.txt
 	@platformio run > reports/sdcard-test.txt
 
 help:

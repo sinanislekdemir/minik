@@ -55,6 +55,7 @@ class program {
 	bool _sleep;
 	unsigned long _sleep_start;
 	unsigned long _sleep_duration;
+	unsigned int core;
 
 	short find_sub(char *name);
 	void append_to_history(unsigned short cursor, unsigned short instruction);

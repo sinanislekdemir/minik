@@ -1,6 +1,5 @@
 #include "cmd_analog.hpp"
 #include "helpers.hpp"
-#include "pins.hpp"
 #include <Arduino.h>
 
 int channels[16] = {-1};
@@ -9,9 +8,9 @@ int channels[16] = {-1};
 /**
  * @brief In ESP32, we dont have analogWrite command
  *        Instead, we do have led commands to help us.
- * 
- * @param pin 
- * @return int 
+ *
+ * @param pin
+ * @return int
  */
 int _get_channel(int pin) {
 	for (unsigned int i = 0; i < 16; i++) {
@@ -40,7 +39,7 @@ int command_analogread(command c, program *p) {
 		return PROGRAM_ERR;
 	}
 #endif
-	int pin = pin_number(c, p);
+	int pin = int(get_double(c, 1));
 	int val = analogRead(pin);
 	write_area(c.variable_index[0], val);
 
@@ -48,8 +47,8 @@ int command_analogread(command c, program *p) {
 }
 
 int command_analogwrite(command c, program *p) {
-	int pin = pin_number(c, p);
-	int val = pin_value(c, p);
+	int pin = int(get_double(c, 0));
+	int val = int(get_double(c, 1));
 	if (val > 255) {
 		val = 255;
 	}

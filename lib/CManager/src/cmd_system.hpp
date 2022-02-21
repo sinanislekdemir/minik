@@ -14,5 +14,6 @@ struct sys_call {
 
 int command_core(command c, program *p);
 int command_sys(command c, program *p);
+int command_noop(command c, program *p);
 
 #endif

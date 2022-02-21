@@ -1,11 +1,12 @@
+hello:
+SET @100 "Hello there!"
+SPRINTLN @100
+---
 main:
-SPRINTLN "Interrupt listening on PIN 14"
+SET @10 "Interrupt listening on PIN 14"
+SPRINTLN @10
 PINMODE 14 INPUT
 INT 14 HIGH hello
 SLEEP 60000
-GOTO 2
----
-hello:
-SPRINTLN "Hello there!"
-CALL main
+GOTO 4
 ---

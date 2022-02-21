@@ -7,7 +7,7 @@ int pfree() {
 	extern int __heap_start, *__brkval;
 	int v;
 	int x = (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
-	Serial.println(x);
+	return x;
 #endif
 
 #ifdef BOARD_ESP32
@@ -125,7 +125,7 @@ unsigned int arg_type(const char *arg) {
 	}
 	bool isnum = true;
 	for (unsigned int i = 0; i < strlen(arg); i++) {
-		if (!isdigit(arg[i]) && arg[i] != '.') {
+		if (!isdigit(arg[i]) && arg[i] != '.' && arg[i] != '-') {
 			isnum = false;
 			break;
 		}

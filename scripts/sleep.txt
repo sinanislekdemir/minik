@@ -1,0 +1,9 @@
+main:
+SET @900 0
+SPRINTLN @900
+ADD @900 @900 1
+SLEEP 2000
+GOTO 1
+HALT
+---
+

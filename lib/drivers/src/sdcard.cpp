@@ -30,8 +30,8 @@ int sdcard(program *_p) {
 #ifdef BOARD_ESP32
 			uint8_t card_type = SD.cardType();
 			double card_size = double(SD.cardSize() / (1024 * 1024));
-			write_area(SDCARD_DATA_ADDRESS + 4, double(card_type));
-			write_area(SDCARD_DATA_ADDRESS + 8, card_size);
+			write_area(SDCARD_DATA_ADDRESS + 10, double(card_type));
+			write_area(SDCARD_DATA_ADDRESS + 20, card_size);
 #endif
 		}
 		SD.end();

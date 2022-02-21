@@ -17,13 +17,24 @@ int _free_ram() {
 }
 
 int command_call(command c, program *p) {
+	if (c.variable_type[0] == TYPE_NUM) {
+		int sub = int(c.variable_constant[0]);
+		int cmd = 0;
+		if (c.arg_count == 2) {
+			cmd = int(c.variable_constant[1]);
+		}
+		p->append_to_history(p->cursor, _subs[p->subs[p->cursor]].cursor);
+		p->cursor = sub;
+		_subs[p->subs[p->cursor]].cursor = cmd;
+		return 1;
+	}
 	if (c.variable_type[0] != TYPE_LABEL) {
 		error_msg(ERR_STR_ADDRESS_NOT_FOUND, c.pid);
 		return -1;
 	}
+	p->append_to_history(p->cursor, _subs[p->subs[p->cursor]].cursor);
 	p->cursor = c.variable_index[0];
 	int ind = p->subs[p->cursor];
-	Serial.println(ind);
 	_subs[ind].cursor = 0;
 	return 1; // don't change cursor
 }

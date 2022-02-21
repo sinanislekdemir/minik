@@ -4,7 +4,7 @@
 #include "constants.hpp"
 
 #ifdef BOARD_ESP32
-#define MAX_MEM 1024 * 24
+#define MAX_MEM 1024 * 8
 #else
 #define MAX_MEM 1024
 #endif

@@ -188,20 +188,6 @@ int command_trigonometry(command c, program *p) {
 	case STATEMENT_ACOT:
 		res = 1.0 / atan(val);
 		break;
-#if BOARD_ESP32
-	case STATEMENT_ASINH:
-		res = asinh(val);
-		break;
-	case STATEMENT_ACOSH:
-		res = acosh(val);
-		break;
-	case STATEMENT_ATANH:
-		res = atanh(val);
-		break;
-	case STATEMENT_ACOTH:
-		res = 1.0 / atanh(val);
-		break;
-#endif
 	default:
 		res = 0;
 		break;

@@ -14,7 +14,7 @@
 #include "helpers.hpp"
 #include <Arduino.h>
 
-statement statements[55] = {0};
+statement statements[56] = {0};
 
 void add_statement(char cmd, int (*f)(command c, program *p), unsigned int index) {
 	statements[index].command = cmd;
@@ -95,14 +95,6 @@ char find_statement(const char *cmd) {
 		return STATEMENT_ATAN;
 	if (strcmp(cmd, "ACOT") == 0)
 		return STATEMENT_ACOT;
-	if (strcmp(cmd, "ASINH") == 0)
-		return STATEMENT_ASINH;
-	if (strcmp(cmd, "ACOSH") == 0)
-		return STATEMENT_ACOSH;
-	if (strcmp(cmd, "ATANH") == 0)
-		return STATEMENT_ATANH;
-	if (strcmp(cmd, "ACOTH") == 0)
-		return STATEMENT_ACOTH;
 	if (strcmp(cmd, "HALT") == 0)
 		return STATEMENT_HALT;
 	if (strcmp(cmd, "ALLOC") == 0)
@@ -143,6 +135,8 @@ char find_statement(const char *cmd) {
 		return STATEMENT_DWRITE;
 	if (strcmp(cmd, "DREAD") == 0)
 		return STATEMENT_DREAD;
+	if (strcmp(cmd, "NOOP") == 0)
+		return STATEMENT_NOOP;
 	return 0;
 }
 
@@ -211,4 +205,5 @@ void register_statements() {
 	add_statement(STATEMENT_PINMODE, command_pinmode, 52);
 	add_statement(STATEMENT_DWRITE, command_digitalwrite, 53);
 	add_statement(STATEMENT_DREAD, command_digitalread, 54);
+	add_statement(STATEMENT_NOOP, command_noop, 55);
 }

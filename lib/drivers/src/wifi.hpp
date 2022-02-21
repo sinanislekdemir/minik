@@ -6,7 +6,7 @@
 #ifdef WITH_WIFI
 
 #define WIFI_CMD_ADDRESS 10
-#define WIFI_DATA_ADDRESS 14
+#define WIFI_DATA_ADDRESS 16
 
 #ifndef WIFI_MODE
 #define WIFI_MODE "AP"

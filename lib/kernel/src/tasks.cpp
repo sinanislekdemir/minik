@@ -16,6 +16,11 @@ void init_cores() {
 	status_engine = StatusEngine();
 	for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
 		programs[i] = program();
+#ifdef BOARD_ESP32
+		programs[i].core = i % 2;
+#else
+		programs[i].core = 0;
+#endif
 	}
 	for (unsigned int i = 0; i < MAX_SUBS; i++) {
 		_subs[i].command_count = -1;
@@ -56,6 +61,9 @@ bool step_tasks(int core) {
 	}
 
 	for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
+		if (programs[i].core != core) {
+			continue;
+		}
 		if (programs[i].status_code != PROGRAM_RUNNING) {
 			continue;
 		}

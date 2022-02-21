@@ -3,12 +3,12 @@
 
 #ifdef WITH_DISPLAY_SSD1306
 #define DISPLAY_ADDRESS 10
-#define DISPLAY_DATA_ADDRESS 14
-#define DISPLAY_OLED_MOSI 24
-#define DISPLAY_OLED_CLK 28
-#define DISPLAY_OLED_DC 32
-#define DISPLAY_OLED_CS 36
-#define DISPLAY_OLED_RESET 40
+#define DISPLAY_DATA_ADDRESS 16
+#define DISPLAY_OLED_MOSI 26
+#define DISPLAY_OLED_CLK 32
+#define DISPLAY_OLED_DC 38
+#define DISPLAY_OLED_CS 44
+#define DISPLAY_OLED_RESET 50
 #include "program.hpp"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
