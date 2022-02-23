@@ -125,7 +125,10 @@ def upload(port: str, filename: str):
             data = f.read()
         for line in data.splitlines():
             socket.write(bytes(line + "\n", "ascii"))
-            # socket.flush()
+            socket.flush()
+            sleep(0.10)
+            if line == '---':
+                sleep(1)
         socket.write(bytes("\n.\n", "ascii"))
         socket.flush()
         print("Sent program")

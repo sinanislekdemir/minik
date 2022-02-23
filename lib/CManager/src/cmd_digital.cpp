@@ -9,7 +9,6 @@ int command_pinmode(command c, program *p) {
 		error_msg("Invalid PIN Def", p->pid);
 		return -1;
 	}
-
 	pinMode(pin, val);
 	return 0;
 }
@@ -34,6 +33,6 @@ int command_digitalread(command c, program *p) {
 		return -1;
 	}
 	int state = digitalRead(pin);
-	write_area(c.variable_index[0], state);
+	write_area(c.variable_index[0], double(state));
 	return 0;
 }

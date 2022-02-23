@@ -94,9 +94,9 @@ int sdcard(program *_p) {
 				write_area(SDCARD_DATA_ADDRESS, (char *)fname, MAX_LINE_LENGTH);
 				write_area(SDCARD_DATA_ADDRESS + 132, double(file.size()));
 				if (file.isDirectory()) {
-					write_area(SDCARD_DATA_ADDRESS + 136, double(1));
+					write_area(SDCARD_DATA_ADDRESS + 142, double(1));
 				} else {
-					write_area(SDCARD_DATA_ADDRESS + 136, double(0));
+					write_area(SDCARD_DATA_ADDRESS + 142, double(0));
 				}
 				file.close();
 				d.close();
@@ -179,7 +179,7 @@ int sdcard(program *_p) {
 		char filename[MAX_LINE_LENGTH] = {0};
 		read_area_str(SDCARD_DATA_ADDRESS, MAX_LINE_LENGTH, filename);
 		int seek = int(read_area_double(SDCARD_DATA_ADDRESS + 132));
-		int size = int(read_area_double(SDCARD_DATA_ADDRESS + 136));
+		int size = int(read_area_double(SDCARD_DATA_ADDRESS + 146));
 		File file = SD.open(filename);
 		if (!file) {
 			error_msg("SD_FILENAME could not be opened", pid);

@@ -30,8 +30,8 @@ struct sub {
 };
 
 struct interrupt {
-	byte pin;
-	byte state;
+	int pin;
+	int state;
 	bool triggered;
 	short routine;
 };
@@ -59,7 +59,7 @@ class program {
 
 	short find_sub(char *name);
 	void append_to_history(unsigned short cursor, unsigned short instruction);
-	void register_interrupt(char pin, unsigned int state, char routine);
+	void register_interrupt(int pin, int state, char routine);
 	int check_interrupts();
 	short pop_sub();
 

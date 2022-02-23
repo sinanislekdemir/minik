@@ -51,7 +51,7 @@ program::program() {
 
 	for (unsigned int i = 0; i < 8; i++) {
 		this->interrupts[i].pin = 0;
-		this->interrupts[i].state = 0;
+		this->interrupts[i].state = HIGH;
 		this->interrupts[i].triggered = false;
 		this->interrupts[i].routine = -1;
 	}
@@ -68,13 +68,14 @@ void program::set_pid(long pid) { this->pid = pid; }
 
 program::~program() { this->destroy(); }
 
-void program::register_interrupt(char pin, unsigned int state, char routine) {
+void program::register_interrupt(int pin, int state, char routine) {
 	for (unsigned int i = 0; i < 8; i++) {
 		if (this->interrupts[i].routine == -1) {
 			this->interrupts[i].pin = pin;
 			this->interrupts[i].state = state;
 			this->interrupts[i].routine = routine;
 			this->interrupts[i].triggered = false;
+			break;
 		}
 	}
 }
@@ -338,9 +339,12 @@ int program::check_interrupts() {
 		if (this->interrupts[i].pin == 0) {
 			continue;
 		}
+
 		int val = digitalRead(this->interrupts[i].pin);
+
 		if (val == this->interrupts[i].state && this->interrupts[i].triggered == false) {
 			this->interrupts[i].triggered = true;
+			this->append_to_history(this->cursor, _subs[this->subs[this->cursor]].cursor);
 			this->cursor = this->interrupts[i].routine;
 			_subs[this->subs[this->cursor]].cursor = 0;
 			return 1;
