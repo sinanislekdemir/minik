@@ -140,11 +140,6 @@ unsigned int arg_type(const char *arg) {
 	return TYPE_LABEL;
 }
 
-char *dtoc(double d) {
-	char *value = (char *)malloc(sizeof(d));
-	memcpy(value, &d, sizeof(d));
-	return value;
-}
 
 double ctod(char *data) {
 	double resp = 0;
