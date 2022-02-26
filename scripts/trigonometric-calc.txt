@@ -1,36 +1,39 @@
 main:
-CALL sin
+SET @100 "Angle = "
+SET @120 " Sin = "
+SET @130 "Bye!"
+CALL 1
 ---
 sin:
-SET angle 0
-SET step 5
-SET max TWO_PI
-
-# Convert 5 degrees to radians
-MUL step step DEG_TO_RAD
-
-SPRINT "Angle = "
+# angle 10
+# step 20
+# max 30
+# angle_in_degrees 40
+SET @10 0
+SET @20 5
+SET @30 180
 
 # Convert angle into Degrees
-MUL angle_in_degrees angle RAD_TO_DEG
-# Print angle
-SPRINT angle_in_degrees
+MUL @50 @10 DEG_TO_RAD
+# Calc sin(rad)
+SIN @60 @50
 
-# Pring sin(angle)
-SPRINT " Sin = "
-SIN sinval angle
-SPRINTLN sinval
+SPRINT @100
+SPRINTLN @10
+
+SPRINT @120
+SPRINTLN @60
 
 # Increase angle by 5 degrees
-ADD angle angle step
+ADD @10 @10 @20
 
-# Check if angle > 360 (TWO_PI)
-CMP angle max
+# Check if angle > 180 (TWO_PI)
+CMP @10 @30
 # CMP is True, jump to exit
-JG exit
-GOTO 4
+JG 2
+GOTO 3
 ---
 exit:
-SPRINTLN "Bye!"
+SPRINTLN @130
 HALT
 ---
