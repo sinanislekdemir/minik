@@ -9,13 +9,14 @@
 extern int kernel_next_pid;
 extern char _memory_area[MAX_MEM];
 extern program programs[MAX_PROGRAM_COUNT];
+extern int serial_lock;
 
 Term main_term;
 
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 #include <WiFi.h>
-WiFiServer s;
+WiFiServer s = WiFiServer(23);
 WiFiClient terminal_client;
 #endif
 #endif
@@ -55,7 +56,7 @@ void Term::set_baud_rate(unsigned long rate) {
 
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
-void Term::start_server() { s.begin(this->port); }
+void Term::start_server() {}
 #endif
 #endif
 
@@ -84,6 +85,9 @@ int Term::kprint(const char *data) {
 
 int Term::readline() {
 	if (this->out_device == OUT_SERIAL) {
+		if (serial_lock > 0) {
+			return 0;
+		}
 		if (!Serial.available()) {
 			return 0;
 		}

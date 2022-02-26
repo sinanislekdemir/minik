@@ -1,59 +1,63 @@
 main:
-# Connect to local wifi
-SPRINTLN "Connecting to Wifi"
-SET WIFI_CMD 2
-SET WIFI_SSID "YOUR_WIFI_NAME"
-SET WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
-SYS 10
-SPRINTLN "Command sent"
-SET WIFI_CMD 3
-SYS 10
-CMP WIFI_STATUS 3
-JE wconnected
-SLEEP 1000
-GOTO 4
----
-wconnected:
-# Print IP Address
-SET WIFI_CMD 9
-SYS 10
-SPRINTLN WIFI_LOCALIP
-# Create server
-SET WIFI_SERVER_PORT 1234
-SET WIFI_SERVER_CMD 1
-SPRINTLN "Echo server on 1234"
+SET @200 "Starting server on port 23"
+SET @250 "Server started"
+SET @270 "Server failed"
+SET @300 "Waiting for client"
+SET @350 "."
+SET @355 " "
+SET @360 "IP Address: "
+SET @400 "echo: "
+SET @420 "Incoming: "
+SET @20 23
+SET @10 1
 SYS 11
-CALL wait_for_client
+CMP @20 1
+JE 1 0
+SPRINTLN @270
+HALT
 ---
-wait_for_client:
-SET WIFI_SERVER_CMD 2
+started:
+SET @10 2
 SYS 11
-CMP WIFI_CLIENT 1.0
-JE connected
-SLEEP 1000
+CMP @20 1
+JE 2 0
+SPRINT @350
+SLEEP 100
 GOTO 0
 ---
 connected:
-SET WIFI_SERVER_CMD 3
+SET @10 11
 SYS 11
-SPRINTLN WIFI_CLIENT_CONNECTED
-CMP WIFI_CLIENT_CONNECTED 1.0
-JE echo_get
-SLEEP 10
+SPRINTLN @355
+SPRINT @360
+SPRINTLN @20
+CALL 3 0
+---
+echo:
+SET @10 4
+SYS 11
+CMP @20 0
+JG 4 0
 GOTO 0
 ---
-echo_get:
-SET WIFI_SERVER_CMD 6
+read_and_write:
+DEL @20 128
+SET @10 6
 SYS 11
-CMP WIFI_CLIENT_READLINE ""
-JNE echo_send
-GOTO 0
----
-echo_send:
-SPRINTLN WIFI_CLIENT_READLINE
-SET WIFI_CLIENT_PRINTLN WIFI_CLIENT_READLINE
-SET WIFI_SERVER_CMD 8
+SPRINTLN @355
+SPRINT @420
+SPRINTLN @20
+# copy incoming data to 500
+DEL @500 128
+SET @500 @20
+# free address 20
+DEL @20 128
+SET @10 7
+SET @20 @400
 SYS 11
-CALL echo_get
+DEL @20 128
+SET @10 8
+SET @20 @500
+SYS 11
+CALL 3 0
 ---
-eeprom

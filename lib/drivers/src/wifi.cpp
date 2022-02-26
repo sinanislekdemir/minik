@@ -8,9 +8,9 @@
 
 char _local_ip[16] = {0};
 
-WiFiServer _server[4];
-WiFiClient _client[4];
-uint16_t _ports[4] = {0};
+WiFiServer _server;
+WiFiClient _client;
+uint16_t _port;
 
 #endif
 #endif
@@ -87,7 +87,7 @@ int wifi(program *_p) {
 		uint8_t i = uint8_t(windex);
 		String s = WiFi.SSID(i);
 		int l = s.length() + 1;
-		char sid[MAX_LINE_LENGTH]= {0};
+		char sid[MAX_LINE_LENGTH] = {0};
 		s.toCharArray(sid, l - 1);
 		free_area(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH);
 		write_area(WIFI_DATA_ADDRESS, sid, MAX_LINE_LENGTH);
@@ -160,26 +160,24 @@ int server(program *_p) {
 		}
 		uint16_t iport = uint16_t(port);
 
-		for (unsigned int i = 0; i < 4; i++) {
-			if (_ports[i] == 0) {
-				_ports[i] = iport;
-				_server[i] = WiFiServer(iport);
-				_server[i].begin();
-				write_area(WIFI_DATA_ADDRESS, double(i));
-				return 0;
-			}
+		if (_port == 0) {
+			_port = iport;
+			_server = WiFiServer(iport);
+			_server.begin();
+			write_area(WIFI_DATA_ADDRESS, double(1));
+			return 0;
 		}
+		write_area(WIFI_DATA_ADDRESS, double(0));
 		error_msg("No empty server slots", _p->pid);
 		return 0;
 	}
 	if (cmd_var == 2) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (!_server[server].hasClient()) {
+		if (!_server.hasClient()) {
 			write_area(WIFI_DATA_ADDRESS, double(0));
 			return 0;
 		}
-		_client[server] = _server->available();
-		if (_client[server]) {
+		_client = _server.available();
+		if (_client) {
 			write_area(WIFI_DATA_ADDRESS, double(1.0));
 		} else {
 			write_area(WIFI_DATA_ADDRESS, double(0));
@@ -187,78 +185,79 @@ int server(program *_p) {
 		return 0;
 	}
 	if (cmd_var == 3) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		write_area(WIFI_DATA_ADDRESS, double(_client[server].connected()));
+		write_area(WIFI_DATA_ADDRESS, double(_client.connected()));
 		return 0;
 	}
 	if (cmd_var == 4) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (_client[server].connected()) {
+		if (!_client.connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		write_area(WIFI_DATA_ADDRESS, double(_client[server].available()));
+		write_area(WIFI_DATA_ADDRESS, double(_client.available()));
 		return 0;
 	}
 	if (cmd_var == 5) {
 		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (!_client[server].connected()) {
+		if (!_client.connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		write_area(WIFI_DATA_ADDRESS,  char(_client[server].read()));
+		write_area(WIFI_DATA_ADDRESS, char(_client.read()));
 		return 0;
 	}
 	if (cmd_var == 6) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (!_client[server].connected()) {
+		if (!_client.connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
 		char buffer[MAX_LINE_LENGTH] = {0};
-		_client->readBytesUntil('\n', buffer, MAX_LINE_LENGTH);
+		_client.readBytesUntil('\n', buffer, MAX_LINE_LENGTH);
 		free_area(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH);
 		write_area(WIFI_DATA_ADDRESS, buffer, MAX_LINE_LENGTH);
 		return 0;
 	}
 	if (cmd_var == 7) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (!_client[server].connected()) {
+		if (!_client.connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
 		char data[MAX_LINE_LENGTH] = {0};
 		read_area_str(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH, data);
-		_client[server].print(data);
+		_client.print(data);
 		return 0;
 	}
 	if (cmd_var == 8) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (!_client[server].connected()) {
+		if (!_client.connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
 		char data[MAX_LINE_LENGTH] = {0};
 		read_area_str(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH, data);
-		_client[server].println(data);
+		_client.println(data);
 		return 0;
 	}
 	if (cmd_var == 9) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (!_client[server].connected()) {
+		if (!_client.connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
 		}
-		_client[server].stop();
+		_client.stop();
 		return 0;
 	}
 	if (cmd_var == 10) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
-		if (_client[server].connected()) {
-			_client[server].stop();
+		if (_client.connected()) {
+			_client.stop();
 		}
-		_server[server].stopAll();
-		_ports[server] = 0;
+		_server.stopAll();
+		_port = 0;
+		return 0;
+	}
+	if (cmd_var == 11) {
+		char data[MAX_LINE_LENGTH] = {0};
+		IPAddress ip = _client.remoteIP();
+		String ips = ip.toString();
+		strcpy(data, ips.c_str());
+		write_area(WIFI_DATA_ADDRESS, data, MAX_LINE_LENGTH);
 		return 0;
 	}
 	return 0;

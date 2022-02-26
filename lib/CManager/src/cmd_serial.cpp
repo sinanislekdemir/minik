@@ -97,7 +97,7 @@ int command_getln(command c, program *p) {
 
 	char buffer[MAX_LINE_LENGTH] = {0};
 
-	while (serial_lock != -1) {
+	while (serial_lock > 0) {
 		delay(100); // wait for the lock
 	}
 
