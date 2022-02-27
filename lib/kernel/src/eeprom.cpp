@@ -33,7 +33,9 @@ int eeprom_clean() {
 			break;
 		}
 		EEPROM.write(i, 0);
+#ifdef BOARD_ESP32
 		EEPROM.commit();
+#endif
 		Serial.print(i);
 		Serial.print("/");
 		Serial.println(EEPROM_SIZE);
@@ -69,10 +71,14 @@ int eeprom_write_line(const char *buffer) {
 	}
 	for (unsigned int i = 0; i < strlen(buffer); i++) {
 		EEPROM.write(pos + i, buffer[i]);
+#ifdef BOARD_ESP32
 		EEPROM.commit();
+#endif
 	}
 	EEPROM.write(pos + strlen(buffer), '\n');
+#ifdef BOARD_ESP32
 	EEPROM.commit();
+#endif
 	return 0;
 }
 
@@ -107,7 +113,9 @@ int eeprom_start_program() {
 	for (unsigned int i = 0; i < EEPROM_SIZE; i++) {
 		if (EEPROM.read(i) == 0) {
 			EEPROM.write(i, STX);
-                        EEPROM.commit();
+#ifdef BOARD_ESP32
+			EEPROM.commit();
+#endif
 			return 0;
 		}
 	}
@@ -118,7 +126,9 @@ int eeprom_end_program() {
 	for (unsigned int i = 0; i < EEPROM_SIZE; i++) {
 		if (EEPROM.read(i) == 0) {
 			EEPROM.write(i, ETX);
+#ifdef BOARD_ESP32
 			EEPROM.commit();
+#endif
 			return 0;
 		}
 	}
