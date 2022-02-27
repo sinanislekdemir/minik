@@ -1,25 +1,25 @@
 exit:
 SET @1 "Bye!"
-SPRINTLN @30 2
+SPRINTLN @60 2
 SPRINTLN @1
 HALT
 ---
 loop:
-ADD @30 @10 @15
-SPRINTLN @30
-SET @10 @15
-SET @15 @30
-ADD @20 1 @20
-CMP @20 @25
+ADD @60 @10 @20
+SPRINTLN @60
+SET @10 @20
+SET @20 @60
+ADD @40 1 @40
+CMP @40 @50
 JE exit
 GOTO 0
 ---
 main:
 # n1 - 10, n2 - 15, count - 20, to - 25, nth - 30
 SET @10 0
-SET @15 1
-SET @20 0
-SET @25 40
-SET @30 0
+SET @20 1
+SET @40 0
+SET @50 40
+SET @60 0
 CALL loop
 ---

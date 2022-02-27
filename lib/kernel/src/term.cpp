@@ -1,6 +1,7 @@
 #include "term.hpp"
 
 #include "constants.hpp"
+#include "eeprom.hpp"
 #include "memory.hpp"
 #include "program.hpp"
 #include "status.hpp"
@@ -34,6 +35,8 @@ Term::Term() {
 	memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 	this->tmp_pid = 0;
 	this->io_cursor = 0;
+	this->write_eeprom = false;
+	this->boot_check = true;
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 	this->set_port(this->port);
@@ -121,6 +124,9 @@ void Term::append_program_buffer() {
 		for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
 			if (programs[i].pid == this->tmp_pid) {
 				programs[i].compile(this->io_buffer);
+				if (this->write_eeprom) {
+					int bytes = eeprom_write_line(this->io_buffer);
+				}
 				break;
 			}
 		}
@@ -128,6 +134,62 @@ void Term::append_program_buffer() {
 }
 
 int Term::process() {
+	if (this->boot_check) {
+		int epc = eeprom_program_count();
+		if (epc > 0) {
+			kprint("EEPROM programs found.\n");
+			kprint("Loading EEPROM in 5 seconds.\n");
+			kprint("Hit any key from Serial to abort auto-load\n");
+			bool abort = false;
+			unsigned long start = millis();
+			while (true) {
+				if (Serial.available()) {
+					abort = true;
+					break;
+				}
+				if (millis() - start > 5000) {
+					break;
+				}
+				delay(200);
+#ifdef BOARD_ESP32
+				vTaskDelay(1);
+#endif
+			}
+			if (abort) {
+				this->boot_check = false;
+				return 1;
+			}
+			char buffer[MAX_LINE_LENGTH] = {0};
+			for (unsigned int i = 0; i < epc; i++) {
+				programs[i].pid = kernel_next_pid++;
+				programs[i].status_code = PROGRAM_COMPILING;
+				programs[i].start_time = 0;
+				programs[i].end_time = 0;
+
+				while (true) {
+#ifdef BOARD_ESP32
+					vTaskDelay(1);
+#endif
+					memset(buffer, 0, MAX_LINE_LENGTH);
+					int read = eeprom_read_line(buffer);
+					kprint("eeprom: ");
+					kprint(buffer);
+					kprint("\n");
+					if (read == 0) {
+						programs[i].status_code = PROGRAM_RUNNING;
+						break;
+					}
+					if (read == -1) {
+						programs[i].pid = 0;
+						programs[i].status_code = PROGRAM_FREE;
+						break;
+					}
+					programs[i].compile(buffer);
+				}
+			}
+		}
+		this->boot_check = false;
+	}
 	if (!this->wait_for_client()) {
 		return 1;
 	}
@@ -139,10 +201,18 @@ int Term::process() {
 		return 1;
 	}
 	if (this->programming_mode) {
+		if (strcmp(this->io_buffer, "eeprom") == 0) {
+			kprint("storing in eeprom");
+			eeprom_start_program();
+			this->write_eeprom = true;
+			memset(this->io_buffer, 0, MAX_LINE_LENGTH);
+			this->io_cursor = 0;
+			return 1;
+		}
 		if (strcmp(this->io_buffer, ".") == 0) {
 			for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
 				if (programs[i].pid == this->tmp_pid) {
-					Serial.println("Program compiled");
+					kprint("Program compiled\n");
 					programs[i].status_code = PROGRAM_RUNNING;
 					break;
 				}
@@ -150,6 +220,11 @@ int Term::process() {
 			this->programming_mode = false;
 			memset(this->io_buffer, 0, MAX_LINE_LENGTH);
 			this->io_cursor = 0;
+			if (this->write_eeprom) {
+				eeprom_end_program();
+				kprint("Saved in eeprom\n");
+				this->write_eeprom = false;
+			}
 			return 1;
 		}
 		this->append_program_buffer();
@@ -163,6 +238,22 @@ int Term::process() {
 		itoa(ram, tmp, 10);
 		kprint("Free ram size: ");
 		kprint(tmp);
+		kprint("\n");
+	}
+	if (strcmp(this->io_buffer, "clear eeprom") == 0) {
+		kprint("Cleaning eeprom: ");
+		eeprom_clean();
+		kprint("done\n");
+	}
+	if (strcmp(this->io_buffer, "size eeprom") == 0) {
+		char buffer[MAX_LINE_LENGTH] = {0};
+		kprint("EEPROM Size: ");
+		itoa(eeprom_free_area(), buffer, DEC);
+		kprint(buffer);
+		memset(buffer, 0, MAX_LINE_LENGTH);
+		kprint(" / ");
+		itoa(EEPROM_SIZE, buffer, DEC);
+		kprint(buffer);
 		kprint("\n");
 	}
 	if (strcmp(this->io_buffer, "memdump") == 0) {
@@ -199,8 +290,6 @@ int Term::process() {
 				programs[i].status_code = PROGRAM_COMPILING;
 				programs[i].start_time = 0;
 				programs[i].end_time = 0;
-				Serial.print("Compiling PID:");
-				Serial.println(this->tmp_pid);
 				break;
 			}
 		}

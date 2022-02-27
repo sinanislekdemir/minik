@@ -18,10 +18,11 @@ class Term {
 	int port;
 	bool has_client;
 	bool _is_in_readline;
+	bool boot_check;
 	char io_buffer[MAX_LINE_LENGTH];
-	int program_buffer_size;
 
 	bool programming_mode;
+	bool write_eeprom;
 	int io_cursor;
 	int tmp_pid;
 
