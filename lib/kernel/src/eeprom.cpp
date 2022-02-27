@@ -47,6 +47,7 @@ int eeprom_clean() {
 		vTaskDelay(1);
 #endif
 	}
+	return 0;
 }
 
 int eeprom_program_count() {

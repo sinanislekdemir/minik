@@ -1,7 +1,7 @@
 #include "interpreter.hpp"
 #include "statement.hpp"
 
-extern statement statements[55];
+extern statement statements[56];
 extern command commands[MAX_CMDS];
 
 int run(unsigned short c, program *_p) {

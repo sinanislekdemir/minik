@@ -125,7 +125,7 @@ void Term::append_program_buffer() {
 			if (programs[i].pid == this->tmp_pid) {
 				programs[i].compile(this->io_buffer);
 				if (this->write_eeprom) {
-					int bytes = eeprom_write_line(this->io_buffer);
+					eeprom_write_line(this->io_buffer);
 				}
 				break;
 			}

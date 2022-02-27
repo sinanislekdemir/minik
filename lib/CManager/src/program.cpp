@@ -207,7 +207,6 @@ void program::append_to_history(unsigned short cursor, unsigned short instructio
 }
 
 int program::step() {
-	int sub_cursor_location = this->cursor;
 	int int_status = this->check_interrupts();
 	int sub_index = this->subs[this->cursor];
 	int cmd_index = _subs[sub_index].commands[_subs[sub_index].cursor];

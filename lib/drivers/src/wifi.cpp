@@ -197,7 +197,6 @@ int server(program *_p) {
 		return 0;
 	}
 	if (cmd_var == 5) {
-		int server = int(read_area_double(WIFI_DATA_ADDRESS));
 		if (!_client.connected()) {
 			error_msg("Client is not connected", pid);
 			return -1;
