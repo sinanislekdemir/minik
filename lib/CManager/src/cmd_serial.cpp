@@ -37,7 +37,7 @@ int command_serial_println(command c, program *p) {
 		return 0;
 	}
 	if (c.variable_type[0] == TYPE_BYTE) {
-		Serial.println(char(c.variable_constant[0]));
+		Serial.println(int(c.variable_constant[0]));
 		return 0;
 	}
 	if (c.variable_type[0] == TYPE_ADDRESS) {
@@ -61,7 +61,7 @@ int command_serial_print(command c, program *p) {
 		return 0;
 	}
 	if (c.variable_type[0] == TYPE_BYTE) {
-		Serial.println(char(c.variable_constant[0]));
+		Serial.println(int(c.variable_constant[0]));
 		return 0;
 	}
 	if (c.variable_type[0] == TYPE_ADDRESS) {

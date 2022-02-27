@@ -4,8 +4,8 @@ SPRINTLN @20
 HALT
 ---
 big:
-SET @25 "big"
-SPRINTLN @25
+SET @30 "big"
+SPRINTLN @30
 HALT
 ---
 main:
@@ -16,8 +16,8 @@ APPEND @0 0x43
 APPEND @0 0x0D
 SPRINTLN @0
 SET @10 0x55
-SET @11 0x56
-CMP @10 @11
+SET @12 0x56
+CMP @10 @12
 JL less
 JG big
 HALT

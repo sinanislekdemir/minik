@@ -154,11 +154,18 @@ int command_cmp(command c, program *p) {
 	}
 
 	if (c.variable_type[0] == TYPE_BYTE) {
-		if (get_byte(c, 0) == get_byte(c, 1)) {
+		char c1 = get_byte(c, 0);
+		char c2 = get_byte(c, 1);
+		if (c1 == c2) {
 			p->set_cmp_flag(CMP_JE);
-		} else {
-			p->set_cmp_flag(CMP_N);
 		}
+		if (c1 > c2) {
+			p->set_cmp_flag(CMP_JG);
+		}
+		if (c1 < c2) {
+			p->set_cmp_flag(CMP_JL);
+		}
+
 		return 0;
 	}
 
