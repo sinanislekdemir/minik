@@ -5,7 +5,11 @@
 int eeprom_cursor = 0;
 
 int init_eeprom() {
+#ifdef BOARD_ESP32
 	EEPROM.begin(EEPROM_SIZE);
+#else
+	EEPROM.begin();
+#endif
 	int epc = eeprom_program_count();
 	if (epc > 0) {
 		Serial.print("Found stored programs: ");
