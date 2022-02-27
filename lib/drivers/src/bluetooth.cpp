@@ -2,63 +2,71 @@
 #include <Arduino.h>
 
 #ifdef BOARD_ESP32
-
 #ifdef WITH_BLUETOOTH_SERIAL
 #include <BluetoothSerial.h>
 BluetoothSerial SerialBT;
+#endif
+#endif
+
+int init_bt_serial() {
+#ifdef BOARD_ESP32
+#ifdef WITH_BLUETOOTH_SERIAL
+	bool start = SerialBT.begin(String(BLUETOOTH_NAME));
+	return start ? 1 : 0;
+#endif
+#endif
+	return 0;
+}
+
+#ifdef BOARD_ESP32
+
+#ifdef WITH_BLUETOOTH_SERIAL
 
 int bluetooth_serial(program *_p) {
 	unsigned int pid = _p->pid;
-	int cmd_var = find_number("BTSERIAL_CMD", pid);
+	int cmd_var = int(read_area_double(BT_SERIAL_ADDRESS));
 	if (cmd_var == 0) {
 		error_msg("BTSERIAL_CMD not defined", pid);
 		return -1;
 	}
 	if (cmd_var == 1) {
-		char *device_name = find_string("BTSERIAL_NAME", pid);
-		if (device_name == NULL) {
-			error_msg("BTSERIAL_NAME is not defined", pid);
-			return -1;
-		}
-		String localName = String(device_name);
-		SerialBT.begin(localName);
+		int data_available = SerialBT.available();
+		free_area(BT_DATA_ADDRESS, sizeof(double));
+		write_area(BT_DATA_ADDRESS, double(data_available));
 		return 0;
 	}
-	// Server mode
 	if (cmd_var == 2) {
-		int data_available = SerialBT.available();
-		new_number((char *)"BTSERIAL_AVAILABLE", double(data_available), pid);
+		char b = SerialBT.read();
+		free_area(BT_DATA_ADDRESS, 2);
+		write_area(BT_DATA_ADDRESS, b);
 		return 0;
 	}
 	if (cmd_var == 3) {
-		char b = SerialBT.read();
-                new_number((char *)"BTSERIAL_READ", double(b), pid);
+		char buffer[MAX_LINE_LENGTH] = {0};
+		SerialBT.readBytesUntil('\n', buffer, 128);
+		free_area(BT_DATA_ADDRESS, MAX_LINE_LENGTH);
+		write_area(BT_DATA_ADDRESS, buffer, MAX_LINE_LENGTH);
 		return 0;
 	}
 	if (cmd_var == 4) {
-		char *buffer = (char *)malloc(128);
-		memset(buffer, 0, 128);
-		SerialBT.readBytesUntil('\n', buffer, 128);
-		new_string((char *)"BTSERIAL_READLN", buffer, pid);
-		free(buffer);
-		return 0;
-	}
-	if (cmd_var == 5) {
-		char *buffer = find_string("BTSERIAL_WRITE", pid);
+		char buffer[MAX_LINE_LENGTH] = {0};
+		read_area_str(BT_DATA_ADDRESS, MAX_LINE_LENGTH, buffer);
 		SerialBT.write((const uint8_t *)buffer, strlen(buffer));
 		return 0;
 	}
-	if (cmd_var == 6) {
-		char *device_name = find_string("BLE_DEVICE_NAME", pid);
-		SerialBT.connect(String(device_name));
+	if (cmd_var == 5) {
+		char buffer[MAX_LINE_LENGTH] = {0};
+		read_area_str(BT_DATA_ADDRESS, MAX_LINE_LENGTH, buffer);
+		SerialBT.connect(String(buffer));
 		return 0;
 	}
-	if (cmd_var == 7) {
+	if (cmd_var == 6) {
 		double connected = 0;
 		if (SerialBT.connected()) {
 			connected = 1;
 		}
-		new_number((char *)"BLE_DEVICE_CONNECTED", connected, pid);
+		free_area(BT_DATA_ADDRESS, sizeof(double));
+		write_area(BT_DATA_ADDRESS, connected);
 		return 0;
 	}
 	return 0;
@@ -79,7 +87,7 @@ int counter = 0;
 
 int bluetooth(program *_p) {
 	unsigned int pid = _p->pid;
-	int cmd_var = find_number("BLE_CMD", pid);
+	int cmd_var = int(read_area_double(BT_SERIAL_ADDRESS));
 	if (cmd_var == 1) {
 		if (_btScanner != NULL) {
 			_btScanner->clearResults();
@@ -98,7 +106,8 @@ int bluetooth(program *_p) {
 			return -1;
 		}
 		foundDevices = _btScanner->start(scanTime, false);
-		new_number((char *)"BLE_DEVICE_COUNT", double(foundDevices.getCount()), pid);
+		free_area(BT_DATA_ADDRESS, sizeof(double) + 1);
+		write_area(BT_DATA_ADDRESS, double(foundDevices.getCount()));
 		return 0;
 	}
 	if (cmd_var == 3) {
@@ -106,17 +115,16 @@ int bluetooth(program *_p) {
 			error_msg("No active scan", pid);
 			return -1;
 		}
-		int ble_index = find_number("BLE_INDEX", pid);
+		int ble_index = int(read_area_double(BT_DATA_ADDRESS));
 		BLEAdvertisedDevice device = foundDevices.getDevice(uint32_t(ble_index));
-		char *temp = (char *)malloc(128);
-		memset(temp, 0, 128);
+		char temp[MAX_LINE_LENGTH] = {0};
 		if (device.getName().length() > 0) {
 			strcpy(temp, device.getName().c_str());
 		} else {
 			strcpy(temp, device.getAddress().toString().c_str());
 		}
-		new_string((char *)"BLE_NAME", temp, pid);
-		free(temp);
+		free_area(BT_DATA_ADDRESS, MAX_LINE_LENGTH + 1);
+		write_area(BT_DATA_ADDRESS, temp, MAX_LINE_LENGTH);
 		return 0;
 	}
 	if (cmd_var == 4) {

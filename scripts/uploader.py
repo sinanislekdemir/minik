@@ -79,13 +79,19 @@ def reader():
                 if "ready to receive" in buffer:
                     ready = True
 
-                if ".shutdown." in buffer:
-                    shutdown = True
-                    return True
                 buffer = ""
 
             sys.stdout.flush()
 
+
+def writer():
+    global active
+    while active:
+        c = input("").strip().replace("\n", "")
+        if socket is not None:
+            socket.write(bytes(c, "ascii"))
+        if c == "quit":
+            active = False
 
 @click.command("upload")
 @click.option("--port", default="", help="Device address")
@@ -104,9 +110,9 @@ def upload(port: str, filename: str):
     print("Waiting for connection")
     while not ready:
         print("Sending source code request")
-        socket.write(bytes("#source-code\n", "ascii"))
-        print(f"Ready = {ready}")
+        socket.write(bytes("program\n", "ascii"))
         sleep(1)
+        print(f"Ready = {ready}")
 
     for fname in filename.split(","):
         if fname == "":
@@ -119,22 +125,18 @@ def upload(port: str, filename: str):
             data = f.read()
         for line in data.splitlines():
             socket.write(bytes(line + "\n", "ascii"))
-            # socket.flush()
+            socket.flush()
+            sleep(0.10)
+            if line == '---':
+                sleep(1)
         socket.write(bytes("\n.\n", "ascii"))
         socket.flush()
         print("Sent program")
 
-    while not shutdown:
-        c = click.getchar(echo=False)
-        if ord(c) == 13:
-            socket.write(bytes("\n", "ascii"))
-            print("")
-        else:
-            socket.write(bytes(c, "ascii"))
-        socket.flush()
-
+    w = threading.Thread(target=writer)
+    w.start()
     r.join()
-    active = False
+    r.join()
 
 
 @click.command("list")

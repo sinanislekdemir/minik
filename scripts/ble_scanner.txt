@@ -1,31 +1,38 @@
-main:
-SPRINTLN "Bluetooth Scanner"
-SET BLE_CMD 1
-SYS 14
-SET BLE_CMD 2
-SYS 14
-SET index 0
-SPRINT "Devices found: "
-SPRINTLN BLE_DEVICE_COUNT
-CMP BLE_DEVICE_COUNT 0
-JE no_device_exit
-CALL print_all
----
-print_all:
-SET BLE_CMD 3
-SET BLE_INDEX index
-SYS 14
-SPRINTLN BLE_NAME
-ADD index index 1
-CMP index BLE_DEVICE_COUNT
-JE exit
-GOTO 0
----
 no_device_exit:
-SPRINTLN "No devices found"
+SPRINTLN @340
 HALT
 ---
 exit:
 SPRINTLN "Bye"
 HALT
+---
+print_all:
+SET @10 3
+SET @20 @200
+SYS 14
+SPRINTLN @20
+ADD @200 @200 1
+CMP @200 @210
+JE exit
+GOTO 0
+---
+main:
+SET @300 "Bluetooth Scanner"
+SET @320 "Devices found :"
+SET @340 "No devices found"
+SET @360 "Bye"
+SPRINTLN @300
+SET @10 1
+SYS 14
+SET @10 2
+SYS 14
+# index 200
+# device-count 210
+SET @200 0
+SET @210 @20
+SPRINT @320
+SPRINTLN @210
+CMP @20 0
+JE no_device_exit
+CALL print_all
 ---

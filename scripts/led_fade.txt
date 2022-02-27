@@ -1,23 +1,21 @@
-main:
-SPRINTLN "Fading led on PIN 12"
-SET pin 12
-SET value 255
-PINMODE pin OUTPUT
-CALL loop_down
+loop_up:
+MUL @30 @30 -1
 ---
 loop_down:
-AWRITE pin value
+AWRITE @10 @20
 SLEEP 10
-SUB value value 5
-CMP value 0
+ADD @20 @20 @30
+CMP @20 0
 JE loop_up
+CMP @20 255
+JG loop_up
 GOTO 0
 ---
-loop_up:
-AWRITE pin value
-SLEEP 10
-ADD value value 5
-CMP value 255
-JE loop_down
-GOTO 0
+main:
+SET @100 "Fading led on pin 14"
+SET @10 14
+SET @20 255
+SET @30 -5
+PINMODE @10 OUTPUT
+CALL loop_down
 ---

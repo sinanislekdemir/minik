@@ -1,217 +1,222 @@
 #include "program.hpp"
 #include "helpers.hpp"
 #include "interpreter.hpp"
-#include "tokenizer.hpp"
+#include "statement.hpp"
 
-extern error err;
+sub _subs[MAX_SUBS];
+extern command commands[MAX_CMDS];
+extern constant _constants[];
 
-program::program(int pid) {
-	if (pid == 0) {
-		pid = 1;
+int next_sub() {
+	for (unsigned short i = 0; i < MAX_SUBS; i++) {
+		if (_subs[i].pid == 0) {
+			return i;
+		}
 	}
-	this->_line_count = -1;
-	this->main = NULL;
-	this->cursor = NULL;
-	this->back_history.item = NULL;
-	this->back_history.next = NULL;
-	this->_sourcecode_cursor = 0;
+	return -1;
+}
 
-	this->interrupts = NULL;
+int sub_command_count(short sub) {
+	for (unsigned int i = 0; i < MAX_SUB_COMMANDS; i++) {
+		if (_subs[sub].commands[i] == -1) {
+			return i;
+		}
+	}
+	return -1;
+}
 
-	this->pid = pid;
-	this->exit_code = 0;
-	this->source = NULL;
+int next_command_index() {
+	for (unsigned int i = 0; i < MAX_CMDS; i++) {
+		if (commands[i].pid == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int sub_next_command(short sub) {
+	for (unsigned int i = 0; i < MAX_SUB_COMMANDS; i++) {
+		if (_subs[sub].commands[i] == -1) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+program::program() {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		this->back_sub_history[i] = -1;
+		this->subs[i] = -1;
+	}
+
+	for (unsigned int i = 0; i < 8; i++) {
+		this->interrupts[i].pin = 0;
+		this->interrupts[i].state = HIGH;
+		this->interrupts[i].triggered = false;
+		this->interrupts[i].routine = -1;
+	}
+	this->status_code = PROGRAM_FREE;
+	this->valid_sub_count = 0;
 
 	this->_sleep = false;
 	this->_sleep_start = 0;
 	this->_sleep_duration = 0;
+	this->pid = 0;
 }
+
+void program::set_pid(long pid) { this->pid = pid; }
 
 program::~program() { this->destroy(); }
 
-void program::register_interrupt(unsigned int pin, unsigned int state, sub *routine) {
-	interrupt *check = this->interrupts;
-	// Skip if pin is already registered
-	while (check != NULL) {
-		if (check->pin == pin) {
-			return;
-		}
-		check = check->next;
-	}
-	interrupt *in = (interrupt *)malloc(sizeof(interrupt));
-	in->pin = pin;
-	in->state = state;
-	in->routine = routine;
-	in->next = NULL;
-	in->triggered = false;
-	if (this->interrupts == NULL) {
-		this->interrupts = in;
-		return;
-	}
-	interrupt *head = this->interrupts;
-	while (head != NULL) {
-		if (head->next == NULL) {
-			head->next = in;
+void program::register_interrupt(int pin, int state, char routine) {
+	for (unsigned int i = 0; i < 8; i++) {
+		if (this->interrupts[i].routine == -1) {
+			this->interrupts[i].pin = pin;
+			this->interrupts[i].state = state;
+			this->interrupts[i].routine = routine;
+			this->interrupts[i].triggered = false;
 			break;
 		}
-		head = head->next;
-	}
-}
-
-void _free_instructions(command *head) {
-	command *tmp;
-	while (head != NULL) {
-		tmp = head;
-		head = head->next;
-		for (unsigned int i = 0; i < tmp->argc; i++) {
-			free(tmp->args[i].data);
-			free(tmp->args[i].name);
-		}
-		free(tmp->args);
-		free(tmp);
-	}
-}
-
-void _free_interrupts(interrupt *head) {
-	interrupt *tmp;
-	while (head != NULL) {
-		tmp = head->next;
-		free(head);
-		head = tmp;
-	}
-}
-
-void _free_jump_history(command_history *head) {
-	command_history *tmp;
-	while (head != NULL) {
-		tmp = head->next;
-		free(head);
-		head = tmp;
-	}
-}
-
-void _free_subs(sub *head) {
-	sub *tmp;
-	while (head != NULL) {
-		tmp = head;
-		head = head->next;
-		free(tmp->name);
-		_free_jump_history(tmp->back_history.next);
-		_free_instructions(tmp->root_instruction);
-		free(tmp);
-	}
-}
-
-void _free_sub_history(sub_history *head) {
-	sub_history *tmp;
-	while (head != NULL) {
-		tmp = head->next;
-		free(head);
-		head = tmp;
 	}
 }
 
 void program::destroy() {
-	_free_sub_history(this->back_history.next);
-	_free_interrupts(this->interrupts);
-	_free_subs(this->main);
-	free_program(this->pid);
-}
 
-sub *program::previous_sub() {
-	sub_history *node = &back_history;
-	sub_history *prev = &back_history;
-
-	sub *tmp;
-	while (true) {
-		if (node->next != NULL) {
-			prev = node;
-			node = node->next;
-			continue;
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		_subs[this->subs[i]].pid = 0;
+		_subs[this->subs[i]].cursor = 0;
+		for (unsigned int j = 0; j < 16; j++) {
+			_subs[this->subs[i]].back_history[j] = -1;
 		}
-		if (node->next == NULL) {
-			tmp = node->item;
-			free(node);
-			prev->next = NULL;
-			return tmp;
+		for (unsigned int j = 0; j < MAX_SUB_COMMANDS; j++) {
+			_subs[this->subs[i]].commands[j] = -1;
+		}
+		memset(_subs[this->subs[i]].name, 0, 24);
+		_subs[this->subs[i]].cursor = 0;
+	}
+	for (unsigned int i = 0; i < MAX_CMDS; i++) {
+		if (commands[i].pid == this->pid) {
+			commands[i].arg_count = 0;
+			for (unsigned int j = 0; j < 3; j++) {
+				commands[i].variable_index[j] = 0;
+				commands[i].variable_type[j] = 0;
+				commands[i].variable_constant[j] = 0;
+			}
+			commands[i].pid = 0;
+			commands[i].statement = 0;
 		}
 	}
-	return NULL; // unreachable code
+	this->cursor = 0;
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		this->back_sub_history[i] = -1;
+		this->subs[i] = -1;
+	}
+
+	for (unsigned int i = 0; i < 8; i++) {
+		this->interrupts[i].pin = 0;
+		this->interrupts[i].state = 0;
+		this->interrupts[i].triggered = false;
+		this->interrupts[i].routine = -1;
+	}
+	this->valid_sub_count = 0;
+	this->_sleep = false;
+	this->pid = 0;
+	free_program(this->pid);
 }
 
 void program::set_cmp_flag(unsigned int flag) { this->_cmp_flag = flag; }
 
-command *program::previous_instruction() {
-	if (this->cursor == NULL) {
-		return NULL;
-	}
-	command_history *node = &this->cursor->back_history;
-	command_history *prev = &this->cursor->back_history;
-
-	command *tmp;
-	while (true) {
-		if (node->next != NULL) {
-			prev = node;
-			node = node->next;
-			continue;
-		}
-		if (node->next == NULL) {
-			tmp = node->item;
-			free(node);
-			prev->next = NULL;
-			return tmp;
+short program::find_sub(char *name) {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		if (strcmp(_subs[this->subs[i]].name, name) == 0 && _subs[this->subs[i]].pid == this->pid) {
+			return i;
 		}
 	}
-
-	return NULL; // unreachable code
+	return -1;
 }
 
-sub *program::find_sub(char *name) {
-	sub *node = this->main;
-	while (node != NULL) {
-		if (strcmp(node->name, name) == 0) {
-			return node;
+short program::pop_sub() {
+	short result;
+	for (unsigned int i = PROG_SUBS - 1; i >= 0; i--) {
+		if (this->back_sub_history[i] != -1) {
+			result = this->back_sub_history[i];
+			this->back_sub_history[i] = -1;
+			this->cursor = result;
+			for (unsigned int j = 15; j >= 0; j--) {
+				if (_subs[this->subs[this->cursor]].back_history[j] != -1) {
+					int k = _subs[this->subs[this->cursor]].back_history[j];
+					_subs[this->subs[this->cursor]].cursor = k + 1;
+					break;
+				}
+			}
+			return result;
 		}
-		node = node->next;
 	}
-	return NULL;
+	return -1;
 }
 
-void program::append_to_history(sub *cursor, command *instruction) {
-	sub_history *node = &this->back_history;
-	sub_history *n = (sub_history *)malloc(sizeof(sub_history));
-
-	n->item = cursor;
-	n->next = NULL;
-	while (true) {
-		if (node->next == NULL) {
-			node->next = n;
-			break;
+void program::sdump() {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		if (this->subs[i] != -1) {
+			int subx = this->subs[i];
+			Serial.print("Sub number ");
+			Serial.print(i);
+			Serial.println(" - Sub index ");
+			Serial.println(subx);
+			Serial.print("Sub: ");
+			Serial.println(_subs[subx].name);
+			for (short j = 0; j < _subs[subx].command_count; j++) {
+				int cmdx = _subs[subx].commands[j];
+				Serial.print("  Cursor index: ");
+				Serial.print(j);
+				Serial.print(" - Command index: ");
+				Serial.print(cmdx);
+				Serial.print(" - Statement number: ");
+				Serial.println(int(commands[cmdx].statement));
+				Serial.print("    Arg Count: ");
+				Serial.println(commands[cmdx].arg_count);
+				for (unsigned int k = 0; k < commands[cmdx].arg_count; k++) {
+					Serial.print("    ");
+					Serial.print(k);
+					Serial.print(": ");
+					Serial.print(" Type: ");
+					Serial.print(int(commands[cmdx].variable_type[k]));
+					Serial.print(" Value: ");
+					Serial.print(commands[cmdx].variable_constant[k]);
+					Serial.print(" Index: ");
+					Serial.println(commands[cmdx].variable_index[k]);
+				}
+			}
 		}
-		node = node->next;
 	}
+}
 
-	command_history *c_node = &cursor->back_history;
-	command_history *c_n = (command_history *)malloc(sizeof(command_history));
-	c_n->item = instruction;
-	c_n->next = NULL;
-
-	while (true) {
-		if (c_node->next == NULL) {
-			c_node->next = c_n;
+void program::append_to_history(unsigned short cursor, unsigned short instruction) {
+	for (unsigned int i = 0; i < PROG_SUBS; i++) {
+		if (this->back_sub_history[i] == -1) {
+			this->back_sub_history[i] = cursor;
 			break;
 		}
-		c_node = c_node->next;
+	}
+	for (unsigned int i = 0; i < 16; i++) {
+		if (_subs[this->subs[cursor]].back_history[i] == -1) {
+			_subs[this->subs[cursor]].back_history[i] = instruction;
+			break;
+		}
 	}
 }
 
 int program::step() {
+	int sub_cursor_location = this->cursor;
 	int int_status = this->check_interrupts();
+	int sub_index = this->subs[this->cursor];
+	int cmd_index = _subs[sub_index].commands[_subs[sub_index].cursor];
+
 	if (int_status == 1) {
 		this->_sleep = false;
 		this->_sleep_start = 0;
 		this->_sleep_duration = 0;
-		return RUNNING;
+		return PROGRAM_RUNNING;
 	}
 
 	if (this->_sleep) {
@@ -221,151 +226,221 @@ int program::step() {
 			this->_sleep_start = 0;
 			this->_sleep_duration = 0;
 		} else {
-			return RUNNING;
+			return PROGRAM_RUNNING;
 		}
 	}
 
-	if (this->cursor == NULL) {
-		return PROGRAM_END;
-	}
-
-	if (this->cursor->cursor == NULL) {
-		this->cursor = this->previous_sub();
-		return RUNNING;
-	}
-
-	int result = run(this->cursor->cursor, this);
-	if (result == -1) {
-		// TODO: raise
-		if (this->cursor->cursor->exception != NULL) {
-			// Check if program has an exception handler
-			sub *handler = find_sub((char *)"on_exception");
-			if (handler != NULL) {
-				this->cursor = handler;
-				this->cursor->cursor = handler->root_instruction;
-				return RUNNING;
+	if (this->valid_sub_count == 0) {
+		for (unsigned int i = 0; i < PROG_SUBS; i++) {
+			if (this->subs[i] == -1) {
+				this->valid_sub_count = i + 1;
+				break;
 			}
 		}
-		return PROGRAM_END;
 	}
+
+	if (this->cursor >= this->valid_sub_count) {
+		return PROGRAM_HALT;
+	}
+
+	int result = 0;
+	if (cmd_index > -1)
+		result = run(cmd_index, this);
+
+	if (result == -1) {
+		// TODO: raise
+		// Check if program has an exception handler
+		short handle_sub = this->find_sub((char *)"on_exception");
+		if (handle_sub > -1) {
+			this->cursor = handle_sub;
+			sub_index = this->subs[this->cursor];
+			_subs[sub_index].cursor = 0;
+			return PROGRAM_RUNNING;
+		}
+		return PROGRAM_HALT;
+	}
+	if (result == -2) {
+		return PROGRAM_HALT;
+	}
+
 	if (result == 1) {
 		// Cursor is explicitly set by the instruction
-		return RUNNING;
+		return PROGRAM_RUNNING;
 	}
+	_subs[sub_index].cursor++;
 
-	if (this->cursor->cursor != NULL && this->cursor->cursor->next == NULL) {
-		// end of the instructions, head back to caller;
-		this->cursor = this->previous_sub();
-		if (this->cursor == NULL) {
-			return PROGRAM_END;
+	if (_subs[sub_index].cursor >= (unsigned short)_subs[sub_index].command_count) {
+		this->pop_sub();
+		if (this->cursor == -1) {
+			return PROGRAM_HALT;
 		}
 	}
-	if (this->cursor->cursor == NULL) {
-		this->cursor->cursor = this->cursor->root_instruction;
-	} else {
-		this->cursor->cursor = this->cursor->cursor->next;
-	}
-	return RUNNING;
+
+	return PROGRAM_RUNNING;
 }
 
-unsigned int program::line_count() {
-	if (this->_line_count >= 0) {
-		return this->_line_count;
+int program::compile(const char *line) {
+	size_t l = strlen(line);
+	if (l < 3 || line[0] == '#') {
+		return 0;
 	}
-	this->_line_count = argc(this->source, '\n');
-	return this->_line_count;
-}
+	// Create a new sub
+	if (line[l - 1] == ':') {
+		int n = next_sub();
+		if (n == -1) {
+			return -1;
+		}
+		short free_sub = -1;
+		for (unsigned short i = 0; i < PROG_SUBS; i++) {
+			if (this->subs[i] == -1) {
+				free_sub = i;
+				break;
+			}
+		}
+		this->_compile_cursor = free_sub;
+		this->subs[free_sub] = n;
 
-sub *program::compile_next_sub() {
-	unsigned int p = this->_sourcecode_cursor;
-	if (p == this->line_count() - 1) {
-		return NULL;
+		memset(_subs[n].name, 0, 24);
+		strncpy(_subs[n].name, line, l - 1);
+		if (strcmp(line, "main:") == 0) {
+			this->cursor = this->_compile_cursor;
+		}
+		for (unsigned short i = 0; i < MAX_SUB_COMMANDS; i++) {
+			_subs[n].commands[i] = -1;
+		}
+		for (unsigned short i = 0; i < 16; i++) {
+			_subs[n].back_history[i] = -1;
+		}
+		_subs[n].pid = this->pid;
+		_subs[n].cursor = 0;
+		_subs[n].command_count = -1;
+		return 0;
 	}
-	sub *result = (sub *)malloc(sizeof(sub));
-	result->cursor = NULL;
-	command *prev = NULL;
-
-	for (unsigned int i = p; i < this->line_count(); i++) {
-		char *buffer = extract(this->source, '\n', i, MAX_LINE_LENGTH);
-
-		this->_sourcecode_cursor = i;
-		if (strlen(buffer) < 3 || buffer[0] == '#') {
-			free(buffer);
-			continue;
-		}
-		if (buffer[strlen(buffer) - 1] == ':') {
-			result->name = (char *)malloc(strlen(buffer));
-			memset(result->name, 0, strlen(buffer));
-			strncpy(result->name, buffer, strlen(buffer) - 1);
-			free(buffer);
-			continue;
-		}
-
-		if (strcmp(buffer, SUB_END) == 0) {
-			free(buffer);
-			this->_sourcecode_cursor++;
-			break;
-		}
-
-		command *c = parse((const char *)buffer, this->pid);
-
-		if (prev == NULL) {
-			prev = c;
-			result->root_instruction = c;
-		} else {
-			prev->next = c;
-			prev = c;
-		}
-		free(buffer);
+	// End the existing sub
+	int sub_index = this->subs[this->_compile_cursor];
+	if (strcmp(line, SUB_END) == 0) {
+		_subs[sub_index].command_count = sub_command_count(sub_index);
+		return 1;
 	}
-	result->back_history.item = NULL;
-	result->back_history.next = NULL;
-	result->cursor = result->root_instruction;
-	result->next = NULL;
-
-	return result;
-}
-
-int program::compile() {
-	this->_sourcecode_cursor = 0;
-	sub *prev = NULL;
-	while (this->_sourcecode_cursor < this->line_count()) {
-		sub *s = this->compile_next_sub();
-		if (s == NULL) {
-			break;
-		}
-		if (prev == NULL) {
-			prev = s;
-			this->main = s;
-			this->cursor = s;
-		} else {
-			prev->next = s;
-			prev = s;
-		}
+	int nci = next_command_index();
+	int snc = sub_next_command(sub_index);
+	int check = parse(line, this->pid, nci);
+	if (check < 0) {
+		return -1;
 	}
 
-	free(this->source);
+	_subs[sub_index].commands[snc] = nci;
 	return 0;
 }
 
 int program::check_interrupts() {
 	// Return 1 if it jumps
-	if (this->interrupts == NULL) {
-		return 0;
-	}
-	interrupt *head = this->interrupts;
-	while (head != NULL) {
-		int val = digitalRead(head->pin);
-		if (val == head->state && head->triggered == false) {
-			head->triggered = true;
-			this->cursor = head->routine;
-			this->cursor->cursor = this->cursor->root_instruction;
+	for (unsigned int i = 0; i < 8; i++) {
+		if (this->interrupts[i].pin == 0) {
+			continue;
+		}
+
+		int val = digitalRead(this->interrupts[i].pin);
+
+		if (val == this->interrupts[i].state && this->interrupts[i].triggered == false) {
+			this->interrupts[i].triggered = true;
+			this->append_to_history(this->cursor, _subs[this->subs[this->cursor]].cursor);
+			this->cursor = this->interrupts[i].routine;
+			_subs[this->subs[this->cursor]].cursor = 0;
 			return 1;
 		}
-		if (head->triggered && val != head->state) {
-			head->triggered = false;
+	}
+
+	return 0;
+}
+
+int program::parse(const char *cmd, unsigned int pid, int index) {
+	unsigned int argument_count = argc(cmd, ' ') - 1;
+	char temp_buffer[MAX_LINE_LENGTH] = {0};
+	extract(cmd, ' ', 0, temp_buffer);
+
+	if (argument_count > 3) {
+		argument_count = 3;
+	}
+
+	char st = find_statement((const char *)temp_buffer);
+
+	if (st == STATEMENT_SET) {
+		if (argument_count != 2) {
+			return -1;
 		}
-		head = head->next;
+		char location[16] = {0};
+		extract(cmd, ' ', 1, location);
+		extract(cmd, ' ', 2, temp_buffer);
+		if (location[0] != '@') {
+			return -1;
+		}
+		unsigned int t = arg_type(temp_buffer);
+		if (t == TYPE_STR) {
+			char tmp[MAX_LINE_LENGTH] = {0};
+			memcpy(tmp, temp_buffer + 1, strlen(temp_buffer) - 2);
+			long l = atol(location + 1);
+			write_area((unsigned int)(l), tmp);
+			st = STATEMENT_NOOP;
+			argument_count = 0;
+		}
+	}
+
+	commands[index].statement = st;
+	commands[index].pid = pid;
+	commands[index].exception = false;
+	commands[index].arg_count = argument_count;
+
+	for (unsigned int i = 0; i < argument_count; i++) {
+		memset(temp_buffer, 0, MAX_LINE_LENGTH);
+		int check = extract(cmd, ' ', i + 1, temp_buffer);
+		if (check == 0) {
+			break;
+		}
+		bool assigned = false;
+		for (unsigned int j = 0; j < CONST_COUNT; j++) {
+			if (strcmp(temp_buffer, _constants[j].keyword) == 0) {
+				commands[index].variable_type[i] = TYPE_NUM;
+				commands[index].variable_constant[i] = _constants[j].val;
+				assigned = true;
+			}
+		}
+		if (assigned) {
+			continue;
+		}
+		unsigned int t = arg_type(temp_buffer);
+		commands[index].variable_type[i] = t;
+
+		if (t == TYPE_NUM) {
+			commands[index].variable_constant[i] = atof(temp_buffer);
+			commands[index].variable_index[i] = -1;
+		}
+
+		if (t == TYPE_STR) {
+			// not allowed
+			error_msg("STR argument not allowed", 0);
+			return -1;
+		}
+
+		if (t == TYPE_BYTE) {
+			char val = (char)strtol(temp_buffer, 0, 16);
+			commands[index].variable_constant[i] = double(val);
+			commands[index].variable_index[i] = -1;
+		}
+
+		if (t == TYPE_ADDRESS) {
+			unsigned short loc = atoi(temp_buffer + 1);
+			commands[index].variable_index[i] = loc; // unknown yet
+			commands[index].variable_constant[i] = 0;
+		}
+		if (t == TYPE_LABEL) {
+			short sub = this->find_sub(temp_buffer);
+			if (sub == -1) {
+				error_msg("Sub not defined (yet)", 0);
+				return -1;
+			}
+			commands[index].variable_index[i] = sub;
+		}
 	}
 	return 0;
 }

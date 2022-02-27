@@ -4,39 +4,23 @@
 
 unsigned int _occupied_pins[64] = {0};
 
-int command_int(command *c, program *_p) {
+int command_int(command c, program *p) {
 	// INT <PIN> HIGH label
-	sub *interrupt_sub = _p->find_sub(c->args[2].name);
-#ifndef DISABLE_EXCEPTIONS
-	if (interrupt_sub == NULL) {
-		char *msg = (char *)malloc(64);
-		memset(msg, 0, 64);
-		strcat(msg, "Location not found: ");
-		strcat(msg, c->args[2].name);
-		c->exception = raise(msg, c->pid, ERR_ADDRESS_NOT_FOUND);
-		free(msg);
+	if (c.variable_type[2] != TYPE_LABEL)
+	{
+		error_msg("Sub index not found", p->pid);
 		return -1;
 	}
-#endif
 
-	variable *pin = get_var(c, 0);
-	unsigned int a_pin = int(ctod(pin->data));
+	double state = get_double(c, 1);
+	int pin = int(get_double(c, 0));
+	int interrupt_sub = c.variable_index[2];
 
-	variable *state = get_var(c, 1);
-
-	bool found = false;
-	for (unsigned int i = 0; i < 64; i++) {
-		if (_occupied_pins[i] == a_pin) {
-			found = true;
-			break;
-		}
+	if (interrupt_sub == -1) {
+		error_msg("Interrupt sub not found", c.pid);
+		return -1;
 	}
 
-	if (!found) {
-		pinMode(a_pin, INPUT);
-	}
-
-	int a_state = int(ctod(state->data));
-	_p->register_interrupt(a_pin, a_state, interrupt_sub);
+	p->register_interrupt(pin, state, interrupt_sub);
 	return 0;
 }

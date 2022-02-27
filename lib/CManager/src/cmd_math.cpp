@@ -1,255 +1,198 @@
 #include "cmd_math.hpp"
+#include "constants.hpp"
 #include "helpers.hpp"
 #include <math.h>
 
-extern error err;
-
-int save_result(command *c, double result) {
-	new_number(c->args[0].data, result, c->pid);
+int _validate_command(command c) {
+	if (c.arg_count != 3) {
+		error_msg(ERR_STR_NOT_ENOUGH_PARAMS, c.pid);
+		return -1;
+	}
+	if (c.variable_type[0] != TYPE_ADDRESS) {
+		error_msg(ERR_STR_INVALID_TYPE, c.pid);
+		return -1;
+	}
+	if (c.variable_type[1] == TYPE_LABEL || c.variable_type[1] == TYPE_STR) {
+		error_msg(ERR_STR_INVALID_TYPE, c.pid);
+		return -1;
+	}
+	if (c.variable_type[2] == TYPE_LABEL || c.variable_type[2] == TYPE_STR) {
+		error_msg(ERR_STR_INVALID_TYPE, c.pid);
+		return -1;
+	}
 	return 0;
 }
 
-int command_add(command *c, program *_p) {
+int command_add(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 3) != 0) {
-		return -1;
-	}
-#endif
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
-
-#ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	double add = ctod(v1->data) + ctod(v2->data);
-	return save_result(c, add);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
+
+	double add = v1 + v2;
+	return write_area(c.variable_index[0], add);
 }
 
-int command_sub(command *c, program *_p) {
-	if (validate_command(c, 3) != 0) {
-		return -1;
-	}
-
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
-
+int command_sub(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	double sub = ctod(v1->data) - ctod(v2->data);
-	return save_result(c, sub);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
+
+	double sub = v1 - v2;
+	return write_area(c.variable_index[0], sub);
 }
 
-int command_div(command *c, program *_p) {
+int command_div(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 3) != 0) {
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
 
 #ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
-		return -1;
-	}
-#endif
-	double v1d = ctod(v1->data);
-	double v2d = ctod(v2->data);
-#ifndef DISABLE_EXCEPTIONS
-	if (v2d == 0) {
-		c->exception = raise((char *)ERR_STR_DIVISION_BY_ZERO, c->pid, ERR_INVALID_PARAMETER_TYPE);
+	if (v2 == 0) {
+		error_msg(ERR_STR_DIVISION_BY_ZERO, c.pid);
 		return -1;
 	}
 #endif
 
-	double div = v1d / v2d;
-	return save_result(c, div);
+	double div = v1 / v2;
+	return write_area(c.variable_index[0], div);
 }
 
-int command_mul(command *c, program *_p) {
+int command_mul(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 3) != 0) {
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
 
-#ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
-		return -1;
-	}
-#endif
-
-	double mul = ctod(v1->data) * ctod(v2->data);
-	return save_result(c, mul);
+	double mul = v1 * v2;
+	return write_area(c.variable_index[0], mul);
 }
 
-int command_xor(command *c, program *_p) {
+int command_xor(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 3) != 0) {
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
 
-#ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
-		return -1;
-	}
-#endif
-
-	double xord = int(ctod(v1->data)) % int(ctod(v2->data));
-	return save_result(c, xord);
+	double xord = int(v1) % int(v2);
+	return write_area(c.variable_index[0], xord);
 }
 
-int command_or(command *c, program *_p) {
+int command_or(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 3) != 0) {
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
 
-#ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
-		return -1;
-	}
-#endif
-
-	double or_r = int(ctod(v1->data)) | int(ctod(v2->data));
-	return save_result(c, or_r);
+	double or_r = int(v1) | int(v2);
+	return write_area(c.variable_index[0], or_r);
 }
 
-int command_and(command *c, program *_p) {
+int command_and(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 3) != 0) {
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
 
-#ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
-		return -1;
-	}
-#endif
-
-	double and_r = int(ctod(v1->data)) & int(ctod(v2->data));
-	return save_result(c, and_r);
+	double and_r = int(v1) & int(v2);
+	return write_area(c.variable_index[0], and_r);
 }
 
-int command_pow(command *c, program *_p) {
+int command_pow(command c, program *p) {
 #ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 3) != 0) {
+	if (_validate_command(c) != 0) {
 		return -1;
 	}
 #endif
 
-	variable *v1 = get_var(c, 1);
-	variable *v2 = get_var(c, 2);
+	double v1 = get_double(c, 1);
+	double v2 = get_double(c, 2);
 
-#ifndef DISABLE_EXCEPTIONS
-	if (v1 == NULL || v2 == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
-		return -1;
-	}
-#endif
-
-	double pow_r = pow(ctod(v1->data), ctod(v2->data));
-	return save_result(c, pow_r);
+	double pow_r = pow(v1, v2);
+	return write_area(c.variable_index[0], pow_r);
 }
 
-int command_trigonometry(command *c, program *_p) {
-#ifndef DISABLE_EXCEPTIONS
-	if (validate_command(c, 2) != 0) {
+int command_trigonometry(command c, program *p) {
+	if (c.variable_type[0] != TYPE_ADDRESS) {
+		error_msg(ERR_STR_INVALID_TYPE, c.pid);
 		return -1;
 	}
-#endif
 
-	variable *val = get_var(c, 1);
-
-#ifndef DISABLE_EXCEPTIONS
-	if (val == NULL) {
-		c->exception = raise(ERR_STR_INVALID_TYPE, c->pid, ERR_VARIABLE_NOT_FOUND);
-		return -1;
-	}
-#endif
-
+	double val = get_double(c, 1);
 	double res = 0;
-	double vald = ctod(val->data);
-	if (strcmp(c->cmd, "SIN") == 0) {
-		res = sin(vald);
+
+	switch (c.statement) {
+	case STATEMENT_SIN:
+		res = sin(val);
+		break;
+	case STATEMENT_COS:
+		res = cos(val);
+		break;
+	case STATEMENT_TAN:
+		res = tan(val);
+		break;
+	case STATEMENT_COT:
+		res = 1.0 / tan(val);
+		break;
+	case STATEMENT_SINH:
+		res = sinh(val);
+		break;
+	case STATEMENT_COSH:
+		res = cosh(val);
+		break;
+	case STATEMENT_TANH:
+		res = tanh(val);
+		break;
+	case STATEMENT_COTH:
+		res = 1.0 / tanh(val);
+		break;
+	case STATEMENT_ASIN:
+		res = asin(val);
+		break;
+	case STATEMENT_ACOS:
+		res = acos(val);
+		break;
+	case STATEMENT_ATAN:
+		res = atan(val);
+		break;
+	case STATEMENT_ACOT:
+		res = 1.0 / atan(val);
+		break;
+	default:
+		res = 0;
+		break;
 	}
-	if (strcmp(c->cmd, "COS") == 0) {
-		res = cos(vald);
-	}
-	if (strcmp(c->cmd, "TAN") == 0) {
-		res = tan(vald);
-	}
-	if (strcmp(c->cmd, "COT") == 0) {
-		res = 1.0 / tan(vald);
-	}
-	if (strcmp(c->cmd, "SINH") == 0) {
-		res = sinh(vald);
-	}
-	if (strcmp(c->cmd, "COSH") == 0) {
-		res = cosh(vald);
-	}
-	if (strcmp(c->cmd, "TANH") == 0) {
-		res = tanh(vald);
-	}
-	if (strcmp(c->cmd, "COTH") == 0) {
-		res = 1.0 / tanh(vald);
-	}
-	if (strcmp(c->cmd, "ASIN") == 0) {
-		res = asin(vald);
-	}
-	if (strcmp(c->cmd, "ACOS") == 0) {
-		res = acos(vald);
-	}
-	if (strcmp(c->cmd, "ATAN") == 0) {
-		res = atan(vald);
-	}
-	if (strcmp(c->cmd, "ACOT") == 0) {
-		res = 1.0 / atan(vald);
-	}
-#ifdef BOARD_ESP32
-	if (strcmp(c->cmd, "ASINH") == 0) {
-		res = asinh(vald);
-	}
-	if (strcmp(c->cmd, "ACOSH") == 0) {
-		res = acosh(vald);
-	}
-	if (strcmp(c->cmd, "ATANH") == 0) {
-		res = atanh(vald);
-	}
-	if (strcmp(c->cmd, "ACOTH") == 0) {
-		res = 1.0 / atanh(vald);
-	}
-#endif
-	new_number(c->args[0].data, res, c->pid);
+
+	write_area(c.variable_index[0], res);
 	return 0;
 }

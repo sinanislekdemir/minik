@@ -1,15 +1,15 @@
 main:
-SET name "sinan"
-SET surname "islekdemir"
-SPRINTLN "Variables set"
-ALLOC fullname 20
-SPRINTLN "Allocated variable"
-APPEND fullname name
-SPRINTLN "Append name"
-APPEND fullname " "
-SPRINTLN "Append space"
-APPEND fullname surname
-SPRINTLN "Append surname"
-SPRINTLN fullname
+SET @0 "sinan "
+APPEND @0 0x69
+APPEND @0 0x73
+APPEND @0 0x6C
+APPEND @0 0x65
+APPEND @0 0x6B
+APPEND @0 0x64
+APPEND @0 0x65
+APPEND @0 0x6D
+APPEND @0 0x69
+APPEND @0 0x72
+SPRINTLN @0
 HALT
 ---

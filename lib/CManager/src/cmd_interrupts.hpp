@@ -3,6 +3,6 @@
 
 #include "program.hpp"
 
-int command_int(command *c, program *_p);
+int command_int(command c, program *p);
 
 #endif

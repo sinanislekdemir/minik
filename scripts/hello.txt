@@ -1,4 +1,5 @@
 main:
-SPRINTLN "Hello world"
+SET @1 "Hello world"
+SPRINTLN @1
 HALT
 ---

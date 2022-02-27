@@ -1,41 +1,38 @@
 #include "cmd_digital.hpp"
 #include "helpers.hpp"
-#include "pins.hpp"
 #include <Arduino.h>
 
-int command_pinmode(command *c, program *_p) {
-	int *pins = pins_def(c, _p);
-	if (pins == NULL) {
-		error_msg("Invalid PIN Def", _p->pid);
+int command_pinmode(command c, program *p) {
+	int pin = int(get_double(c, 0));
+	int val = int(get_double(c, 1));
+	if (pin == -1 || val == -1) {
+		error_msg("Invalid PIN Def", p->pid);
 		return -1;
 	}
-	pinMode(pins[0], pins[1]);
-	free(pins);
+	pinMode(pin, val);
 	return 0;
 }
 
-int command_digitalwrite(command *c, program *_p) {
+int command_digitalwrite(command c, program *p) {
 	// DWRITE pin HIGH/LOW
-	int *pins = pins_def(c, _p);
-	if (pins == NULL) {
-		error_msg("Invalid PIN Def", _p->pid);
+	int pin = int(get_double(c, 0));
+	int value = int(get_double(c, 1));
+
+	if (pin == -1 || value == -1) {
+		error_msg("Invalid PIN Def", p->pid);
 		return -1;
 	}
-	digitalWrite(pins[0], pins[1]);
-	free(pins);
+	digitalWrite(pin, value);
 	return 0;
 }
-int command_digitalread(command *c, program *_p) {
+
+int command_digitalread(command c, program *p) {
 	// DREAD src pin
-#ifndef DISABLE_EXCEPTIONS
-	if (c->argc != 2) {
-		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_ADDRESS_NOT_FOUND);
+	int pin = int(get_double(c, 1));
+	if (pin == -1) {
 		return -1;
 	}
-#endif
-	variable *pin = get_var(c, 1);
-	unsigned int a_pin = int(ctod(pin->data));
-	int state = digitalRead(a_pin);
-	new_number(c->args[0].data, double(state), c->pid);
+	int state = digitalRead(pin);
+	write_area(c.variable_index[0], double(state));
 	return 0;
 }

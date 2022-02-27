@@ -1,7 +1,7 @@
 #include "status.hpp"
 #include <EEPROM.h>
 
-StatusEngine *status_engine = new StatusEngine();
+StatusEngine status_engine;
 
 void StatusEngine::change_status_pin(int pin) {
 	// Turn off the lights for the old pin;

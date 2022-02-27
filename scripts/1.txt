@@ -1,36 +1,33 @@
-main:
-# Hi this is the main entry point
-SET name "sinan islekdemir"
-SPRINTLN "Welcome!"
-SPRINTLN name
-CPY sub_name 2 3 name
-SPRINTLN sub_name
-CALL test
+exit:
+SET @60 "bye!"
+SPRINTLN @60
+HALT
 ---
 print:
-SPRINTLN test
----
-test:
-# set global variable to 3
-SET test 3
-# ok now let's print it
-CALL print
-# do a bit of math
-ADD test 2 test
-# now test shoul be 5, let's print again
-CALL print
-# now switch to infinite loop test
-CALL test_two
+SPRINTLN @50
 ---
 test_two:
-SET counter 0
-ADD counter 1 counter
-SPRINTLN counter
-CMP counter 100
+SET @50 0
+ADD @50 1 @50
+SPRINTLN @50
+CMP @50 100
 JE exit
 GOTO 1
 ---
-exit:
-SPRINTLN "bye!"
-HALT
+test:
+SET @50 3
+SPRINTLN @50
+ADD @50 2 @50
+SPRINTLN @50
+CALL test_two
+---
+main:
+# Hi this is the main entry point
+SET @10 "sinan islekdemir"
+SET @30 "Welcome!"
+SPRINTLN @30
+SPRINTLN @10
+CPY @40 @16 10
+SPRINTLN @40
+CALL test
 ---

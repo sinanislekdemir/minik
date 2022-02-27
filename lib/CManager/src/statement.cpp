@@ -12,28 +12,13 @@
 #include "cmd_variable.hpp"
 #include "constants.hpp"
 #include "helpers.hpp"
+#include <Arduino.h>
 
-statement *root_statement = NULL;
+statement statements[56] = {0};
 
-void add_statement(const char *cmd, int (*f)(command *c, program *_p)) {
-	if (root_statement == NULL) {
-		root_statement = (statement *)malloc(sizeof(statement));
-		root_statement->command = cmd;
-		root_statement->f = f;
-		root_statement->next = NULL;
-		return;
-	}
-	statement *node = root_statement;
-	while (node != NULL) {
-		if (node->next == NULL) {
-			node->next = (statement *)malloc(sizeof(statement));
-			node->next->command = cmd;
-			node->next->f = f;
-			node->next->next = NULL;
-			break;
-		}
-		node = node->next;
-	}
+void add_statement(char cmd, int (*f)(command c, program *p), unsigned int index) {
+	statements[index].command = cmd;
+	statements[index].f = f;
 }
 
 /**
@@ -43,7 +28,7 @@ void add_statement(const char *cmd, int (*f)(command *c, program *_p)) {
    stack, not heap. So, it's memory efficient when
    commands are repeating.
  */
-const char *find_statement(const char *cmd) {
+char find_statement(const char *cmd) {
 	if (strcmp(cmd, "SPRINT") == 0)
 		return STATEMENT_SPRINT;
 	if (strcmp(cmd, "SPRINTLN") == 0)
@@ -110,14 +95,6 @@ const char *find_statement(const char *cmd) {
 		return STATEMENT_ATAN;
 	if (strcmp(cmd, "ACOT") == 0)
 		return STATEMENT_ACOT;
-	if (strcmp(cmd, "ASINH") == 0)
-		return STATEMENT_ASINH;
-	if (strcmp(cmd, "ACOSH") == 0)
-		return STATEMENT_ACOSH;
-	if (strcmp(cmd, "ATANH") == 0)
-		return STATEMENT_ATANH;
-	if (strcmp(cmd, "ACOTH") == 0)
-		return STATEMENT_ACOTH;
 	if (strcmp(cmd, "HALT") == 0)
 		return STATEMENT_HALT;
 	if (strcmp(cmd, "ALLOC") == 0)
@@ -126,10 +103,6 @@ const char *find_statement(const char *cmd) {
 		return STATEMENT_APPEND;
 	if (strcmp(cmd, "SET") == 0)
 		return STATEMENT_SET;
-	if (strcmp(cmd, "STR") == 0)
-		return STATEMENT_STR;
-	if (strcmp(cmd, "NUM") == 0)
-		return STATEMENT_NUM;
 	if (strcmp(cmd, "DEL") == 0)
 		return STATEMENT_DEL;
 	if (strcmp(cmd, "CPY") == 0)
@@ -162,7 +135,9 @@ const char *find_statement(const char *cmd) {
 		return STATEMENT_DWRITE;
 	if (strcmp(cmd, "DREAD") == 0)
 		return STATEMENT_DREAD;
-	return NULL;
+	if (strcmp(cmd, "NOOP") == 0)
+		return STATEMENT_NOOP;
+	return 0;
 }
 
 void register_statements() {
@@ -171,71 +146,64 @@ void register_statements() {
 	   Order of lines below would greatly influence execution speed;
 	   Keep the most common commands on top
 	 */
-	add_statement(STATEMENT_SPRINT, command_serial_print);
-	add_statement(STATEMENT_SPRINTLN, command_serial_println);
-	add_statement(STATEMENT_SREADLN, command_getln);
-	add_statement(STATEMENT_GOTO, command_goto);
-	add_statement(STATEMENT_CALL, command_call);
+	add_statement(STATEMENT_SPRINT, command_serial_print, 0);
+	add_statement(STATEMENT_SPRINTLN, command_serial_println, 1);
+	add_statement(STATEMENT_SREADLN, command_getln, 2);
+	add_statement(STATEMENT_GOTO, command_goto, 3);
+	add_statement(STATEMENT_CALL, command_call, 4);
 
-	add_statement(STATEMENT_JE, command_je);
-	add_statement(STATEMENT_JNE, command_jne);
-	add_statement(STATEMENT_JG, command_jg);
-	add_statement(STATEMENT_JGE, command_jge);
-	add_statement(STATEMENT_JL, command_jl);
-	add_statement(STATEMENT_JLE, command_jle);
-	add_statement(STATEMENT_CMP, command_cmp);
+	add_statement(STATEMENT_JE, command_je, 5);
+	add_statement(STATEMENT_JNE, command_jne, 6);
+	add_statement(STATEMENT_JG, command_jg, 7);
+	add_statement(STATEMENT_JGE, command_jge, 8);
+	add_statement(STATEMENT_JL, command_jl, 9);
+	add_statement(STATEMENT_JLE, command_jle, 10);
+	add_statement(STATEMENT_CMP, command_cmp, 11);
 
-	add_statement(STATEMENT_LOG, command_log);
+	add_statement(STATEMENT_LOG, command_log, 12);
 
-	add_statement(STATEMENT_ADD, command_add);
-	add_statement(STATEMENT_SUB, command_sub);
-	add_statement(STATEMENT_DIV, command_div);
-	add_statement(STATEMENT_MUL, command_mul);
-	add_statement(STATEMENT_XOR, command_xor);
-	add_statement(STATEMENT_OR, command_or);
-	add_statement(STATEMENT_AND, command_and);
-	add_statement(STATEMENT_POW, command_pow);
-	add_statement(STATEMENT_SIN, command_trigonometry);
-	add_statement(STATEMENT_COS, command_trigonometry);
-	add_statement(STATEMENT_TAN, command_trigonometry);
-	add_statement(STATEMENT_COT, command_trigonometry);
-	add_statement(STATEMENT_SINH, command_trigonometry);
-	add_statement(STATEMENT_COSH, command_trigonometry);
-	add_statement(STATEMENT_TANH, command_trigonometry);
-	add_statement(STATEMENT_COTH, command_trigonometry);
-	add_statement(STATEMENT_ASIN, command_trigonometry);
-	add_statement(STATEMENT_ACOS, command_trigonometry);
-	add_statement(STATEMENT_ATAN, command_trigonometry);
-	add_statement(STATEMENT_ACOT, command_trigonometry);
-#ifdef BOARD_ESP32
-	add_statement(STATEMENT_ASINH, command_trigonometry);
-	add_statement(STATEMENT_ACOSH, command_trigonometry);
-	add_statement(STATEMENT_ATANH, command_trigonometry);
-	add_statement(STATEMENT_ACOTH, command_trigonometry);
-#endif
+	add_statement(STATEMENT_ADD, command_add, 13);
+	add_statement(STATEMENT_SUB, command_sub, 14);
+	add_statement(STATEMENT_DIV, command_div, 15);
+	add_statement(STATEMENT_MUL, command_mul, 16);
+	add_statement(STATEMENT_XOR, command_xor, 17);
+	add_statement(STATEMENT_OR, command_or, 18);
+	add_statement(STATEMENT_AND, command_and, 19);
+	add_statement(STATEMENT_POW, command_pow, 20);
+	add_statement(STATEMENT_SIN, command_trigonometry, 21);
+	add_statement(STATEMENT_COS, command_trigonometry, 22);
+	add_statement(STATEMENT_TAN, command_trigonometry, 23);
+	add_statement(STATEMENT_COT, command_trigonometry, 24);
+	add_statement(STATEMENT_SINH, command_trigonometry, 25);
+	add_statement(STATEMENT_COSH, command_trigonometry, 26);
+	add_statement(STATEMENT_TANH, command_trigonometry, 27);
+	add_statement(STATEMENT_COTH, command_trigonometry, 28);
+	add_statement(STATEMENT_ASIN, command_trigonometry, 29);
+	add_statement(STATEMENT_ACOS, command_trigonometry, 30);
+	add_statement(STATEMENT_ATAN, command_trigonometry, 31);
+	add_statement(STATEMENT_ACOT, command_trigonometry, 32);
 
-	add_statement(STATEMENT_HALT, command_halt);
-	add_statement(STATEMENT_ALLOC, command_alloc);
-	add_statement(STATEMENT_APPEND, command_append);
-	add_statement(STATEMENT_SET, command_set);
-	add_statement(STATEMENT_STR, command_str);
-	add_statement(STATEMENT_NUM, command_num);
-	add_statement(STATEMENT_DEL, command_del);
-	add_statement(STATEMENT_CPY, command_cpy);
-	add_statement(STATEMENT_LROTATE, command_lrotate);
-	add_statement(STATEMENT_RROTATE, command_rrotate);
-	add_statement(STATEMENT_LSHIFT, command_lshift);
-	add_statement(STATEMENT_RSHIFT, command_rshift);
+	add_statement(STATEMENT_HALT, command_halt, 33);
+	add_statement(STATEMENT_ALLOC, command_alloc, 34);
+	add_statement(STATEMENT_APPEND, command_append, 35);
+	add_statement(STATEMENT_SET, command_set, 36);
+	add_statement(STATEMENT_DEL, command_del, 39);
+	add_statement(STATEMENT_CPY, command_cpy, 40);
+	add_statement(STATEMENT_LROTATE, command_lrotate, 41);
+	add_statement(STATEMENT_RROTATE, command_rrotate, 42);
+	add_statement(STATEMENT_LSHIFT, command_lshift, 43);
+	add_statement(STATEMENT_RSHIFT, command_rshift, 44);
 
-	add_statement(STATEMENT_SLEEP, command_sleep);
-	add_statement(STATEMENT_MILLIS, command_millis);
-	add_statement(STATEMENT_INT, command_int);
-	add_statement(STATEMENT_CORE, command_core);
-	add_statement(STATEMENT_SYS, command_sys);
+	add_statement(STATEMENT_SLEEP, command_sleep, 45);
+	add_statement(STATEMENT_MILLIS, command_millis, 46);
+	add_statement(STATEMENT_INT, command_int, 47);
+	add_statement(STATEMENT_CORE, command_core, 48);
+	add_statement(STATEMENT_SYS, command_sys, 49);
 
-	add_statement(STATEMENT_AREAD, command_analogread);
-	add_statement(STATEMENT_AWRITE, command_analogwrite);
-	add_statement(STATEMENT_PINMODE, command_pinmode);
-	add_statement(STATEMENT_DWRITE, command_digitalwrite);
-	add_statement(STATEMENT_DREAD, command_digitalread);
+	add_statement(STATEMENT_AREAD, command_analogread, 50);
+	add_statement(STATEMENT_AWRITE, command_analogwrite, 51);
+	add_statement(STATEMENT_PINMODE, command_pinmode, 52);
+	add_statement(STATEMENT_DWRITE, command_digitalwrite, 53);
+	add_statement(STATEMENT_DREAD, command_digitalread, 54);
+	add_statement(STATEMENT_NOOP, command_noop, 55);
 }

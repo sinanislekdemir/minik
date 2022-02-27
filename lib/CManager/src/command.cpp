@@ -2,22 +2,43 @@
 #include "constants.hpp"
 #include <Arduino.h>
 
-variable *get_var(command *c, int index) {
-	if (c->args[index].type == TYPE_NUM || c->args[index].type == TYPE_STR || c->args[index].type == TYPE_BYTE) {
-		return &c->args[index];
-	}
+command commands[MAX_CMDS] = {0};
 
-	if (c->args[index].type == TYPE_VARIABLE) {
-		return find_variable(c->args[index].data, c->pid);
+double get_double(command c, int index) {
+	if (c.variable_type[index] == TYPE_NUM) {
+		return c.variable_constant[index];
 	}
-	return NULL;
+	if (c.variable_type[index] == TYPE_ADDRESS) {
+		return read_area_double(c.variable_index[index]);
+	}
+	return 0;
 }
 
-int validate_command(command *c, unsigned int expected_argc) {
-	if (c->argc < expected_argc) {
-		c->exception = raise(ERR_STR_NOT_ENOUGH_PARAMS, c->pid, ERR_NOT_ENOUGH_ARGUMENTS);
-		return -1;
+int get_int(command c, int index) {
+	if (c.variable_type[index] == TYPE_NUM) {
+		return int(c.variable_constant[index]);
 	}
-
+	if (c.variable_type[index] == TYPE_ADDRESS) {
+		return read_area_int(c.variable_index[index]);
+	}
 	return 0;
+}
+
+long get_long(command c, int index) {
+	if (c.variable_type[index] == TYPE_NUM) {
+		return long(c.variable_constant[index]);
+	}
+	if (c.variable_type[index] == TYPE_ADDRESS) {
+		return read_area_long(c.variable_index[index]);
+	}
+	return 0;
+}
+
+void get_string(command c, int index, char *back, unsigned int size) { read_area_str(c.variable_index[index], size, back); }
+
+char get_byte(command c, int index) {
+	if (c.variable_type[index] == TYPE_ADDRESS) {
+		return read_area_char(c.variable_index[index]);
+	}
+	return (char)c.variable_constant[index];
 }

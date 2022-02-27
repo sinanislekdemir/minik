@@ -1,43 +1,54 @@
 main:
-SPRINTLN "Accessing SD Card through SPI"
-SET SD_SS_PIN 53
-SET SD_CMD 1
+SET @200 "Accessing SD Card through SPI"
+SPRINTLN @100
+SET @20 53
+SET @10 1
 SYS 15
-CMP SD_MOUNT 1
-JE mounted
-SPRINTLN "SD Card could not be mounted"
-SPRINT "Flag: "
-SPRINTLN SD_MOUNT
+CMP @20 1
+JE 1 0
+SET @250 "SD Card could not be mounted"
+SET @300 "Flag: "
+SPRINTLN @250
+SPRINT @300
+SPRINTLN @20
 HALT
 ---
 mounted:
-SPRINTLN "  List files in SD Card root"
-SET SD_DIR "/"
-SET SD_CMD 2
+SET @350 " List files in SD Card Root"
+SET @400 "/"
+SET @410 " "
+SET @420 " bytes. Is DIR? "
+SPRINTLN @350
+SET @20 @400
+SET @10 2
 SYS 15
-SPRINT "  File count: "
-SPRINTLN SD_FILECOUNT
-SET index 0
-CALL list_dir
+SET @450 " File count: "
+SPRINT @450
+SPRINTLN @20
+SET @600 @20
+SET @500 0
+CALL 2 0
 ---
 list_dir:
-SET SD_INDEX index
-SET SD_CMD 3
-SET SD_DIR "/"
+DEL @20 128
+DEL @10 10
+SET @10 3
+SET @20 @400
+SET @152 @500
 SYS 15
-SPRINT SD_FILENAME
-SPRINT " "
-SPRINT SD_FILESIZE
-SPRINT " bytes. Is DIR? "
-SPRINTLN SD_ISDIR
-ADD index index 1
-SET SD_INDEX index
-CMP index SD_FILECOUNT
-JE create_directory_test
-GOTO 1
+SPRINT @20
+SPRINT @410
+SPRINT @152
+SPRINT @420
+SPRINTLN @162
+ADD @500 @500 1
+CMP @500 @600
+JE 3 0
+GOTO 0
 ---
 create_directory_test:
-SPRINTLN "Halt here"
+SET @700 "Halt here"
+SPRINTLN @700
 HALT
 ---
 on_exception:

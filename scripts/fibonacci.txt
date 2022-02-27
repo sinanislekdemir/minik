@@ -1,21 +1,25 @@
-main:
-SET n1 0
-SET n2 1
-SET count 0
-SET to 40
-CALL loop
+exit:
+SET @1 "Bye!"
+SPRINTLN @60 2
+SPRINTLN @1
+HALT
 ---
 loop:
-ADD nth n1 n2
-SET n1 n2
-SET n2 nth
-ADD count 1 count
-CMP count to
+ADD @60 @10 @20
+SPRINTLN @60
+SET @10 @20
+SET @20 @60
+ADD @40 1 @40
+CMP @40 @50
 JE exit
 GOTO 0
 ---
-exit:
-SPRINTLN n1
-SPRINTLN "Bye!"
-HALT
+main:
+# n1 - 10, n2 - 15, count - 20, to - 25, nth - 30
+SET @10 0
+SET @20 1
+SET @40 0
+SET @50 40
+SET @60 0
+CALL loop
 ---

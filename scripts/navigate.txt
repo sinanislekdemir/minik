@@ -1,0 +1,33 @@
+call_by_label:
+SET @100 "Called by label"
+SPRINTLN @100
+# Sub 2 Instruction 0 - call_by_number
+CALL 2 0
+---
+main:
+SET @10 "Main"
+SPRINTLN @10
+# Label must be defined before CALL
+CALL call_by_label
+---
+call_by_number:
+SET @150 "Called by CALL 2 0"
+SPRINTLN @150
+CALL 3 0
+---
+goto_test:
+SET @200 0
+SPRINTLN @200
+SLEEP 100
+ADD @200 @200 1
+CMP @200 50
+# if @200 = 50, Reset to 0 by jumping to 0
+JE 4 0
+# Goto SPRINTLN
+GOTO 1
+---
+exit:
+SET @200 "Bye"
+SPRINTLN @200
+HALT
+---

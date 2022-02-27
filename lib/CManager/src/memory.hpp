@@ -1,11 +1,17 @@
 #ifndef _memory_hpp
 #define _memory_hpp
 
-#include "variable.hpp"
+#include "constants.hpp"
 
-#if defined(BOARD_ATMEGA)
+#ifdef BOARD_ESP32
+#define MAX_MEM 1024 * 8
+#else
+#define MAX_MEM 1024
+#endif
+
+#ifdef BOARD_ATMEGA
 #define BITS 8
-#elif defined(BOARD_ESP32)
+#elif BOARD_ESP32
 #define BITS 32
 #else
 #define BITS 8
@@ -14,31 +20,32 @@
 // jump request
 struct jump_request {
 	int request;
-	int pid;
-	int label;
+	char pid;
+	short label;
 };
 
-struct variable {
-	char *name;
-	char *data;
-	unsigned int datasize;
-	unsigned int pid;
-	unsigned int type;
-	bool deleted;
-	variable *next;
+struct _protected {
+	short pid;
+	unsigned int from;
+	unsigned int to;
 };
 
-variable *find_variable(const char *name, unsigned int pid);
-void free_variable(const char *name, unsigned int pid);
-void free_program(unsigned int pid);
-void new_variable(variable *v);
-void new_number(char *name, double value, unsigned int pid);
-void new_string(char *name, char *value, unsigned int pid);
-int find_number(const char *name, unsigned int pid);
-double find_double(const char *name, unsigned int pid);
-char *find_string(const char *name, unsigned int pid);
-void error_msg(const char *msg, unsigned int pid);
-void defrag_variables();
-void mem_dump();
+void free_area(unsigned int index, unsigned int size);
+void free_program(char pid);
+int area_type(unsigned int index);
+int write_area(unsigned int index, char *data);
+int write_area(unsigned int index, char *data, unsigned int size);
+int write_area(unsigned int index, int data);
+int write_area(unsigned int index, double data);
+int write_area(unsigned int index, long data);
+int write_area(unsigned int index, char data);
+int append_area(unsigned int index, char data);
+int read_area_str(unsigned int index, unsigned int size, char *back);
+double read_area_double(unsigned int index);
+int read_area_int(unsigned int index);
+long read_area_long(unsigned int index);
+char read_area_char(unsigned int index);
+
+void error_msg(const char *msg, char pid);
 
 #endif

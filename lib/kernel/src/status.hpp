@@ -25,10 +25,9 @@
 #define ERROR 0b01010101
 #define ERROR_UNKNOWN 0b00000001
 
-#include "daemon.hpp"
 #include <Arduino.h>
 
-class StatusEngine : public daemon {
+class StatusEngine{
       private:
 	int _status;
 	unsigned long _last_milliseconds;

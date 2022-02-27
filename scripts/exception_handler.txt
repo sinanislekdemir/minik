@@ -1,12 +1,15 @@
-main:
-SPRINTLN "Testing division by zero"
-SET a 10
-SET b 0
-DIV c a b
-SPRINTLN "You never see this message"
+on_exception:
+SET @150 "Something went wrong"
+SPRINTLN @150
 HALT
 ---
-on_exception:
-SPRINTLN "Something went wrong"
+main:
+SET @10 "Testing division by zero"
+SET @100 "You never see this message"
+SPRINTLN @10
+SET @50 10
+SET @60 0
+DIV @70 @50 @60
+SPRINTLN @100
 HALT
 ---

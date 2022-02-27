@@ -1,22 +1,24 @@
-main:
-ALLOC byte_array 5
-APPEND byte_array 0x41
-APPEND byte_array 0x42
-APPEND byte_array 0x43
-APPEND byte_array 0x0D
-SPRINTLN byte_array
-SET byte1 0x55
-SET byte2 0x56
-CMP byte1 byte2
-JL less
-JG big
-HALT
----
 less:
-SPRINTLN "Less"
+SET @20 "less"
+SPRINTLN @20
 HALT
 ---
 big:
-SPRINTLN "Big"
+SET @30 "big"
+SPRINTLN @30
+HALT
+---
+main:
+ALLOC @0 5
+APPEND @0 0x41
+APPEND @0 0x42
+APPEND @0 0x43
+APPEND @0 0x0D
+SPRINTLN @0
+SET @10 0x55
+SET @12 0x56
+CMP @10 @12
+JL less
+JG big
 HALT
 ---

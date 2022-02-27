@@ -9,257 +9,122 @@
 #include "helpers.hpp"
 #include <Arduino.h>
 
-variable root_variable = {(char *)"", (char *)"", 0, 0, 0, false, NULL};
-variable HIGHV = {(char *)"HIGH", dtoc(HIGH), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable LOWV = {(char *)"LOW", dtoc(LOW), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable RISINGV = {(char *)"RISING", dtoc(RISING), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable FALLINGV = {(char *)"FALLING", dtoc(FALLING), sizeof(double), 0, TYPE_NUM, false, NULL};
-#ifdef BOARD_ESP32
-variable ONLOWV = {(char *)"ONLOW", dtoc(ONLOW), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable ONHIGHV = {(char *)"ONHIGH", dtoc(ONHIGH), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable IPULLDOWN = {(char *)"INPUT_PULLDOWN", dtoc(INPUT_PULLDOWN), sizeof(double), 0, TYPE_NUM, false, NULL};
-#endif
-variable PIV = {(char *)"PI", dtoc(PI), sizeof(double), 0, TYPE_NUM, false, NULL};
+char _memory_area[MAX_MEM] = {0};
+_protected _protected_memory[64] = {0};
+char _last_err[MAX_LINE_LENGTH] = {0};
 
-variable INPUTV = {(char *)"INPUT", dtoc(INPUT), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable OUTPUTV = {(char *)"OUTPUT", dtoc(OUTPUT), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable IPULLUP = {(char *)"INPUT_PULLUP", dtoc(INPUT_PULLUP), sizeof(double), 0, TYPE_NUM, false, NULL};
-
-variable HPIV = {(char *)"HALF_PI", dtoc(HALF_PI), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable TWOPIV = {(char *)"TWO_PI", dtoc(TWO_PI), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable DTR = {(char *)"DEG_TO_RAD", dtoc(DEG_TO_RAD), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable RTD = {(char *)"RAD_TO_DEG", dtoc(RAD_TO_DEG), sizeof(double), 0, TYPE_NUM, false, NULL};
-variable EULERV = {(char *)"EULER", dtoc(EULER), sizeof(double), 0, TYPE_NUM, false, NULL};
-
-variable *find_variable(const char *name, unsigned int pid) {
-	variable *node = &root_variable;
-	if (strcmp(name, "HIGH") == 0) {
-		return &HIGHV;
+int init_mem() {
+	for (unsigned short i = 0; i < 64; i++) {
+		_protected_memory[i].pid = -1;
 	}
-	if (strcmp(name, "LOW") == 0) {
-		return &LOWV;
-	}
-	if (strcmp(name, "RISING") == 0) {
-		return &RISINGV;
-	}
-	if (strcmp(name, "FALLING") == 0) {
-		return &FALLINGV;
-	}
-	if (strcmp(name, "INPUT") == 0) {
-		return &INPUTV;
-	}
-	if (strcmp(name, "OUTPUT") == 0) {
-		return &OUTPUTV;
-	}
-	if (strcmp(name, "INPUT_PULLUP") == 0) {
-		return &IPULLUP;
-	}
-#ifdef BOARD_ESP32
-	if (strcmp(name, "INPUT_PULLDOWN") == 0) {
-		return &IPULLDOWN;
-	}
-	if (strcmp(name, "ONLOW") == 0) {
-		return &ONLOWV;
-	}
-	if (strcmp(name, "ONHIGH") == 0) {
-		return &ONHIGHV;
-	}
-#endif
-	if (strcmp(name, "PI") == 0) {
-		return &PIV;
-	}
-	if (strcmp(name, "HALF_PI") == 0) {
-		return &HPIV;
-	}
-	if (strcmp(name, "TWO_PI") == 0) {
-		return &TWOPIV;
-	}
-	if (strcmp(name, "DEG_TO_RAD") == 0) {
-		return &DTR;
-	}
-	if (strcmp(name, "RAD_TO_DEG") == 0) {
-		return &RTD;
-	}
-	if (strcmp(name, "EULER") == 0) {
-		return &EULERV;
-	}
-
-	while (true) {
-		if (node->name != NULL && strcmp(node->name, name) == 0 && (pid == node->pid || pid == 0) && node->deleted == false) {
-			if (node->type == TYPE_VARIABLE && node->data != NULL) {
-				return find_variable(node->data, pid);
-			}
-			return node;
-		}
-		node = node->next;
-		if (node == NULL) {
-			break;
-		}
-	}
-
-	return NULL;
+	return 0;
 }
 
-void free_program(unsigned int pid) {
+void free_program(char pid) {
 	if (pid == 0) {
 		// 0 is reserved pid;
 		return;
 	}
-
-	variable *head = &root_variable;
-	variable *tmp;
-	while (head != NULL) {
-		tmp = head;
-		head = head->next;
-		if (tmp->pid == pid) {
-			if (tmp->name != NULL)
-				free(tmp->name);
-			if (tmp->data != NULL)
-				free(tmp->data);
-			free(tmp);
+	for (unsigned short i = 0; i < 64; i++) {
+		if (_protected_memory[i].pid == pid) {
+			_protected_memory[i].pid = -1;
 		}
 	}
 }
 
-void mem_dump() {
-	variable *node = &root_variable;
-	while (node != NULL) {
-		Serial.print("N: ");
-		Serial.print(node->name);
-		Serial.print(" T: ");
-		Serial.print(node->type);
-		Serial.print(" S: ");
-		Serial.print(node->datasize);
-		Serial.print("bytes PID: ");
-		Serial.println(node->pid);
-		node = node->next;
-	}
+void free_area(unsigned int index, unsigned int size) { memset(_memory_area + index, 0, size); }
+
+int write_area(unsigned int index, char *data) {
+	memcpy(_memory_area + index, data, strlen(data));
+	_memory_area[index - 1] = char(TYPE_STR);
+	return 0;
 }
 
-void free_variable(const char *name, unsigned int pid) {
-	/**
-	   Free variables allocated data and name,
-	   and mark the entry as deleted for future use.
-	   But this doesn't actually remove the item totally from the linked
-	   list. You need some sort of defrag.
-	 */
-	variable *node = &root_variable;
-	while (true) {
-		if (node->name != NULL && strcmp(node->name, name) == 0 && pid == node->pid) {
-			free(node->data);
-			free(node->name);
-			node->datasize = 0;
-			node->pid = 0;
-			node->deleted = true;
-			break;
-		}
-		node = node->next;
-		if (node == NULL) {
-			break;
-		}
-	}
+int write_area(unsigned int index, int data) {
+	memcpy(_memory_area + index, &data, sizeof(int));
+	_memory_area[index - 1] = char(TYPE_NUM);
+	return 0;
 }
 
-void new_variable(variable *v) {
-	/**
-	   Add the variable to the linked list.
-	 */
-	variable *node = &root_variable;
-	v->deleted = false;
-	while (true) {
-		if (node->next == NULL) {
-			node->next = v;
-			break;
-		}
-		node = node->next;
-		if (node == NULL) {
-			// TODO: Raise errro
-			break;
-		}
-	}
+int write_area(unsigned int index, double data) {
+	memcpy(_memory_area + index, &data, sizeof(double));
+	_memory_area[index - 1] = char(TYPE_NUM);
+	return 0;
 }
 
-int find_number(const char *name, unsigned int pid) { return int(find_double(name, pid)); }
+int write_area(unsigned int index, long data) {
+	memcpy(_memory_area + index, &data, sizeof(double));
+	_memory_area[index - 1] = char(TYPE_NUM);
+	return 0;
+}
 
-double find_double(const char *name, unsigned int pid) {
-	variable *res = find_variable(name, pid);
-	if (res == NULL) {
+int write_area(unsigned int index, char data) {
+	if (index == 0) {
 		return 0;
 	}
-	if (res->type == TYPE_VARIABLE) {
-		return find_number(res->data, pid);
+	_memory_area[index] = data;
+	_memory_area[index - 1] = char(TYPE_BYTE);
+	return 0;
+}
+
+int write_area(unsigned int index, char *data, unsigned int size) {
+	memcpy(_memory_area + index, data, size);
+	_memory_area[index - 1] = char(TYPE_STR);
+	return 0;
+}
+
+int append_area(unsigned int index, char data) {
+	for (unsigned int i = index; i < MAX_MEM; i++) {
+		if (_memory_area[i] == 0) {
+			_memory_area[i] = data;
+			return 0;
+		}
 	}
-	if (res->data == NULL) {
+	return -1;
+}
+
+int read_area_str(unsigned int index, unsigned int size, char *back) {
+	if (size == 0) {
+		unsigned int tmp = 0;
+		for (unsigned int i = index; i < MAX_MEM; i++) {
+			if (_memory_area[i] != 0) {
+				tmp++;
+			} else {
+				break;
+			}
+		}
+		size = tmp;
+	}
+	if (size == 0) {
 		return 0;
 	}
-	return ctod(res->data);
+	memcpy(back, _memory_area + index, size);
+	return size;
 }
 
-char *find_string(const char *name, unsigned int pid) {
-	variable *res = find_variable(name, pid);
-	if (res == NULL) {
-		return NULL;
-	}
-	if (res->type == TYPE_VARIABLE) {
-		return find_string(res->data, pid);
-	}
-	return res->data;
+int area_type(unsigned int index) { return _memory_area[index - 1]; }
+
+double read_area_double(unsigned int index) {
+	double result;
+	memcpy(&result, _memory_area + index, sizeof(double));
+	return result;
 }
 
-void new_number(char *name, double value, unsigned int pid) {
-	variable *res = find_variable(name, pid);
-	if (res == NULL) {
-		res = (variable *)malloc(sizeof(variable));
-		res->next = NULL;
-		res->data = dtoc(value);
-		res->type = TYPE_NUM;
-		res->datasize = sizeof(double);
-		res->pid = pid;
-		res->deleted = false;
-		res->name = (char *)malloc(strlen(name) + 1);
-		memset(res->name, 0, strlen(name) + 1);
-		strcpy(res->name, name);
-		new_variable(res);
-		return;
-	}
-	if (res->data != NULL) {
-		free(res->data);
-	}
-	res->data = dtoc(value);
-	res->type = TYPE_NUM;
-	res->datasize = sizeof(double);
-	res->deleted = false;
+int read_area_int(unsigned int index) {
+	int result;
+	memcpy(&result, _memory_area + index, sizeof(int));
+	return result;
 }
 
-void new_string(char *name, char *value, unsigned int pid) {
-	variable *res = find_variable(name, pid);
-	int size = strlen(value) + 1;
-	if (res == NULL) {
-		res = (variable *)malloc(sizeof(variable));
-		res->next = NULL;
-		res->data = (char *)malloc(size);
-		memset(res->data, 0, size);
-		strcpy(res->data, (const char *)value);
-		res->type = TYPE_STR;
-		res->datasize = size;
-		res->pid = pid;
-		res->deleted = false;
-		res->name = (char *)malloc(strlen(name) + 1);
-		memset(res->name, 0, strlen(name) + 1);
-		strcpy(res->name, name);
-		new_variable(res);
-		return;
-	}
-	if (res->data != NULL) {
-		free(res->data);
-	}
-	res->data = (char *)malloc(size);
-	memset(res->data, 0, size);
-	strcpy(res->data, (const char *)value);
-	res->datasize = size;
-	res->deleted = false;
+long read_area_long(unsigned int index) {
+	long result;
+	memcpy(&result, _memory_area + index, sizeof(long));
+	return result;
 }
 
-void error_msg(const char *msg, unsigned int pid) { new_string((char *)"ERR_EXCEPTION", (char *)msg, pid); }
+char read_area_char(unsigned int index) { return _memory_area[index]; }
 
-void defrag_variables() {}
+void error_msg(const char *msg, char pid) {
+	memset(_last_err, 0, MAX_LINE_LENGTH);
+	strcat(_last_err, msg);
+}

@@ -1,8 +1,10 @@
 main:
-SPRINT "What is your name? "
-SREADLN name 32
-SPRINT "Welcome "
-SPRINTLN name
+SET @10 "What is your name? "
+SET @40 "Welcome "
+SPRINT @10
+SREADLN @60 32
+SPRINT @40
+SPRINTLN @60
 HALT
 ---
 
