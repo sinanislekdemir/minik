@@ -86,9 +86,8 @@ int wifi(program *_p) {
 		int windex = int(read_area_double(WIFI_DATA_ADDRESS));
 		uint8_t i = uint8_t(windex);
 		String s = WiFi.SSID(i);
-		int l = s.length() + 1;
 		char sid[MAX_LINE_LENGTH] = {0};
-		s.toCharArray(sid, l - 1);
+		strcat(sid, s.c_str());
 		free_area(WIFI_DATA_ADDRESS, MAX_LINE_LENGTH);
 		write_area(WIFI_DATA_ADDRESS, sid, MAX_LINE_LENGTH);
 		return 0;
