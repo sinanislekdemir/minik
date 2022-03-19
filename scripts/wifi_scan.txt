@@ -1,0 +1,42 @@
+main:
+SET @200 "Wifi Status: "
+SET @220 "Scanning"
+SET @240 "Number of networks: "
+SET @265 " Strength: "
+SET @280 "Bye"
+SET @10 1
+SYS 10
+SPRINT @200
+SPRINTLN @20
+SPRINTLN @220
+SET @10 2
+SYS 10
+SPRINT @240
+SPRINTLN @20
+# Store number of networks in @300
+SET @300 @20
+SET @310 0
+CALL 1 0
+---
+loop_networks:
+# Print SSID
+SET @10 4
+SET @20 @310
+SYS 10
+SPRINT @20
+# Print RSSI
+SET @10 5
+SET 20 @310
+SYS 10
+SPRINT @265
+SPRINTLN @20
+# Next
+ADD @310 @310 1
+CMP @310 @300
+JE 2
+GOTO 0
+---
+exit:
+SPRINTLN @280
+HALT
+---

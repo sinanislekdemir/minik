@@ -13,7 +13,6 @@
 
 class Term {
       private:
-	uint8_t out_device;
 	unsigned long baud_rate;
 	int port;
 	bool has_client;
@@ -27,7 +26,7 @@ class Term {
 	int tmp_pid;
 
 	void append_program_buffer();
-	int kprint(const char *data);
+
 	int readline();
 	int receive_source();
 #ifdef BOARD_ESP32
@@ -47,5 +46,7 @@ class Term {
 	bool wait_for_client();
 	int available();
 };
+
+int kprint(const char *data);
 
 #endif
