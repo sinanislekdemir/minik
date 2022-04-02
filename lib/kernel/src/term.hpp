@@ -7,9 +7,16 @@
 
 #define MODE_TERM 0
 #define MODE_PROGRAM 1
+#define TERM_PORT 23
 
 #include "constants.hpp"
 #include <Arduino.h>
+
+#ifdef BOARD_ESP32
+#ifdef WITH_WIFI
+#include <WiFi.h>
+#endif
+#endif
 
 class Term {
       private:
@@ -31,7 +38,7 @@ class Term {
 	int receive_source();
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
-	void start_server();
+	WiFiServer terminal_server;
 #endif
 #endif
 
@@ -42,6 +49,7 @@ class Term {
 	void set_baud_rate(unsigned long rate);
 	void set_output(uint8_t out);
 	void set_port(int port);
+	void start_server();
 	// wait for client to connect;
 	bool wait_for_client();
 	int available();

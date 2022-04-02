@@ -15,13 +15,13 @@ extern program programs[MAX_PROGRAM_COUNT];
 extern int serial_lock;
 extern uint8_t out_device;
 extern char active_directory[MAX_PATH_SIZE];
+extern bool WIFIReady;
 
 Term main_term;
 
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
 #include <WiFi.h>
-WiFiServer s = WiFiServer(23);
 WiFiClient terminal_client;
 #endif
 #endif
@@ -29,7 +29,6 @@ WiFiClient terminal_client;
 Term::Term() {
 	out_device = OUT_SERIAL;
 	this->baud_rate = 9600;
-	this->port = 23;
 	this->has_client = false;
 
 	this->_is_in_readline = false;
@@ -41,12 +40,6 @@ Term::Term() {
 	this->io_cursor = 0;
 	this->write_eeprom = false;
 	this->boot_check = true;
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-	this->set_port(this->port);
-	this->start_server();
-#endif
-#endif
 }
 
 Term::~Term() {}
@@ -61,15 +54,19 @@ void Term::set_baud_rate(unsigned long rate) {
 	}
 }
 
+void Term::start_server() {
 #ifdef BOARD_ESP32
 #ifdef WITH_WIFI
-void Term::start_server() {}
+
+	if (!this->terminal_server) {
+		this->terminal_server = WiFiServer(TERM_PORT);
+		this->terminal_server.begin();
+	}
 #endif
 #endif
+}
 
 void Term::set_output(uint8_t out) { out_device = out; }
-
-void Term::set_port(int port) { this->port = port; }
 
 int Term::readline() {
 	if (out_device == OUT_SERIAL) {
@@ -237,7 +234,7 @@ int Term::process() {
 		this->io_cursor = 0;
 		return 1;
 	}
-        term_mem(this->io_buffer);
+	term_mem(this->io_buffer);
 	process_list(this->io_buffer);
 	dos_check(this->io_buffer);
 	kprint("> ");
@@ -257,9 +254,8 @@ bool Term::wait_for_client() {
 	if (terminal_client.connected()) {
 		return true;
 	}
-	if (s && s.hasClient()) {
-		terminal_client = s.available();
-		this->set_port(23);
+	if (this->terminal_server && this->terminal_server.hasClient()) {
+		terminal_client = this->terminal_server.available();
 		this->set_output(OUT_WIFI);
 		kprint("Minik Terminal\n> ");
 		this->has_client = true;

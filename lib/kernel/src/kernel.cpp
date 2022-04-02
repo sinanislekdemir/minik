@@ -9,6 +9,7 @@ volatile int kernel_bt_lock;
 int kernel_next_pid;
 
 extern StatusEngine status_engine;
+extern Term main_term;
 
 #ifdef BOARD_ESP32
 TaskHandle_t task_handles[CORES];
@@ -47,6 +48,8 @@ int kmain() {
 	init_drivers();
 	print_status();
 	Serial.println("Send a few bytes to start terminal on Serial");
+	main_term = Term();
+	main_term.start_server();
 
 #ifdef BOARD_ESP32
 	char core_id[2] = {0};
