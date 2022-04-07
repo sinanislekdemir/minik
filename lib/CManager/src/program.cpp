@@ -3,12 +3,12 @@
 #include "interpreter.hpp"
 #include "statement.hpp"
 
-sub _subs[MAX_SUBS];
+sub _subs[MAX_SUBS] = {0};
 extern command commands[MAX_CMDS];
 extern constant _constants[];
 
 int next_sub() {
-	for (unsigned short i = 0; i < MAX_SUBS; i++) {
+	for (unsigned int i = 0; i < MAX_SUBS; i++) {
 		if (_subs[i].pid == 0) {
 			return i;
 		}
@@ -16,7 +16,7 @@ int next_sub() {
 	return -1;
 }
 
-int sub_command_count(short sub) {
+int sub_command_count(int sub) {
 	for (unsigned int i = 0; i < MAX_SUB_COMMANDS; i++) {
 		if (_subs[sub].commands[i] == -1) {
 			return i;
@@ -34,7 +34,7 @@ int next_command_index() {
 	return -1;
 }
 
-int sub_next_command(short sub) {
+int sub_next_command(int sub) {
 	for (unsigned int i = 0; i < MAX_SUB_COMMANDS; i++) {
 		if (_subs[sub].commands[i] == -1) {
 			return i;
@@ -81,7 +81,6 @@ void program::register_interrupt(int pin, int state, char routine) {
 }
 
 void program::destroy() {
-
 	for (unsigned int i = 0; i < PROG_SUBS; i++) {
 		_subs[this->subs[i]].pid = 0;
 		_subs[this->subs[i]].cursor = 0;
@@ -126,7 +125,7 @@ void program::destroy() {
 
 void program::set_cmp_flag(unsigned int flag) { this->_cmp_flag = flag; }
 
-short program::find_sub(char *name) {
+int program::find_sub(char *name) {
 	for (unsigned int i = 0; i < PROG_SUBS; i++) {
 		if (strcmp(_subs[this->subs[i]].name, name) == 0 && _subs[this->subs[i]].pid == this->pid) {
 			return i;
@@ -135,8 +134,8 @@ short program::find_sub(char *name) {
 	return -1;
 }
 
-short program::pop_sub() {
-	short result;
+int program::pop_sub() {
+	int result;
 	for (unsigned int i = PROG_SUBS - 1; i >= 0; i--) {
 		if (this->back_sub_history[i] != -1) {
 			result = this->back_sub_history[i];
@@ -165,7 +164,7 @@ void program::sdump() {
 			Serial.println(subx);
 			Serial.print("Sub: ");
 			Serial.println(_subs[subx].name);
-			for (short j = 0; j < _subs[subx].command_count; j++) {
+			for (int j = 0; j < _subs[subx].command_count; j++) {
 				int cmdx = _subs[subx].commands[j];
 				Serial.print("  Cursor index: ");
 				Serial.print(j);
@@ -191,7 +190,7 @@ void program::sdump() {
 	}
 }
 
-void program::append_to_history(unsigned short cursor, unsigned short instruction) {
+void program::append_to_history(unsigned int cursor, unsigned int instruction) {
 	for (unsigned int i = 0; i < PROG_SUBS; i++) {
 		if (this->back_sub_history[i] == -1) {
 			this->back_sub_history[i] = cursor;
@@ -249,7 +248,7 @@ int program::step() {
 	if (result == -1) {
 		// TODO: raise
 		// Check if program has an exception handler
-		short handle_sub = this->find_sub((char *)"on_exception");
+		int handle_sub = this->find_sub((char *)"on_exception");
 		if (handle_sub > -1) {
 			this->cursor = handle_sub;
 			sub_index = this->subs[this->cursor];
@@ -268,7 +267,7 @@ int program::step() {
 	}
 	_subs[sub_index].cursor++;
 
-	if (_subs[sub_index].cursor >= (unsigned short)_subs[sub_index].command_count) {
+	if (_subs[sub_index].cursor >= (unsigned int)_subs[sub_index].command_count) {
 		this->pop_sub();
 		if (this->cursor == -1) {
 			return PROGRAM_HALT;
@@ -289,8 +288,8 @@ int program::compile(const char *line) {
 		if (n == -1) {
 			return -1;
 		}
-		short free_sub = -1;
-		for (unsigned short i = 0; i < PROG_SUBS; i++) {
+		int free_sub = -1;
+		for (unsigned int i = 0; i < PROG_SUBS; i++) {
 			if (this->subs[i] == -1) {
 				free_sub = i;
 				break;
@@ -304,10 +303,10 @@ int program::compile(const char *line) {
 		if (strcmp(line, "main:") == 0) {
 			this->cursor = this->_compile_cursor;
 		}
-		for (unsigned short i = 0; i < MAX_SUB_COMMANDS; i++) {
+		for (unsigned int i = 0; i < MAX_SUB_COMMANDS; i++) {
 			_subs[n].commands[i] = -1;
 		}
-		for (unsigned short i = 0; i < 16; i++) {
+		for (unsigned int i = 0; i < 16; i++) {
 			_subs[n].back_history[i] = -1;
 		}
 		_subs[n].pid = this->pid;
@@ -428,12 +427,12 @@ int program::parse(const char *cmd, unsigned int pid, int index) {
 		}
 
 		if (t == TYPE_ADDRESS) {
-			unsigned short loc = atoi(temp_buffer + 1);
+			unsigned int loc = atoi(temp_buffer + 1);
 			commands[index].variable_index[i] = loc; // unknown yet
 			commands[index].variable_constant[i] = 0;
 		}
 		if (t == TYPE_LABEL) {
-			short sub = this->find_sub(temp_buffer);
+			int sub = this->find_sub(temp_buffer);
 			if (sub == -1) {
 				error_msg("Sub not defined (yet)", 0);
 				return -1;

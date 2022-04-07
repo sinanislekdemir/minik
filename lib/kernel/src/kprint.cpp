@@ -1,29 +1,35 @@
 #include "kprint.hpp"
+#include "globals.hpp"
+#include <Arduino.h>
 
-uint8_t out_device;
-
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-#include <WiFi.h>
-extern WiFiClient terminal_client;
-#endif
-#endif
+extern KernelGlobals KGlobals;
 
 int kprint(const char *data) {
-	if (out_device == 0) {
+	int dev = KGlobals.get_out_device();
+	if (dev == OUT_SERIAL) {
 		Serial.print(data);
 	}
 
-	if (out_device == 2) {
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-		if (terminal_client.connected())
-			terminal_client.write(data, strlen(data));
-#endif
+	if (dev == OUT_WIFI) {
+#if defined(BOARD_ESP32) && defined(WITH_WIFI)
+		if (KGlobals.terminal_client.connected())
+			KGlobals.terminal_client.write(data, strlen(data));
 #endif
 	}
 #ifdef BOARD_ESP32
 	vTaskDelay(1);
 #endif
 	return 0;
+}
+
+int kprint(double data) {
+	char buffer[24] = {0};
+	dtostrf(data, 11, 8, buffer);
+	return kprint(buffer);
+}
+
+int kprint(int data) {
+	char buffer[24] = {0};
+	itoa(data, buffer, DEC);
+	return kprint(data);
 }

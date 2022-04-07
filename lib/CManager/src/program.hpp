@@ -21,11 +21,11 @@
 #include <Arduino.h>
 
 struct sub {
-	short back_history[16];
-	short commands[MAX_SUB_COMMANDS];
-	char name[24];
-	unsigned short cursor;
-	short command_count;
+	int back_history[16];
+	int commands[MAX_SUB_COMMANDS];
+	char name[16];
+	unsigned int cursor;
+	int command_count;
 	long pid;
 };
 
@@ -33,7 +33,7 @@ struct interrupt {
 	int pin;
 	int state;
 	bool triggered;
-	short routine;
+	int routine;
 };
 
 class program {
@@ -41,15 +41,15 @@ class program {
 	bool _serial_input;
 	char valid_sub_count;
 
-	short _compile_cursor;
+	int _compile_cursor;
 
 	int parse(const char *cmd, unsigned int pid, int index);
 
       public:
 	char _cmp_flag;
-	short back_sub_history[PROG_SUBS];
-	short cursor;
-	short subs[PROG_SUBS];
+	int back_sub_history[PROG_SUBS];
+	int cursor;
+	int subs[PROG_SUBS];
 	interrupt interrupts[8];
 
 	bool _sleep;
@@ -57,11 +57,11 @@ class program {
 	unsigned long _sleep_duration;
 	unsigned int core;
 
-	short find_sub(char *name);
-	void append_to_history(unsigned short cursor, unsigned short instruction);
+	int find_sub(char *name);
+	void append_to_history(unsigned int cursor, unsigned int instruction);
 	void register_interrupt(int pin, int state, char routine);
 	int check_interrupts();
-	short pop_sub();
+	int pop_sub();
 
 	long pid;
 	char status_code;

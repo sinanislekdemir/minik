@@ -2,33 +2,19 @@
 #include "constants.hpp"
 #include "dos.hpp"
 #include "eeprom.hpp"
+#include "globals.hpp"
 #include "kprint.hpp"
 #include "memory.hpp"
 #include "program.hpp"
 #include "ps.hpp"
-#include "status.hpp"
 #include "tasks.hpp"
 #include "term_mem.hpp"
 
-extern int kernel_next_pid;
 extern program programs[MAX_PROGRAM_COUNT];
-extern int serial_lock;
-extern uint8_t out_device;
 extern char active_directory[MAX_PATH_SIZE];
-extern bool WIFIReady;
-
-Term main_term;
-
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-#include <WiFi.h>
-WiFiClient terminal_client;
-#endif
-#endif
+extern KernelGlobals KGlobals;
 
 Term::Term() {
-	out_device = OUT_SERIAL;
-	this->baud_rate = 9600;
 	this->has_client = false;
 
 	this->_is_in_readline = false;
@@ -44,33 +30,23 @@ Term::Term() {
 
 Term::~Term() {}
 
-void Term::set_baud_rate(unsigned long rate) {
-	this->baud_rate = rate;
-	if (out_device == OUT_SERIAL) {
-		Serial.print("new-baud-rate: ");
-		Serial.println(rate);
-		Serial.end();
-		Serial.begin(rate);
-	}
-}
+void Term::set_baud_rate(unsigned long rate) {}
 
 void Term::start_server() {
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-
+#if defined(BOARD_ESP32) && defined(WITH_WIFI)
 	if (!this->terminal_server) {
 		this->terminal_server = WiFiServer(TERM_PORT);
-		this->terminal_server.begin();
+		this->terminal_server.begin(TERM_PORT);
 	}
-#endif
 #endif
 }
 
-void Term::set_output(uint8_t out) { out_device = out; }
+void Term::set_output(int out) { KGlobals.set_out_device(out); }
 
 int Term::readline() {
-	if (out_device == OUT_SERIAL) {
-		if (serial_lock > 0) {
+	int dev = KGlobals.get_out_device();
+	if (dev == OUT_SERIAL) {
+		if (!KGlobals.lock_acquired(0)) {
 			return 0;
 		}
 		if (!Serial.available()) {
@@ -87,12 +63,10 @@ int Term::readline() {
 		}
 		return 0;
 	}
-	if (out_device == OUT_WIFI) {
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-		terminal_client.readBytesUntil('\n', this->io_buffer, MAX_LINE_LENGTH);
+	if (dev == OUT_WIFI) {
+#if defined(BOARD_ESP32) && defined(WITH_WIFI)
+		KGlobals.terminal_client.readBytesUntil('\n', this->io_buffer, MAX_LINE_LENGTH);
 		return 1;
-#endif
 #endif
 	}
 	return 0;
@@ -116,62 +90,6 @@ void Term::append_program_buffer() {
 }
 
 int Term::process() {
-	if (this->boot_check) {
-		int epc = eeprom_program_count();
-		if (epc > 0) {
-			kprint("EEPROM programs found.\n");
-			kprint("Loading EEPROM in 5 seconds.\n");
-			kprint("Hit any key from Serial to abort auto-load\n");
-			bool abort = false;
-			unsigned long start = millis();
-			while (true) {
-				if (Serial.available()) {
-					abort = true;
-					break;
-				}
-				if (millis() - start > 5000) {
-					break;
-				}
-				delay(200);
-#ifdef BOARD_ESP32
-				vTaskDelay(1);
-#endif
-			}
-			if (abort) {
-				this->boot_check = false;
-				return 1;
-			}
-			char buffer[MAX_LINE_LENGTH] = {0};
-			for (unsigned int i = 0; i < epc; i++) {
-				programs[i].pid = kernel_next_pid++;
-				programs[i].status_code = PROGRAM_COMPILING;
-				programs[i].start_time = 0;
-				programs[i].end_time = 0;
-
-				while (true) {
-#ifdef BOARD_ESP32
-					vTaskDelay(1);
-#endif
-					memset(buffer, 0, MAX_LINE_LENGTH);
-					int read = eeprom_read_line(buffer);
-					kprint("eeprom: ");
-					kprint(buffer);
-					kprint("\n");
-					if (read == 0) {
-						programs[i].status_code = PROGRAM_RUNNING;
-						break;
-					}
-					if (read == -1) {
-						programs[i].pid = 0;
-						programs[i].status_code = PROGRAM_FREE;
-						break;
-					}
-					programs[i].compile(buffer);
-				}
-			}
-		}
-		this->boot_check = false;
-	}
 	if (!this->wait_for_client()) {
 		return 1;
 	}
@@ -184,7 +102,7 @@ int Term::process() {
 	}
 	if (this->programming_mode) {
 		if (strcmp(this->io_buffer, "eeprom") == 0) {
-			kprint("storing in eeprom");
+			kprint("storing in eeprom\n");
 			eeprom_start_program();
 			this->write_eeprom = true;
 			memset(this->io_buffer, 0, MAX_LINE_LENGTH);
@@ -220,7 +138,7 @@ int Term::process() {
 		kprint("End programming with a dot (.) as a single line\n");
 		kprint("ready to receive\n");
 		this->programming_mode = true;
-		this->tmp_pid = kernel_next_pid++;
+		this->tmp_pid = KGlobals.get_next_pid();
 		for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
 			if (programs[i].pid == 0) {
 				programs[i].set_pid(this->tmp_pid);
@@ -249,19 +167,19 @@ int Term::process() {
 }
 
 bool Term::wait_for_client() {
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-	if (terminal_client.connected()) {
+#if defined(BOARD_ESP32) && defined(WITH_WIFI)
+	if (KGlobals.terminal_client.connected()) {
+		this->set_output(OUT_WIFI);
 		return true;
 	}
 	if (this->terminal_server && this->terminal_server.hasClient()) {
-		terminal_client = this->terminal_server.available();
+		KGlobals.terminal_client = this->terminal_server.available();
 		this->set_output(OUT_WIFI);
 		kprint("Minik Terminal\n> ");
 		this->has_client = true;
 		return true;
 	}
-#endif
+
 #endif
 	if (Serial.available() && !this->has_client) {
 		this->has_client = true;
@@ -269,7 +187,7 @@ bool Term::wait_for_client() {
 		kprint("Minik Terminal\n> ");
 		return true;
 	}
-	if (out_device == OUT_SERIAL && !Serial) {
+	if (KGlobals.get_out_device() == OUT_SERIAL && !Serial) {
 		this->has_client = false;
 	}
 	return this->has_client;
@@ -277,16 +195,14 @@ bool Term::wait_for_client() {
 
 int Term::available() {
 	if (!this->has_client) {
-		return false;
+		return 0;
 	}
-	if (out_device == OUT_WIFI) {
-#ifdef BOARD_ESP32
-#ifdef WITH_WIFI
-		return terminal_client.available();
-#endif
+	if (KGlobals.get_out_device() == OUT_WIFI) {
+#if defined(BOARD_ESP32) && defined(WITH_WIFI)
+		return KGlobals.terminal_client.available();
 #endif
 	}
-	if (out_device == OUT_SERIAL) {
+	if (KGlobals.get_out_device() == OUT_SERIAL) {
 		return Serial.available();
 	}
 	return 0;

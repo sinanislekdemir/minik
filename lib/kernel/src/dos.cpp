@@ -1,11 +1,16 @@
 #include "dos.hpp"
+#include "globals.hpp"
 #include "kprint.hpp"
+#include "program.hpp"
+#include "tasks.hpp"
+
+extern program programs[MAX_PROGRAM_COUNT];
+extern KernelGlobals KGlobals;
+char active_directory[MAX_PATH_SIZE] = {0};
 
 #ifdef WITH_SDCARD
 #include <SD.h>
 #include <SPI.h>
-char active_directory[MAX_PATH_SIZE] = {0};
-#endif
 
 bool check_mount() {
 	if (strlen(active_directory) == 0) {
@@ -15,6 +20,8 @@ bool check_mount() {
 	}
 	return true;
 }
+
+#endif
 
 int dos_check(const char *io_buffer) {
 #ifdef WITH_SDCARD
@@ -29,13 +36,11 @@ int dos_check(const char *io_buffer) {
 		SD.end();
 		return 0;
 	}
-
 	if (strncmp(io_buffer, "rm ", 3) == 0) {
 		if (!check_mount()) {
 			return 0;
 		}
 		SD.begin();
-		char new_path[MAX_PATH_SIZE] = {0};
 		char path_name[32] = {0};
 		strcpy(path_name, io_buffer + 3);
 		bool check = SD.remove(path_name);
@@ -51,7 +56,6 @@ int dos_check(const char *io_buffer) {
 			return 0;
 		}
 		SD.begin();
-		char new_path[MAX_PATH_SIZE] = {0};
 		char path_name[32] = {0};
 		strcpy(path_name, io_buffer + 3);
 		bool check = SD.rmdir(path_name);
@@ -183,6 +187,60 @@ int dos_check(const char *io_buffer) {
 				memset(tmp, 0, 17);
 			}
 			kprint("\n");
+			f.close();
+		}
+	}
+	if (strncmp(io_buffer, "run ", 4) == 0) {
+		if (!check_mount()) {
+			return 0;
+		}
+		SD.begin();
+		char new_path[MAX_PATH_SIZE] = {0};
+		char path_name[32] = {0};
+		strcpy(path_name, io_buffer + 4);
+		if (path_name[0] == '/') {
+			memset(new_path, 0, MAX_PATH_SIZE);
+			strcat(new_path, path_name);
+		} else {
+			strcat(new_path, active_directory);
+
+			if (active_directory[strlen(active_directory) - 1] != '/') {
+				strcat(new_path, "/");
+			}
+
+			strcat(new_path, path_name);
+		}
+		File f = SD.open(new_path);
+		if (!f) {
+			kprint("File [");
+			kprint(new_path);
+			kprint("] does not exists");
+		} else {
+			int pindex = -1;
+			for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
+				if (programs[i].pid < 1) {
+					pindex = i;
+					programs[i].pid = KGlobals.get_next_pid();
+					programs[i].status_code = PROGRAM_COMPILING;
+					programs[i].start_time = 0;
+					programs[i].end_time = 0;
+					break;
+				}
+			}
+			if (pindex == -1) {
+				kprint("No program slots available\n");
+				return 0;
+			}
+			char buffer[MAX_LINE_LENGTH] = {0};
+			while (true) {
+				size_t b = f.readBytesUntil('\n', buffer, MAX_LINE_LENGTH);
+				if (b == 0) {
+					break;
+				}
+				programs[pindex].compile(buffer);
+				memset(buffer, 0, MAX_LINE_LENGTH);
+			}
+			programs[pindex].status_code = PROGRAM_RUNNING;
 			f.close();
 		}
 	}

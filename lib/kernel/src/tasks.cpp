@@ -1,19 +1,17 @@
 #include "tasks.hpp"
 #include "status.hpp"
 #include "term.hpp"
+#include "globals.hpp"
 
 int last_core = 0;
 
 // Deamons run on core 0
 program programs[MAX_PROGRAM_COUNT];
 extern sub _subs[MAX_SUBS];
+extern KernelGlobals KGlobals;
 
-extern Term main_term;
-extern StatusEngine status_engine;
 
 void init_cores() {
-	main_term = Term();
-	status_engine = StatusEngine();
 	for (unsigned int i = 0; i < MAX_PROGRAM_COUNT; i++) {
 		programs[i] = program();
 #ifdef BOARD_ESP32
@@ -50,11 +48,11 @@ int _next_core() {
 
 bool step_tasks(int core) {
 	if (core == 0) {
-		main_term.process();
+		KGlobals.main_terminal.process();
 #ifdef BOARD_ESP32
 		vTaskDelay(1);
 #endif
-		status_engine.process();
+		KGlobals.status_engine.process();
 #ifdef BOARD_ESP32
 		vTaskDelay(1);
 #endif

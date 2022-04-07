@@ -1,15 +1,10 @@
 #include "kernel.hpp"
+#include "boot.hpp"
 #include "drivers.hpp"
+#include "globals.hpp"
 #include "tasks.hpp"
-#include "term.hpp"
 
-volatile int serial_lock;
-volatile int kernel_wifi_lock;
-volatile int kernel_bt_lock;
-int kernel_next_pid;
-
-extern StatusEngine status_engine;
-extern Term main_term;
+KernelGlobals KGlobals;
 
 #ifdef BOARD_ESP32
 TaskHandle_t task_handles[CORES];
@@ -27,15 +22,17 @@ void core_run(void *_core) {
  */
 int kmain() {
 	Serial.begin(9600);
-
+        Serial.println("Register components");
 	register_statements();
+        Serial.println("Init cores");
 	init_cores();
-
-	status_engine.change_status_pin(STATUS_PIN);
-	status_engine.set_status(READY);
-
-	serial_lock = -1;
-	kernel_next_pid = 1;
+        Serial.println("Init kernel globals");
+	KGlobals = KernelGlobals();
+        Serial.println("Set status pin");
+	KGlobals.status_engine.change_status_pin(STATUS_PIN);
+	KGlobals.status_engine.set_status(READY);
+        Serial.println("Acquire kernel serial lock");
+	KGlobals.acquire_serial_lock(0);
 
 	Serial.print("Platform ");
 #ifdef BOARD_ESP32
@@ -45,11 +42,12 @@ int kmain() {
 	Serial.println("ATMEGA");
 #endif
 	Serial.println("Minik Kernel KMain");
+
 	init_drivers();
 	print_status();
+	minik_boot();
 	Serial.println("Send a few bytes to start terminal on Serial");
-	main_term = Term();
-	main_term.start_server();
+	KGlobals.main_terminal.start_server();
 
 #ifdef BOARD_ESP32
 	char core_id[2] = {0};
@@ -80,8 +78,8 @@ void stop() {
 		Serial.println(".shutdown.");
 	}
 #endif
-	status_engine.set_status(STOP);
+	KGlobals.status_engine.set_status(STOP);
 	while (1) {
-		status_engine.process();
+		KGlobals.status_engine.process();
 	}
 }

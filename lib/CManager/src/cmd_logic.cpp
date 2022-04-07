@@ -33,6 +33,9 @@ int _quick_jump(command c, program *p) {
  * @return int
  */
 int command_cmp(command c, program *p) {
+	char buffer1[MAX_LINE_LENGTH] = {0};
+	char buffer2[MAX_LINE_LENGTH] = {0};
+        double d1, d2;
 	p->set_cmp_flag(CMP_N);
 #ifndef DISABLE_EXCEPTIONS
 	if (c.arg_count != 2) {
@@ -43,8 +46,8 @@ int command_cmp(command c, program *p) {
 
 	if ((c.variable_type[0] == TYPE_ADDRESS && c.variable_type[1] == TYPE_NUM) ||
 	    (c.variable_type[1] == TYPE_ADDRESS && c.variable_type[0] == TYPE_NUM)) {
-		double d1 = get_double(c, 0);
-		double d2 = get_double(c, 1);
+		d1 = get_double(c, 0);
+		d2 = get_double(c, 1);
 		if (d1 == d2) {
 			p->set_cmp_flag(CMP_JE);
 		}
@@ -59,8 +62,6 @@ int command_cmp(command c, program *p) {
 
 	if ((c.variable_type[0] == TYPE_ADDRESS && c.variable_type[1] == TYPE_STR) ||
 	    (c.variable_type[1] == TYPE_ADDRESS && c.variable_type[0] == TYPE_STR)) {
-		char buffer1[MAX_LINE_LENGTH] = {0};
-		char buffer2[MAX_LINE_LENGTH] = {0};
 		get_string(c, 0, buffer1, 0);
 		get_string(c, 1, buffer2, 0);
 		if (strcmp(buffer1, buffer2) == 0) {
@@ -84,8 +85,8 @@ int command_cmp(command c, program *p) {
 	if (c.variable_type[0] == TYPE_ADDRESS) {
 		char type = area_type(c.variable_index[0]);
 		if (type == TYPE_NUM) {
-			double d1 = get_double(c, 0);
-			double d2 = get_double(c, 1);
+			d1 = get_double(c, 0);
+			d2 = get_double(c, 1);
 			if (d1 == d2) {
 				p->set_cmp_flag(CMP_JE);
 			}
@@ -110,8 +111,6 @@ int command_cmp(command c, program *p) {
 			}
 		}
 		if (type == TYPE_STR) {
-			char buffer1[MAX_LINE_LENGTH] = {0};
-			char buffer2[MAX_LINE_LENGTH] = {0};
 			get_string(c, 0, buffer1, 0);
 			get_string(c, 1, buffer2, 0);
 			if (strcmp(buffer1, buffer2) == 0) {
@@ -125,8 +124,8 @@ int command_cmp(command c, program *p) {
 	}
 
 	if (c.variable_type[0] == TYPE_NUM) {
-		double d1 = get_double(c, 0);
-		double d2 = get_double(c, 1);
+		d1 = get_double(c, 0);
+		d2 = get_double(c, 1);
 
 		if (d1 == d2) {
 			p->set_cmp_flag(CMP_JE);
@@ -141,8 +140,6 @@ int command_cmp(command c, program *p) {
 	}
 
 	if (c.variable_type[0] == TYPE_STR) {
-		char buffer1[MAX_LINE_LENGTH] = {0};
-		char buffer2[MAX_LINE_LENGTH] = {0};
 		get_string(c, 0, buffer1, 0);
 		get_string(c, 1, buffer2, 0);
 		if (strcmp(buffer1, buffer2) == 0) {

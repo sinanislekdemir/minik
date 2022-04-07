@@ -7,7 +7,6 @@
 #include <SPI.h>
 
 uint8_t ss_pin = 0;
-extern int kernel_next_pid;
 
 int sdcard(program *_p) {
 	unsigned int pid = _p->pid;

@@ -10,13 +10,9 @@
 #include <Arduino.h>
 
 char _memory_area[MAX_MEM] = {0};
-_protected _protected_memory[64] = {0};
-char _last_err[MAX_LINE_LENGTH] = {0};
+char _last_err[48] = {0};
 
 int init_mem() {
-	for (unsigned short i = 0; i < 64; i++) {
-		_protected_memory[i].pid = -1;
-	}
 	return 0;
 }
 
@@ -24,11 +20,6 @@ void free_program(char pid) {
 	if (pid == 0) {
 		// 0 is reserved pid;
 		return;
-	}
-	for (unsigned short i = 0; i < 64; i++) {
-		if (_protected_memory[i].pid == pid) {
-			_protected_memory[i].pid = -1;
-		}
 	}
 }
 

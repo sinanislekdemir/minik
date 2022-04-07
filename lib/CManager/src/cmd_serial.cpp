@@ -1,9 +1,10 @@
 #include "cmd_serial.hpp"
 #include "constants.hpp"
 #include "helpers.hpp"
+#include "globals.hpp"
 #include <Arduino.h>
 
-extern int serial_lock;
+extern KernelGlobals KGlobals;
 
 bool _breaker(char c) { return c == '\n'; }
 bool _ignore(char c) { return (c < 32); }
@@ -97,13 +98,9 @@ int command_getln(command c, program *p) {
 
 	char buffer[MAX_LINE_LENGTH] = {0};
 
-	while (serial_lock > 0) {
-		delay(100); // wait for the lock
-	}
-
-	serial_lock = p->pid;
+        KGlobals.acquire_serial_lock(p->pid);
 	_serial_getline(buffer, buf_size);
-	serial_lock = -1;
+        KGlobals.release_serial_lock();
 
 	return write_area(c.variable_index[0], buffer, buf_size);
 }

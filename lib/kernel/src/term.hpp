@@ -1,10 +1,6 @@
 #ifndef _kernel_term_hpp
 #define _kernel_term_hpp
 
-#define OUT_SERIAL 0
-#define OUT_BT 1
-#define OUT_WIFI 2
-
 #define MODE_TERM 0
 #define MODE_PROGRAM 1
 #define TERM_PORT 23
@@ -47,7 +43,7 @@ class Term {
 	~Term();
 	int process();
 	void set_baud_rate(unsigned long rate);
-	void set_output(uint8_t out);
+	void set_output(int out);
 	void set_port(int port);
 	void start_server();
 	// wait for client to connect;

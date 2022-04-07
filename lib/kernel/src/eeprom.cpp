@@ -1,4 +1,5 @@
 #include "eeprom.hpp"
+#include "kprint.hpp"
 #include <Arduino.h>
 #include <EEPROM.h>
 
@@ -40,9 +41,10 @@ int eeprom_clean() {
 #ifdef BOARD_ESP32
 		EEPROM.commit();
 #endif
-		Serial.print(i);
-		Serial.print("/");
-		Serial.println(EEPROM_SIZE);
+		kprint(int(i));
+		kprint("/");
+		kprint(EEPROM_SIZE);
+		kprint("\n");
 #ifdef BOARD_ESP32
 		vTaskDelay(1);
 #endif

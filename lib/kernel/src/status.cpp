@@ -1,4 +1,5 @@
 #include "status.hpp"
+#include "tasks.hpp"
 #include <EEPROM.h>
 
 StatusEngine status_engine;
@@ -14,11 +15,21 @@ void StatusEngine::change_status_pin(int pin) {
 }
 
 int print_status() {
+	int void_size = sizeof(void *);
 	Serial.println("Chip stats");
 	Serial.print("  free ram: ");
 	Serial.println(free_ram());
 	Serial.print("  eeprom size: ");
 	Serial.println(EEPROM.length());
+	Serial.print("  chip architecture: ");
+	if (void_size == 4) {
+		Serial.println("32 bits");
+	}
+	if (void_size == 2) {
+		Serial.println("8 bits");
+	}
+	Serial.print("   size sub: ");
+	Serial.println(sizeof(int));
 	int free_eeprom = 0;
 	for (unsigned int i = 0; i < EEPROM.length(); i++) {
 		if (EEPROM.read(i) == 0) {
